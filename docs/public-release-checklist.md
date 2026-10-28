@@ -1,7 +1,9 @@
 # First public release gates — preparation only
 
 **Targets: Windows x64 NSIS + Linux x64 AppImage, deb optional.** No publication,
-push, tag, external CI run or system installation is authorized by this checklist.
+tag or system installation is authorized by this checklist. User separately
+authorized a private source repository/push and GitHub Actions for testing; see
+[private builds](private-builds.md). This is not public-release permission.
 Current source: plugin0.8077 / pipeline0.5389 / web0.7.22 / desktop0.1.9.
 User confirms0.1.7 Wayland repair and0.1.8 bd45 installation.0.1.9 adds the
 reachable active/last log; no new native map feature or automatic retry.
@@ -45,7 +47,10 @@ requiredGLIBC2.44; it is a reference, not the current release candidate.
 
 1. **Windows build and real execution.** Target-specific PE/media inventories,
    scoped DLL loading and NSIS/WebView2 config exist, but no native Windows helper,
-   window, source-built media or installer has been tested. No external CI started.
+   window, source-built media or installer has passed native Windows validation.
+   Private Actions is now authorized and started. The first Linux source-only
+   run passed810tests/113skips; plugin setup stopped on missing llvm-ar, now fixed.
+   Windows success is pending; configuration tests alone still do not prove it.
 2. **Complete license/source closure.** The baseline helper audit inventories
    18Python metadata sets, not a complete SBOM/legal approval. fsb5-1.0's missing
    notice is now recovered from an exact-source upstream commit, bundled with
@@ -85,7 +90,7 @@ requiredGLIBC2.44; it is a reference, not the current release candidate.
 Static audits explicitly keep legal/clean-machine approval false. Baseline userspace
 success is meaningful progress, not authorization or readiness to publish.
 
-Latest full host validation:1595passed124skipped with1inherited Starlette warning;
+Latest complete local host validation:1617passed127skipped with1inherited Starlette warning;
 seven Rust release tests pass. Actual-image synthetic prior-state restart retains
 settings/paused pending/history/older runtime/local recovery. This adds a real
 artifact-level preservation check, not a full installer-upgrade/uninstall claim.
