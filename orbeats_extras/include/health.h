@@ -4,10 +4,13 @@
 #include <stdint.h>
 #include <string.h>
 namespace OrBeatsExtras {
-static const char kVersion[]="0.0001";
+static const char kVersion[]="0.0003";
+// Missing file hides the warning. An explicit SHOW token restores normal startup.
 static const char kOptIn[]="ORBEATS_EXTRAS_HEALTH_V1\n";
+static const char kShowHealth[]="ORBEATS_EXTRAS_SHOW_HEALTH_V1\n";
 inline bool enabled(const unsigned char* bytes,size_t count) {
-    return bytes && count==sizeof(kOptIn)-1 && !memcmp(bytes,kOptIn,count);
+    if(!bytes)return count==0; // Caller passes NULL only for confirmed ENOENT.
+    return count==sizeof(kOptIn)-1 && !memcmp(bytes,kOptIn,count);
 }
 inline uint64_t fnv(const unsigned char* p,size_t n) {
     uint64_t h=UINT64_C(14695981039346656037);

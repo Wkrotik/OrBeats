@@ -13,15 +13,17 @@ endif
 all: $(TARGET)
 $(INTDIR):
 	mkdir -p $@
-OBJECTS := $(INTDIR)/main.o $(INTDIR)/scoresaber.o $(INTDIR)/cJSON.o
+OBJECTS := $(INTDIR)/main.o $(INTDIR)/scoresaber.o $(INTDIR)/transport.o $(INTDIR)/cJSON.o
 $(INTDIR)/main.o: src/main.cpp include/health.h | $(INTDIR)
 	clang++ $(CXXFLAGS) -o $@ $<
 $(INTDIR)/scoresaber.o: src/scoresaber.cpp include/scoresaber.h third_party/cjson/cJSON.h | $(INTDIR)
 	clang++ $(CXXFLAGS) -o $@ $<
+$(INTDIR)/transport.o: src/transport.cpp include/transport.h include/scoresaber.h include/ps4_http.h | $(INTDIR)
+	clang++ $(CXXFLAGS) -o $@ $<
 $(INTDIR)/cJSON.o: third_party/cjson/cJSON.c third_party/cjson/cJSON.h | $(INTDIR)
 	clang $(CXXFLAGS) -DCJSON_NESTING_LIMIT=16 -fvisibility=hidden -o $@ $<
 $(TARGET): $(OBJECTS) ../orbeats/link.x
-	ld.lld -m elf_x86_64 -pie -e _init --script ../orbeats/link.x --eh-frame-hdr -L$(TOOLCHAIN)/lib $(TOOLCHAIN)/lib/crtprx.o $(OBJECTS) -lGoldHEN_Hook -lSceLibcInternal -lkernel -o $(INTDIR)/orbeats_extras.elf
+	ld.lld -m elf_x86_64 -pie -e _init --script ../orbeats/link.x --eh-frame-hdr -L$(TOOLCHAIN)/lib $(TOOLCHAIN)/lib/crtprx.o $(OBJECTS) -lGoldHEN_Hook -lSceLibcInternal -lkernel -lSceNet -lSceSsl -lSceHttp -lSceSysmodule -o $(INTDIR)/orbeats_extras.elf
 	$(TOOLCHAIN)/bin/linux/create-fself -in=$(INTDIR)/orbeats_extras.elf -out=$(INTDIR)/orbeats_extras.oelf --lib=$(TARGET) --paid 0x3800000000000011
 clean:
 	rm -f $(TARGET) $(OBJECTS) $(INTDIR)/orbeats_extras.elf $(INTDIR)/orbeats_extras.oelf

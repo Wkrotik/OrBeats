@@ -133,7 +133,11 @@ static void reset(){
 int main(){
  assert(enabled((const unsigned char*)kOptIn,sizeof(kOptIn)-1));
  assert(!enabled((const unsigned char*)kOptIn,sizeof(kOptIn)));
- assert(!enabled(NULL,0));
+ assert(enabled(NULL,0)); // Missing file hides only the health warning by default.
+ assert(!enabled(NULL,1));
+ assert(!enabled((const unsigned char*)"",0));
+ assert(!enabled((const unsigned char*)kShowHealth,sizeof(kShowHealth)-1));
+ assert(!enabled((const unsigned char*)"invalid",7));
  reset();assert(prepare_health(a,true,&flow,&health));
  assert(health.bytes[0xb8]==0);float duration;memcpy(&duration,health.bytes+0x88,4);assert(duration==0.25f);
  reset();Object before=health;assert(!prepare_health(a,false,&flow,&health));assert(!memcmp(&before,&health,sizeof(health)));

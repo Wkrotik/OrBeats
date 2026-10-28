@@ -1,4 +1,5 @@
 #include <orbis/libkernel.h>
+#include <orbis/_types/errors.h>
 #include <GoldHEN/Detour.h>
 #include <fcntl.h>
 #include <stdint.h>
@@ -9,7 +10,7 @@
 namespace {
 using namespace OrBeatsExtras;
 static Detour hook;
-static bool installed=false,opt_in=false;
+static bool installed=false,skip_health=false;
 static Api api={};
 static OrbisKernelModule handle=0;
 static OrbisKernelModuleInfo module={};
@@ -47,12 +48,14 @@ static bool find_module() {
 }
 static void* resolve_hook(void* self,const void* method) {
     void* selected=Detour_Stub(&hook,void*(*)(void*,const void*),self,method);
-    if(prepare_health(api,opt_in,self,selected))log("health-only native auto-dismiss armed");
+    if(prepare_health(api,skip_health,self,selected))log("health-only native auto-dismiss armed");
     return selected;
 }
-static bool read_opt_in() {
-    unsigned char data[sizeof(kOptIn)+1];size_t total=0;
-    int fd=sceKernelOpen(kConfig,O_RDONLY,0);if(fd<0)return false;
+static bool read_skip_health() {
+    unsigned char data[sizeof(kShowHealth)+1];size_t total=0;
+    int fd=sceKernelOpen(kConfig,O_RDONLY,0);
+    if(fd==(int)ORBIS_KERNEL_ERROR_ENOENT)return enabled(NULL,0);
+    if(fd<0){log("health setting unreadable; preserving ordinary warning");return false;}
     int64_t n=0;
     while(total<sizeof(data) && (n=sceKernelRead(fd,data+total,sizeof(data)-total))>0)total+=(size_t)n;
     int closed=sceKernelClose(fd);
@@ -62,9 +65,9 @@ static bool read_opt_in() {
 extern "C" int module_start(size_t argc,const void* args) {
     (void)argc;(void)args;
     if(installed)return 0;
-    log("OrBeats Extras 0.0002: health prototype; leaderboard not yet integrated");
-    opt_in=read_opt_in();
-    if(!opt_in){log("health opt-in missing/invalid; no hooks installed");return 0;}
+    log("OrBeats Extras 0.0003: health warning hidden by default; leaderboard not yet integrated");
+    skip_health=read_skip_health();
+    if(!skip_health){log("health warning kept by setting or invalid configuration; no health hook");return 0;}
     if(!find_module()){log("unique game module unavailable; no hooks installed");return 0;}
     uintptr_t base=(uintptr_t)module.segmentInfo[0].address;
     for(size_t i=0;i<sizeof(kCode)/sizeof(kCode[0]);++i){

@@ -2,7 +2,7 @@
 
 Separate GoldHEN plugin for **CUSA12878 / patch 2.04**. It does not replace
 OrBeats, redirect song files, manage the library, upload scores or authenticate
-users. Version **0.0002** is local development, not a deployed/public release.
+users. Version **0.0003** is local development, not a deployed/public release.
 
 ## Implemented locally
 
@@ -11,9 +11,13 @@ users. Version **0.0002** is local development, not a deployed/public release.
   only an identified health view's interaction flag and duration are adjusted to
   let its own native coroutine complete after 0.25 seconds. No direct agreement
   completion callbacks, recenter/tracking hooks or whole-coordinator bypass.
-- Default **off**. The exact opt-in file `/data/GoldHEN/plugins/orbeats-extras-health.txt`
-  must contain `ORBEATS_EXTRAS_HEALTH_V1` followed by a single newline. This file
-  is not created automatically. Missing, malformed or extra bytes disable the hook.
+- The health warning is **hidden by default when Extras is enabled**. A confirmed
+  missing `/data/GoldHEN/plugins/orbeats-extras-health.txt` selects the health-only
+  auto-dismiss hook. To show the ordinary warning, put exactly
+  `ORBEATS_EXTRAS_SHOW_HEALTH_V1` and a single newline in that file. The older
+  `ORBEATS_EXTRAS_HEALTH_V1` token still requests skipping. Unreadable, malformed,
+  empty or extra-byte settings preserve the ordinary warning. Files are never
+  created or changed automatically. There is no settings UI yet.
 - Required game module, RX code, exact classes/field offsets and expected initial
   view state are checked before patching/mutation. Existing conflicting hooks
   cause a refusal. No retained managed objects or background Unity calls.
@@ -33,14 +37,32 @@ users. Version **0.0002** is local development, not a deployed/public release.
   512 KiB response cap and nesting limit 16. Source hashes and the unchanged
   upstream license are in `third_party/cjson`.
 
-**Not implemented yet:** native console HTTPS/cache, source-map SHA1 exchange
+- A native, blocking **worker-thread-only HTTPS transport**, linked but not yet
+  invoked from game callbacks. It fetches up to 100 Standard-chart scores using
+  separate owned Net pools/SSL/HTTP contexts. It explicitly enables server,
+  hostname, CA and certificate-date verification plus SNI; it never installs a
+  certificate-accept callback. Cookies, redirects, authentication, compressed
+  responses and resolver retries are disabled. Non-200, missing boards, rate
+  limits, failed reads and malformed pages do not become an empty leaderboard.
+  Responses are capped at 512 KiB; cancellation is cooperative between platform
+  calls, with per-phase timeouts and a 30-second overall deadline check. A blocked
+  platform call cannot be instantly cancelled. No Unity APIs are used here.
+
+**Not implemented yet:** native worker/cache, source-map SHA1 exchange
 with OrBeats, selected-chart lifecycle, leaderboard rendering and an Extras menu.
 The native plugin does not claim or display a working ScoreSaber leaderboard.
-The Python probe is not a substitute for the required console transport.
+The Python probe and fake-platform transport tests are not proof of PS4 HTTPS
+compatibility. Platform CA age, firmware TLS support and console clock can still
+make a real request fail; verification must never be disabled to work around that.
 
 ## Validation and limits
 
-Synthetic native health and score-decoding guards run with AddressSanitizer/UBSan.
+Synthetic native health, score-decoding and actual transport code run with
+AddressSanitizer/UBSan. Transport tests fake only the PS4 imports: every acquired
+context/request must be released on success, API failure, cancellation, timeout,
+oversized response and inconsistent pages. They also assert HTTPS verification
+flags, headers, exact destination, disabled auth/cookies/redirects, phase timeouts
+and no partial result publication.
 Native score tests include 50/100-row assembly, UTF-8 names, duplicate schema keys,
 invalid types, oversized/deep responses and failed-page output clearing. Captured
 public ScoreSaber pages 2 and 9 also pass the same production C++ decoder; this is
@@ -54,6 +76,14 @@ export OO_PS4_TOOLCHAIN="$PWD/.tools/openorbis/OpenOrbis/PS4Toolchain"
 make -C orbeats_extras
 make -C orbeats_extras DEBUG=1
 ```
+
+The narrow declarations in `include/ps4_http.h` are needed because the pinned
+OpenOrbis headers have `void()` placeholders for several real setters and
+`sceSslTerm`. Signatures/constants were cross-checked against OpenOrbis Net/Http/
+Sysmodule headers, [flatz/ps4_remote_pkg_installer](https://github.com/flatz/ps4_remote_pkg_installer)
+(`installer/source/http.c`) and
+[shadPS4's HTTP declarations](https://github.com/shadps4-emu/shadPS4/blob/main/src/core/libraries/network/http.h).
+No implementation code from those projects is copied.
 
 This is **not hardware-verified**. In particular, whether the warning duration is
 reassigned after controller resolution, whether its native auto-dismiss coroutine

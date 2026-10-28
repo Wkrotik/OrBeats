@@ -21,6 +21,7 @@
     "tests/test_exp264_verify_size_scope.py",
     "tests/test_exp283d_preview_metadata_order.py",
     "tests/test_extras_native_scores.py",
+    "tests/test_extras_transport.py",
     "tests/test_hevag_audio_compatibility.py",
     "tests/test_hevag_encoder.py",
     "tests/test_il2cpp_dump_runner.py",
