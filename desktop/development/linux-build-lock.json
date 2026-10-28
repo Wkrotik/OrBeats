@@ -1,0 +1,37 @@
+[
+  {
+    "name": "enchant",
+    "version": "2.8.21-1",
+    "filename": "enchant-2.8.21-1-x86_64.pkg.tar.zst",
+    "sha256sum": "019efd404da395c3d0c4e8a1aa15ced72d340b1b9f18900a538e13d8f917c75e",
+    "pgpsig": "iQIzBAABCgAdFiEExdKm4O0tEcZrn6KjBjE5EQV91agFAmqegYUACgkQBjE5EQV91ahGvg/+I6FdQBl50n7I3K0YFc8PlKsYhOZDZqC2JOGiiq8hrjAQ1fYQqZ0y94mhgyuX2x/4w+btuHE3Pbqm4CNXkqoJXrmrPsP04qHYJHEs6HY0Bmxr7RVDRm2HRpfpPkbG6A6taowEy8hhnM/Qt204GJ0I4zTcN1LcYmOtvB55/sXx/EPZqX4u6soNhge5ow/w9l07ftQvHODIUQgJdY+0x8DPqufFmTUYBUr8Y4dggEorpdIZA0fletrDfZp9Mh4z7P/Gi29OJY10lcb5i+7p/OO9A2PTMMVcjYDiFvkGIZSEKQBu5xmgWWerl3cka07IQ7aFPb4chNBk7JavMSNiNher2cNfH+pAd3qJH5rN/7p+PFzzcunceqP8s8j+7TOHJTEaXkUfEvvb27MWkqldBsPaOGLiTP0wrs6f6BaLR/qKSBkmhbjQxzglmXr9lsif1wzDcbtsidudmJad81pZGi77IT/t1xWoCHOFLMPiTgQEIRh442Hl8oyP7N2Bgo5H9Kt88Lbduf8pFF7WhhdhQMgiuMvS/8synFy8RbqecgqUuZYmEUluj5w+Ic3lYNifbMm+Ou9BC1gjLiLeehMxbFwnqjYDNl6IubqBItGogWQlmRh9rGJ2j8jl+0ysfn68P59y/ciFbK8dIlKZHMFG4V4KkCxmgKin2bCdyTUOAvveoXU="
+  },
+  {
+    "name": "libmanette",
+    "version": "0.2.13-2",
+    "filename": "libmanette-0.2.13-2-x86_64.pkg.tar.zst",
+    "sha256sum": "37ff8274c77c8092ee5b30e34e53533157e18ead998670a21fa3ae7d67355932",
+    "pgpsig": "iQIzBAABCgAdFiEEFORv5f1p8uKH4kTbYyw8wNHJyvYFAmm9glEACgkQYyw8wNHJyvbmRg/8CFllKZ6e8mXuKwARnL7SCn/4++26V8g7SmLIdloEpnJk0TvCC+RtRrjV6KRlnzh+6bgNaBr/T0X4ogW1Ubb5tdQQdl/Xb9OBvss/jtEjG1CZKtYLUYd28Z0QOlKaiwjVsQFxkd+w9TCiQMWQOkYHjcC59VhNFu1vN90OoZ2GT6JFZ7bz9YMVgNfWnwdJevh1IqDffBMj0jI5TpflJmgCq5qvXjHvXUjOSpmDnXi+23MWN3uiGDdcxdkM4Je21yvzQpBcvzSY/yy8FHz3eoS3epgSzD77K7LUTPa7+PdP3IThbyVbBrce8nScvo9bVdig46yN4T8lxRSpPv7Ip9Yb4Qe+A7E6BQ/o7BNs0l0Aqg13kVd/BNg9BB+KuRleWgoQH3J5nDVQtl+xPKcJ33a95tTWVCt55EbXUEudGkJWxcsVtNZHP18QQWXhg9ZeSkxGBunMemizYKbhofaUTAAei1PyTN9EPS7QC8PoH6Wk+KhUF65A3JHXXGDIEug2NMrF6DJQ28xDiAoOxgnza0FDnDzGTaxTgQ+Zlg+OQWgAN5NoidKKtJ0A7NOHtTRG/sEBd2Ju9x+onJc0ymPM13CiNg1bvoAMOAr9cVrL38+AcN0jIrOnPTHf1ah8SLNWd5frykDGE9i342rCw8mHxFOsUNIyB+m3En2X0hZUVb7vT/I="
+  },
+  {
+    "name": "webkit2gtk-4.1",
+    "version": "2.54.2-1",
+    "filename": "webkit2gtk-4.1-2.54.2-1-x86_64.pkg.tar.zst",
+    "sha256sum": "afabc402ad1a9861871fb84c207de0a524a9059f1cf54becc3d1cd59bda823f1",
+    "pgpsig": "iHUEABYKAB0WIQSDvIiJNRtd67toQW64rAhgDxCM3wUCatuIsQAKCRC4rAhgDxCM39HAAP9j5kTJvOgnFNKtaRX+g3AiyQtcnSbEZ03faf3/Qt2iigEA6pb6Xq2+WvUra7BoQK46u1RF4Y/Kn3oN1tWCxkWKnAY="
+  },
+  {
+    "name": "woff2",
+    "version": "1.0.2-7",
+    "filename": "woff2-1.0.2-7-x86_64.pkg.tar.zst",
+    "sha256sum": "49679d0375b2cd13677b5757073e167e54a82e4e01e4b588f55f13a0c1bfbe57",
+    "pgpsig": "iHUEABYKAB0WIQSDvIiJNRtd67toQW64rAhgDxCM3wUCatUo5wAKCRC4rAhgDxCM302vAQDRLNDyRFx2SGtBOqfEOc4gbRmzyuSc0Azl9gn4nZBV7QD9H0l3bZH/TTnlYy0Vn+vcaReBR4f3UrngerCc3tBVLwk="
+  },
+  {
+    "name": "xorg-server-xvfb",
+    "version": "21.1.25-2",
+    "filename": "xorg-server-xvfb-21.1.25-2-x86_64.pkg.tar.zst",
+    "sha256sum": "52c6d0394109b0bdfd0e4d00dd8d89d7e38bfe7576d96145179f216480eb7564",
+    "pgpsig": "iQEzBAABCgAdFiEErcih/MFeAdRTEEGelGV6sg8qCSsFAmrP2BkACgkQlGV6sg8qCSudtAf+O7SsscH0nLecPtsacbvsxDvugEweVj75Z6XH+ZUAxXobPUPGM4UptndMAUALNwGxg0wccj6rCpb6D/BylqLtCvLoeC0EEZ1kCEnsHTMFMlsTboB7fiuUsAlPvVBiDrNaMbIeRrehA4QQSve7yp/0byMMDmxT5D5GvCS7d+Vvb49IKhgix9iKTwzZQTWNS1HX6WpRdlADOoutlUgmV6CB9DI+j5KOICDsmYDx8XRkXhL6T+xipTRXH5o4EshD1/Y/FdmcSD38bX9WVyZ3MWvu4SZWlWs55fTfX7eBrX5m+xxwpwzjFmWS6ZxbdD9DcNtSJB3oF57M7f93WZ1XeQs2Kg=="
+  }
+]

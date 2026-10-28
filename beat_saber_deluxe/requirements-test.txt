@@ -1,0 +1,29 @@
+# Test dependencies for Beat Saber Deluxe
+pytest>=9.0
+pytest-cov>=5.0
+coverage>=7.0
+# Pinned (Exp 271b): unpinned ruff drifted CI onto a brand-new 0.17.0 with
+# stricter import-sorting while local dev ran 0.16.0 — "passed locally,
+# failed remotely". Pin both to the same line; bump deliberately.
+ruff==0.16.0
+
+# Runtime dependencies (needed for import testing)
+UnityPy>=1.20
+soundfile>=0.12
+numpy>=1.24
+
+# Web app (webapp/ + its tests: server.py imports fastapi/uvicorn at module
+# load; the endpoint tests use TestClient which needs httpx)
+fastapi>=0.110
+uvicorn>=0.29
+httpx>=0.27
+# Multipart form parsing — the Pick-a-Song tab's zip/audio uploads
+# (FastAPI's UploadFile needs it at runtime; also required by the release zip)
+python-multipart>=0.0.9
+# Full-modern-syntax JS parser — app.js syntax gate (Exp 283: a template
+# literal typo shipped past every test; the browser runs NOTHING on a parse
+# error, so this is the webapp's only front-end breakage gate)
+quickjs>=1.19
+# FSB5 container parser — the song-previews tests roundtrip-verify our preview FSB5s
+# against an independent decoder
+fsb5>=1.0

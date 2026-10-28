@@ -1,0 +1,66 @@
+
+*.pyc
+*.so
+*.dll
+*.dylib
+.agent/llm-wiki-knowledge-base/.obsidian/
+.ai_working/
+il2cpp_output/
+dotnet/
+Il2CppDumper/
+*.zip
+.claude_config/
+.claude_config_zen/
+.claude_persist/
+bak/
+# Private inputs/caches may remain after removing the obsolete tracked scaffold.
+beat-saber-ps4-custom-songs/
+beat_saber_deluxe/*.prx
+beat_saber_deluxe/beat_saber_deluxe/x64/Debug/
+beat_saber_deluxe/build/
+beat_saber_deluxe/custom_songs/
+beat_saber_deluxe/obj/
+beat_saber_deluxe/ps4_config.json
+beat_saber_deluxe/src/*.o
+beat_saber_deluxe/src/*.elf
+beat_saber_deluxe/src/*.oelf
+investigation/
+ps4_dump/
+rb4dx_installer/
+temp/
+.pr_temp/
+*.blob
+*.cab
+*.bundle
+beat_saber_deluxe/.coverage
+song_metadata.json
+ps4_backups/
+beat_saber_deluxe/webapp/webapp_state.json
+beat_saber_deluxe/webapp/batches/
+
+# M13: staged local songs (extracted map zips + the staging manifest) and
+# transient Beat Sage audio uploads — user content, never committed
+beat_saber_deluxe/webapp/staged_songs/
+beat_saber_deluxe/webapp/beatsage_uploads/
+
+# Additive local-development environment and native debug intermediates
+.venv/
+.tools/
+beat_saber_deluxe/obj-debug/
+
+# Tauri intermediates and private desktop state (never package the checkout).
+desktop/src-tauri/target/
+desktop/dist/
+desktop/.state/
+
+# Source-only publication export; original local history and diagnostics stay local.
+.publication/
+.agent/
+.ai_memory/
+.session_memory/
+CLAUDE.md
+.opencode/
+*.jsonl
+
+# Also ignore temporary development-venv symlinks in source exports.
+.venv

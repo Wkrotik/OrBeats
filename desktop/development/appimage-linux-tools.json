@@ -1,0 +1,35 @@
+{
+  "tauri_cli": "2.12.4",
+  "linuxdeploy_commit": "07333c6",
+  "note": "Build tools only, not release payload. GitHub published asset digests pinned; mutable URL content changes fail closed. Copy to working cache before Tauri mutates linuxdeploy bytes8..10.",
+  "assets": [
+    {
+      "name": "cargo-tauri-x86_64-unknown-linux-gnu.tgz",
+      "url": "https://github.com/tauri-apps/tauri/releases/download/tauri-cli-v2.12.4/cargo-tauri-x86_64-unknown-linux-gnu.tgz",
+      "sha256": "820ae3c7580ca637cad15f65638960ee2a96e5a491e224691c86d6f25e6c9e8a",
+      "asset_id": 662381754,
+      "bytes": 9038200
+    },
+    {
+      "name": "AppRun-x86_64",
+      "url": "https://github.com/tauri-apps/binary-releases/releases/download/apprun-old/AppRun-x86_64",
+      "sha256": "f30140a43a0a59e46db21bdefdf749b9e9f2c6946e92afabbacf98b8ae73fb4f",
+      "asset_id": 274691722,
+      "bytes": 31552
+    },
+    {
+      "name": "linuxdeploy-07333c6-x86_64.AppImage",
+      "url": "https://github.com/tauri-apps/binary-releases/releases/download/linuxdeploy-07333c6/linuxdeploy-x86_64.AppImage",
+      "sha256": "36a2d7e274d12e1050d0e9ecfe11d339ed54720b2bec464c286d53f8b07f5c62",
+      "asset_id": 576945544,
+      "bytes": 19810808
+    },
+    {
+      "name": "linuxdeploy-plugin-appimage.AppImage",
+      "url": "https://github.com/linuxdeploy/linuxdeploy-plugin-appimage/releases/download/continuous/linuxdeploy-plugin-appimage-x86_64.AppImage",
+      "sha256": "49d6a17160675a6bd1781699aae6bdf7692d98552e02a3671d2183d10547842e",
+      "asset_id": 602435573,
+      "bytes": 16488952
+    }
+  ]
+}

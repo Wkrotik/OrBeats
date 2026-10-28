@@ -1,0 +1,11 @@
+# Source-checkout companion runtime. FFmpeg must also be available on PATH.
+# Vorbis passthrough uses open-source libvorbis/libvorbisenc/libogg if present;
+# missing native codec libraries retain the PCM fallback, not a failed import.
+fsb5>=1.0
+UnityPy>=1.20
+soundfile>=0.12
+numpy>=1.24
+Pillow>=10
+fastapi>=0.110
+uvicorn>=0.29
+python-multipart>=0.0.9

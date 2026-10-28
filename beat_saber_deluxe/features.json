@@ -1,0 +1,9 @@
+{
+  "enable_plugin": true,
+  "enable_custom_song_replacements": true,
+  "enable_song_metadata_modification": true,
+  "enable_beatmap_mode_mapping": true,
+  "enable_song_previews": true,
+  "enable_in_game_plugin_toggle": true,
+  "enable_game_data_extractor": true
+}

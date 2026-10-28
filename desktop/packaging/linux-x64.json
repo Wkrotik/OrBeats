@@ -1,0 +1,25 @@
+{
+  "bundle": {
+    "active": true,
+    "targets": [
+      "appimage",
+      "deb"
+    ],
+    "createUpdaterArtifacts": false,
+    "linux": {
+      "deb": {
+        "depends": [
+          "libc6 (>= 2.35)",
+          "libgtk-3-0",
+          "libwebkit2gtk-4.1-0"
+        ]
+      },
+      "appimage": {
+        "bundleMediaFramework": true
+      }
+    },
+    "icon": [
+      "icons/icon.png"
+    ]
+  }
+}

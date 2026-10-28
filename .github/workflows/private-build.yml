@@ -1,0 +1,167 @@
+name: Private source and Windows candidate
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+permissions:
+  contents: read
+concurrency:
+  group: private-candidate-${{ github.ref }}
+  cancel-in-progress: false
+jobs:
+  source-and-plugin:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+        with:
+          persist-credentials: false
+      - uses: actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065
+        with:
+          python-version: '3.12'
+      - name: Host prerequisites (ephemeral hosted runner only)
+        run: sudo apt-get update && sudo apt-get install -y clang lld ffmpeg libogg0 libvorbis0a libvorbisenc2
+      - name: Declared source-only regression subset (no owned game fixtures)
+        run: |
+          mkdir -p temp/ci-reports
+          bash .devcontainer/setup_additive_host.sh
+          set -o pipefail
+          .venv/bin/python desktop/development/run_source_ci.py 2>&1 | tee temp/ci-reports/linux-tests.txt
+      - name: Pinned OpenOrbis and GoldHEN build
+        run: |
+          set -o pipefail
+          bash .devcontainer/setup_additive_toolchain.sh 2>&1 | tee temp/ci-reports/linux-plugin.txt
+          export OO_PS4_TOOLCHAIN="$PWD/.tools/openorbis/OpenOrbis/PS4Toolchain"
+          make -C beat_saber_deluxe clean
+          make -C beat_saber_deluxe -j2
+          python - <<'PY'
+          from pathlib import Path
+          p=Path('beat_saber_deluxe/orbeats.prx')
+          assert p.read_bytes()[:4] == bytes.fromhex('4f153d1d')
+          PY
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: native-plugin
+          path: beat_saber_deluxe/orbeats.prx
+          retention-days: 7
+          if-no-files-found: error
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        if: always()
+        with:
+          name: linux-ci-report
+          path: temp/ci-reports/*.txt
+          retention-days: 7
+  windows:
+    needs: source-and-plugin
+    runs-on: windows-2022
+    timeout-minutes: 70
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+        with:
+          persist-credentials: false
+      - uses: actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065
+        with:
+          python-version: '3.12'
+      - uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093
+        with:
+          name: native-plugin
+          path: beat_saber_deluxe
+      - uses: msys2/setup-msys2@ec48f7c5447b3140e2b088413ae3a55687bccb6e
+        with:
+          msystem: UCRT64
+          update: false
+          install: >-
+            mingw-w64-ucrt-x86_64-gcc mingw-w64-ucrt-x86_64-pkgconf
+            make diffutils patch tar xz curl gnupg python autoconf automake libtool
+      - name: Compile pinned FFmpeg/Ogg/Vorbis sources (no binary codec downloads)
+        shell: msys2 {0}
+        run: bash desktop/development/build_media_windows.sh temp/windows-media
+      - name: Windows Python environment and frozen payload
+        shell: pwsh
+        run: |
+          $ErrorActionPreference = 'Stop'
+          $PSNativeCommandUseErrorActionPreference = $true
+          New-Item -ItemType Directory -Force temp/ci-reports | Out-Null
+          try {
+            python -m venv .venv
+            .venv/Scripts/python -m pip install -r beat_saber_deluxe/requirements-companion.txt -r desktop/requirements-build.txt pytest httpx
+            .venv/Scripts/python desktop/freeze_backend.py --output temp/windows-frozen --media temp/windows-media/payload
+            .venv/Scripts/python desktop/development/smoke_windows_backend.py --helper temp/windows-frozen/dist/orbeats-backend/orbeats-backend.exe | Tee-Object temp/ci-reports/windows-backend.txt
+            .venv/Scripts/python desktop/packaging/stage_candidate.py --target windows-x64 --backend temp/windows-frozen/dist/orbeats-backend --output temp/windows-stage
+          } catch {
+            $_ | Out-String | Tee-Object -Append temp/ci-reports/windows-errors.txt
+            throw
+          }
+      - name: Pinned Rust and Tauri CLI
+        shell: pwsh
+        run: |
+          $ErrorActionPreference = 'Stop'
+          $PSNativeCommandUseErrorActionPreference = $true
+          rustup toolchain install 1.90.0 --profile minimal
+          rustup override set 1.90.0
+          New-Item -ItemType Directory -Force .tools/tauri-cli | Out-Null
+          Invoke-WebRequest https://github.com/tauri-apps/tauri/releases/download/tauri-cli-v2.12.4/cargo-tauri-x86_64-pc-windows-msvc.zip -OutFile .tools/tauri-cli.zip
+          if ((Get-FileHash .tools/tauri-cli.zip -Algorithm SHA256).Hash.ToLowerInvariant() -ne '3e8687fb184bd7f10ebd8642f7715f79f4a605c0694c142a21507e8a24dc0f8b') { throw 'Tauri CLI digest mismatch' }
+          Expand-Archive .tools/tauri-cli.zip .tools/tauri-cli
+          (Resolve-Path .tools/tauri-cli).Path | Out-File -Append $env:GITHUB_PATH
+      - name: Native MSVC tests and NSIS candidate (unsigned, not a release)
+        shell: pwsh
+        run: |
+          $ErrorActionPreference = 'Stop'
+          $PSNativeCommandUseErrorActionPreference = $true
+          try {
+            cargo test --locked --manifest-path desktop/src-tauri/Cargo.toml 2>&1 | Tee-Object temp/ci-reports/windows-rust.txt
+            $config = (Resolve-Path temp/windows-stage/tauri-candidate.json).Path
+            Push-Location desktop/src-tauri
+            try { cargo tauri build --ci --config $config 2>&1 | Tee-Object ../../temp/ci-reports/windows-nsis.txt } finally { Pop-Location }
+          } catch {
+            $_ | Out-String | Tee-Object -Append temp/ci-reports/windows-errors.txt
+            throw
+          }
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: windows-unsigned-testing-candidate
+          path: desktop/src-tauri/target/release/bundle/nsis/*.exe
+          retention-days: 7
+          if-no-files-found: error
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        if: always()
+        with:
+          name: windows-ci-report
+          path: |
+            temp/ci-reports/*.txt
+            temp/windows-media/*-build.log
+          retention-days: 7
+  private-status:
+    if: always()
+    needs: [source-and-plugin, windows]
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+    permissions:
+      actions: read
+      contents: write
+    steps:
+      - uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093
+        continue-on-error: true
+        with:
+          pattern: '*-ci-report'
+          path: reports
+      - uses: actions/github-script@f28e40c7f34bde8b3046d885e986cb6290c5673b
+        env:
+          LINUX_RESULT: ${{ needs.source-and-plugin.result }}
+          WINDOWS_RESULT: ${{ needs.windows.result }}
+        with:
+          script: |
+            const fs=require('fs'), path=require('path');
+            let logs={};
+            function walk(dir) { if(!fs.existsSync(dir)) return; for(const f of fs.readdirSync(dir,{withFileTypes:true})) { const p=path.join(dir,f.name); if(f.isDirectory()) walk(p); else if(/\.(txt|log)$/.test(p)) logs[p]=fs.readFileSync(p,'utf8').split('\n').slice(-24).join('\n').slice(-3500); } }
+            walk('reports');
+            const result={commit:context.sha,run:context.runId,url:`https://github.com/${context.repo.owner}/${context.repo.repo}/actions/runs/${context.runId}`,linux:process.env.LINUX_RESULT,windows:process.env.WINDOWS_RESULT,release_approved:false,ps4_operations:false,logs:Object.fromEntries(Object.entries(logs).slice(0,8))};
+            const content=JSON.stringify(result,null,2);
+            let previous;
+            try { previous=(await github.rest.git.getRef({...context.repo,ref:'heads/ci-status'})).data.object.sha; } catch(e) { if(e.status!==404) throw e; }
+            const blob=await github.rest.git.createBlob({...context.repo,content:Buffer.from(content).toString('base64'),encoding:'base64'});
+            const tree=await github.rest.git.createTree({...context.repo,tree:[{path:'latest.json',mode:'100644',type:'blob',sha:blob.data.sha}]});
+            const commit=await github.rest.git.createCommit({...context.repo,message:`Private CI result ${context.runId}`,tree:tree.data.sha,parents:previous?[previous]:[]});
+            if(previous) await github.rest.git.updateRef({...context.repo,ref:'heads/ci-status',sha:commit.data.sha,force:false});
+            else await github.rest.git.createRef({...context.repo,ref:'refs/heads/ci-status',sha:commit.data.sha});

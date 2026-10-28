@@ -1,0 +1,407 @@
+/* OrBeats web app — Phase 1 shell styling (lightweight, no framework) */
+
+:root {
+  --bg: #0f1115;
+  --card: #1a1e27;
+  --card2: #222736;
+  --text: #e8eaf0;
+  --muted: #9aa3b5;
+  --accent: #e64a84;      /* Beat Saber red-pink */
+  --accent2: #36c2f1;     /* Beat Saber blue */
+  --ok: #43d17a;
+  --warn: #f2b544;
+  --bad: #f2555a;
+  --mono: ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+}
+
+* { box-sizing: border-box; }
+
+body {
+  margin: 0;
+  font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  background: var(--bg);
+  color: var(--text);
+  line-height: 1.5;
+}
+
+header {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  padding: 0.6rem 1.2rem;
+  background: var(--card);
+  border-bottom: 2px solid var(--accent);
+  flex-wrap: wrap;
+}
+header h1 { font-size: 1.1rem; margin: 0; white-space: nowrap; }
+nav { display: flex; gap: 0.3rem; flex-wrap: wrap; }
+
+nav button {
+  background: transparent;
+  color: var(--muted);
+  border: none;
+  padding: 0.45rem 0.9rem;
+  border-radius: 8px 8px 0 0;
+  cursor: pointer;
+  font-size: 0.95rem;
+}
+nav button.active { color: var(--text); background: var(--card2); }
+nav button:hover { color: var(--text); }
+
+#mode-badge {
+  margin-left: auto;
+  font-size: 0.75rem;
+  padding: 0.25rem 0.6rem;
+  border-radius: 999px;
+  background: var(--card2);
+  color: var(--muted);
+}
+#mode-badge.local { color: var(--ok); }
+#mode-badge.pages { color: var(--warn); }
+
+main { max-width: 60rem; margin: 1.2rem auto; padding: 0 1rem; }
+
+.page.hidden { display: none; }
+/* The generic visibility class (job panels, browse panel, picked-song…).
+ * MUST exist standalone — every "hidden" element outside a .page relied on
+ * it and rendered permanently until this rule existed (Exp 252). */
+.hidden { display: none; }
+/* The hidden ATTRIBUTE must also beat any author display rule (.row's
+ * display:flex overrode the UA default → the deploy progress row showed
+ * permanently). !important so any future display utility can't re-break it. */
+[hidden] { display: none !important; }
+h2 { margin-top: 0; }
+h3 { margin: 0 0 0.6rem; }
+.muted { color: var(--muted); font-size: 0.92em; }
+
+.card {
+  background: var(--card);
+  border: 1px solid #2b3145;
+  border-radius: 10px;
+  padding: 1rem 1.2rem;
+  margin-bottom: 1rem;
+}
+
+.row { display: flex; gap: 0.8rem; align-items: center; flex-wrap: wrap; margin: 0.4rem 0; }
+.grid2 { display: grid; grid-template-columns: 1fr 1fr; gap: 0.5rem 1rem; }
+label { display: flex; flex-direction: column; gap: 0.25rem; font-size: 0.9em; }
+label.chk { flex-direction: row; align-items: center; gap: 0.45rem; }
+.filter { flex-direction: row; align-items: center; gap: 0.4rem; margin: 0.6rem 0; }
+
+input[type=text], input[type=password], select {
+  background: var(--bg);
+  border: 1px solid #3a4160;
+  color: var(--text);
+  border-radius: 6px;
+  padding: 0.45rem 0.6rem;
+  font-size: 0.95rem;
+}
+
+button {
+  background: var(--card2);
+  color: var(--text);
+  border: 1px solid #3a4160;
+  border-radius: 8px;
+  padding: 0.5rem 1rem;
+  cursor: pointer;
+  font-size: 0.95rem;
+}
+button:hover { border-color: var(--accent2); }
+button.primary { background: var(--accent); border-color: var(--accent); color: #fff; font-weight: 600; }
+button.primary.big { font-size: 1.15rem; padding: 0.7rem 1.6rem; }
+button.primary:disabled { background: #5a2c41; border-color: #5a2c41; cursor: not-allowed; }
+button.danger { background: var(--bad); border-color: var(--bad); color: #fff; }
+button.link { background: none; border: none; color: var(--accent2); padding: 0.2rem 0; text-decoration: underline; }
+
+.result { margin-top: 0.6rem; font-size: 0.92em; white-space: pre-wrap; }
+.result.ok { color: var(--ok); }
+.result.bad { color: var(--bad); }
+.result.warn { color: var(--warn); }
+
+.command {
+  margin-top: 0.6rem;
+  padding: 0.6rem 0.8rem;
+  background: var(--bg);
+  border: 1px dashed #3a4160;
+  border-radius: 6px;
+  font-family: var(--mono);
+  font-size: 0.85em;
+  overflow-x: auto;
+  white-space: pre;
+}
+
+pre.log {
+  margin-top: 0.8rem;
+  max-height: 24rem;
+  overflow-y: auto;
+  background: #0a0c10;
+  border: 1px solid #2b3145;
+  border-radius: 8px;
+  padding: 0.7rem;
+  font-family: var(--mono);
+  font-size: 0.82em;
+  white-space: pre-wrap;
+  word-break: break-word;
+}
+
+.song {
+  display: flex;
+  gap: 1rem;
+  align-items: center;
+  padding: 0.55rem 0.5rem;
+  border-bottom: 1px solid #2b3145;
+}
+.song:hover { background: var(--card2); }
+.song .pick { flex-shrink: 0; }
+.song .meta { flex: 1; min-width: 0; }
+.song .meta b { display: block; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.song .badges { flex-shrink: 0; display: flex; gap: 0.3rem; }
+
+.badge {
+  font-size: 0.72rem;
+  padding: 0.12rem 0.5rem;
+  border-radius: 999px;
+  font-weight: 600;
+}
+.badge.ok { background: #123a22; color: var(--ok); }
+.badge.miss { background: #3a1520; color: var(--bad); }
+
+details summary { cursor: pointer; color: var(--accent2); font-size: 0.9em; }
+details pre {
+  background: var(--bg); padding: 0.6rem; border-radius: 6px;
+  font-family: var(--mono); font-size: 0.8em;
+}
+
+#ps4-state table { border-collapse: collapse; width: 100%; font-size: 0.88em; }
+#ps4-state th, #ps4-state td { text-align: left; padding: 0.3rem 0.5rem; border-bottom: 1px solid #2b3145; }
+#ps4-state th { color: var(--muted); font-weight: 600; }
+
+footer { text-align: center; color: var(--muted); font-size: 0.8em; padding: 1.5rem; }
+
+/* ---------------- Feature flags page ---------------- */
+.flag-row {
+  padding: 0.55rem 0.4rem;
+  border-bottom: 1px solid #2b3145;
+}
+.flag-row:last-child { border-bottom: none; }
+.flag-row label.chk { font-size: 1rem; }
+.flag-desc { margin: 0.2rem 0 0 2.2rem; }
+.log-out {
+  margin-top: 0.6rem;
+  max-height: 16rem;
+  overflow-y: auto;
+  background: #0a0c10;
+  border: 1px solid #2b3145;
+  border-radius: 8px;
+  padding: 0.7rem;
+  font-family: var(--mono);
+  font-size: 0.82em;
+  white-space: pre-wrap;
+  word-break: break-word;
+}
+.log-out:empty { display: none; }
+textarea {
+  background: var(--bg);
+  border: 1px solid #3a4160;
+  color: var(--text);
+  border-radius: 6px;
+  padding: 0.5rem;
+  font-size: 0.95rem;
+  margin-top: 0.3rem;
+}
+
+/* ---------------- Loadout tables (Manage Songs + Full Loadout) ---------------- */
+table.loadout { border-collapse: collapse; width: 100%; font-size: 0.88em; }
+table.loadout th, table.loadout td {
+  text-align: left; padding: 0.35rem 0.55rem;
+  border-bottom: 1px solid #2b3145; vertical-align: top;
+}
+table.loadout th { color: var(--muted); font-weight: 600; font-size: 0.92em; }
+table.loadout tr.has-custom td { background: #18202e; }
+table.loadout tr:hover td { background: var(--card2); }
+.loadout-pack h3 { position: sticky; top: 0; }
+.print-footer { margin-top: 2rem; }
+
+/* ---------------- Print / save-as-PDF (Full Loadout tab) ----------------
+ * The goal: a clean, self-contained reference document. Dark theme flips
+ * to white, interactive chrome (nav, filters, buttons) disappears, and
+ * tables break cleanly across pages. */
+@media print {
+  :root { --bg: #fff; --card: #fff; --card2: #fff; --text: #111;
+          --muted: #555; --accent: #a03060; --accent2: #2563a8; }
+  body { background: #fff !important; color: #111 !important; }
+  header, .no-print, nav, button { display: none !important; }
+  main { max-width: none; margin: 0; }
+  .card { border: 1px solid #999; break-inside: avoid; }
+  .page.hidden { display: none; }
+  #page-loadoutPage { display: block !important; }
+  table.loadout { font-size: 9.5pt; }
+  table.loadout th, table.loadout td { border-bottom: 1px solid #bbb; padding: 2pt 4pt; }
+  table.loadout tr.has-custom td { background: #f0f0f5 !important; }
+  .badge.ok { background: #e0f5e8 !important; color: #14532d !important;
+              border: 1px solid #14532d; }
+  code { color: #333; }
+  .print-footer { color: #555; font-size: 9pt; }
+}
+
+/* ---------------- Backup folder browser ---------------- */
+.browser-list {
+  max-height: 12rem;
+  overflow-y: auto;
+  border: 1px solid #2b3145;
+  border-radius: 8px;
+  margin: 0.4rem 0;
+  background: var(--bg);
+}
+.browse-entry {
+  padding: 0.35rem 0.6rem;
+  cursor: pointer;
+  border-bottom: 1px solid #232838;
+}
+.browse-entry:hover { background: var(--card2); }
+
+/* ---------------- Job panel (live console for every launched command) ------ */
+.job-panel { border-color: var(--accent2); }
+.job-panel .command { margin-top: 0.5rem; }
+.spinner {
+  width: 1.05em; height: 1.05em;
+  display: inline-block;
+  border: 2px solid #3a4160;
+  border-top-color: var(--accent2);
+  border-radius: 50%;
+  animation: spin 0.9s linear infinite;
+  vertical-align: -2px;
+}
+.spinner.spinning { animation: spin 0.9s linear infinite; }
+@keyframes spin { to { transform: rotate(360deg); } }
+.job-status.ok { color: var(--ok); }
+.job-status.bad { color: var(--bad); }
+.job-status.warn { color: var(--warn); }
+
+/* ---------------- Simulated PS4 notification ---------------- */
+.ps4-toast-demo { display: flex; justify-content: center; padding: 1rem 0; }
+.ps4-toast {
+  background: linear-gradient(180deg, #1c1c22, #101014);
+  border: 1px solid #3a3a44;
+  border-radius: 10px;
+  padding: 0.9rem 1.4rem;
+  text-align: center;
+  font-size: 0.95rem;
+  color: #f0f0f0;
+  min-width: 16rem;
+  box-shadow: 0 4px 18px rgba(0,0,0,.5);
+}
+.ps4-toast .toast-author { color: #9aa3b5; font-size: 0.85em; }
+
+/* ---------------- Version badge (lower corner) ---------------- */
+.version-badge {
+  position: fixed;
+  right: 0.6rem;
+  bottom: 0.4rem;
+  display: flex;
+  gap: 0.8rem;
+  padding: 0.25rem 0.7rem;
+  background: rgba(16, 18, 24, 0.88);
+  border: 1px solid #2b3145;
+  border-radius: 8px 0 0 8px;
+  font-size: 0.72rem;
+  color: var(--muted);
+  z-index: 50;
+  user-select: none;
+}
+.version-badge b { color: var(--accent2); font-weight: 600; }
+
+/* ---------------- Demos link (lower-left, mirrors the badge) ---------------- */
+.demos-link {
+  position: fixed;
+  left: 0.6rem;
+  bottom: 0.4rem;
+  padding: 0.25rem 0.7rem;
+  background: rgba(16, 18, 24, 0.88);
+  border: 1px solid #2b3145;
+  border-radius: 0 8px 8px 0;
+  font-size: 0.72rem;
+  color: var(--muted);
+  text-decoration: none;
+  z-index: 50;
+}
+.demos-link:hover { color: var(--accent2); border-color: var(--accent2); }
+@media print { .demos-link { display: none !important; } }
+
+@media print { .version-badge { display: none !important; } }
+
+/* ---------------- Batch tab ---------------- */
+.code-doc {
+  background: var(--bg);
+  border: 1px dashed #3a4160;
+  border-radius: 6px;
+  padding: 0.7rem 0.9rem;
+  font-family: var(--mono);
+  font-size: 0.8em;
+  overflow-x: auto;
+  white-space: pre;
+  color: var(--text);
+}
+
+/* ---------------- Multi-pack selection ---------------- */
+.multi-pack-list { max-height: 22rem; }
+.multi-pack-row {
+  display: flex; flex-direction: row; align-items: center; gap: 0.6rem;
+  padding: 0.35rem 0.6rem; cursor: pointer;
+  border-bottom: 1px solid #232838;
+}
+.multi-pack-row:hover { background: var(--card2); }
+.multi-pack-row input { margin: 0; }
+.multi-pack-row .muted { font-size: 0.85em; }
+
+/* ---------------- Get Started (guided download) ---------------- */
+.start-steps { display: flex; flex-direction: column; gap: 0.8rem; }
+.start-step h3 { margin-bottom: 0.5rem; }
+.start-step ul.checks { list-style: none; padding: 0; margin: 0; }
+.start-step ul.checks li { padding: 0.3rem 0; border-bottom: 1px dashed #2b3145; }
+.start-step ul.checks li:last-child { border-bottom: none; }
+.start-step a.primary {
+  background: var(--accent); color: #fff; border-radius: 8px;
+  padding: 0.6rem 1.2rem; display: inline-block; font-weight: 600;
+  border: none; cursor: pointer; font-size: 1rem;
+}
+.start-step a.primary:hover { filter: brightness(1.1); }
+.os-tabs { display: flex; gap: 0.4rem; margin-bottom: 0.6rem; }
+.os-tab { padding: 0.35rem 0.9rem; }
+.os-tab.active { border-color: var(--accent); color: var(--accent2); font-weight: 600; }
+
+/* M12 game-data flow: big numbered steps + the pull progress bar */
+.gamedata-step { padding: 12px 14px; margin: 10px 0; border: 1px solid var(--border,#ddd); border-radius: 8px; }
+.gamedata-step h4 { margin: 0 0 6px 0; }
+.gamedata-step.active { border-color: var(--accent); box-shadow: 0 0 0 2px var(--accent); }
+.gamedata-step.done { opacity: .65; border-color: var(--good,#2c7); }
+.progress-wrap { display: flex; align-items: center; gap: 10px; margin: 8px 0; }
+.progress-wrap[hidden] { display: none; }
+.progress-bar { flex: 1; height: 14px; border-radius: 7px; background: var(--border,#ddd); overflow: hidden; }
+.progress-fill { height: 100%; width: 0%; background: var(--accent,#2c7); transition: width .4s; }
+
+/* ---------------- M13: Beat Sage + local songs ---------------- */
+.optcheckrow { flex-wrap: wrap; gap: 0.6rem; margin: 0.5rem 0; align-items: baseline; }
+.optcheckrow .chk { margin: 0; }
+.dropzone {
+  margin-top: 0.8rem; padding: 1.2rem; text-align: center;
+  border: 2px dashed var(--border, #445); border-radius: 10px;
+  cursor: pointer; color: var(--muted, #99a);
+}
+.dropzone.dragover { border-color: var(--accent); color: var(--accent2); background: rgba(46, 255, 187, 0.06); }
+.dropzone label { color: var(--accent2); text-decoration: underline; cursor: pointer; }
+.staged-row .meta span.muted { display: block; font-size: 0.88em; }
+#bsage-guide ul.guide-opts, #bsage-guide ol.guide-steps { margin: 0.4rem 0 0.8rem 1.4rem; }
+#bsage-guide .btnish {
+  display: inline-block; background: var(--accent); color: #fff; border-radius: 8px;
+  padding: 0.5rem 1.1rem; font-weight: 600; text-decoration: none;
+}
+#bsage-guide details summary { cursor: pointer; }
+#bsage-guide .muted { font-size: 0.92em; }
+
+/* M13: staged-song statistics */
+.staged-stats { margin: 0.3rem 0; }
+.staged-stats summary { cursor: pointer; color: var(--accent2); font-size: 0.88em; }
+.staged-stats table.stats { border-collapse: collapse; margin: 0.4rem 0; font-size: 0.88em; }
+.staged-stats table.stats td, .staged-stats table.stats th { border: 1px solid var(--border, #333); padding: 2px 8px; }
+.staged-stats .badge.warn { border-color: #c90; color: #fd3; }

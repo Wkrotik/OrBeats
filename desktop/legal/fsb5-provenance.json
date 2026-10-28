@@ -1,0 +1,20 @@
+{
+  "package": "fsb5",
+  "version": "1.0",
+  "license": "MIT",
+  "source_url": "https://files.pythonhosted.org/packages/35/ae/6c56aa68bd88830b8ce09416455c2e6d135dc62181473b28209f194273d2/fsb5-1.0.tar.gz",
+  "source_sha256": "312d28b580e9c4a0032caac80bcc354672216327f430d063c3beb4a4f3fe621d",
+  "upstream": "https://github.com/HearthSim/python-fsb5",
+  "commit": "5dfa291091a8f0d0b26842cd9ee46cdfe87a6232",
+  "notice_url": "https://raw.githubusercontent.com/HearthSim/python-fsb5/5dfa291091a8f0d0b26842cd9ee46cdfe87a6232/LICENSE",
+  "notice_sha256": "1470a02eef9e41fc7b48626069e1c4cbf6dea9a48c06b8d8f6edd56a705e20e3",
+  "module_sha256": {
+    "vorbis.py": "f80cf4c13aa6310d3786ac986744ae6408e3cf645238a5376641cccc92cf9581",
+    "pcm.py": "631f03026253d6579980208b764044afdaff138880b0ac4df0fcf20d51855d51",
+    "vorbis_headers.py": "e05cb316f81f31727d276d69c1dbbf356a34e11b8da2cc0ac717bf75c88cc7d0",
+    "__init__.py": "40d674720894a6d5e3df7c09304c8ee7318c101cf40a856ea506236742861760",
+    "utils.py": "e7e303d874f5e6407dbdf6fc9a0ec1f194456b7d42a7d46e524c66f055aabb9b"
+  },
+  "verification": "All five installed package source files match the PyPI 1.0 source archive byte-for-byte and the complete fsb5 source tree at this upstream commit. The upstream LICENSE is recovered verbatim from that same commit. Vendor HTTPS/git provenance, not an independent signature or full legal approval.",
+  "full_distribution_legal_approval": false
+}

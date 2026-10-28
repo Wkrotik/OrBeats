@@ -1,0 +1,15 @@
+{
+  "image": "docker.io/library/ubuntu:22.04",
+  "architecture": "amd64",
+  "index_digest": "sha256:e0f80c829509ef4df9e76bd8944eb7b8ec25cbb379b112a7f9448b2c77a77c9b",
+  "manifest_digest": "sha256:8a2321a92b438238f93b4346fff61bc4259c99fdd4d9b52ee86f153fee0c344f",
+  "config_digest": "sha256:a7b0f6af325461862a99c677cf3229ca5241d9f4f4289bd00cc2cce91a3aff23",
+  "layers": [
+    {
+      "digest": "sha256:0626d3cc316c9fea3d4891e2ec19b8f371fe22ffb915622f6072a2ee2ca9017f",
+      "bytes": 29752488
+    }
+  ],
+  "provenance": "Official Ubuntu library OCI image from Docker Hub over HTTPS, content digests verified. Not an independent signature claim. No Docker daemon or root privileges required. Package updates must verify Ubuntu archive signatures inside the isolated root.",
+  "candidate_only": true
+}

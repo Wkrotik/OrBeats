@@ -1,0 +1,50 @@
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+python_files = ["test_*.py"]
+python_classes = ["Test*"]
+python_functions = ["test_*"]
+addopts = [
+    "-v",
+    "--tb=short",
+    "--strict-markers",
+]
+markers = [
+    "slow: marks tests as slow (deselect with '-m \"not slow\"')",
+    "requires_audio: tests that need real audio files on disk",
+    "integration: integration tests requiring bundles on disk",
+]
+
+[tool.coverage.run]
+source = ["tools"]
+omit = ["tools/__init__.py", "tools/*_legacy.py"]
+
+[tool.coverage.report]
+show_missing = true
+fail_under = 20
+exclude_lines = [
+    "pragma: no cover",
+    "def __repr__",
+    "if __name__ == .__main__.",
+    "raise NotImplementedError",
+    "pass",
+    "\\.\\.\\.",
+]
+
+[tool.ruff]
+line-length = 120
+target-version = "py312"
+exclude = [
+    "tools/build_patched_pack_bundle.py",
+    "tools/build_replacement_pack.py",
+    "tools/build_replacement_pack_final.py",
+    "tools/build_replacement_pack_v2.py",
+    "tools/build_replacement_pack_v3.py",
+    "tools/build_replacement_pack_v4.py",
+    "tools/build_per_song_metadata.py",
+    "tools/inject_pack_bundle.py",
+    "tools/patch_pack_bundle.py",
+]
+
+[tool.ruff.lint]
+select = ["E", "F", "W", "I"]
+ignore = ["E501", "E402"]

@@ -1,0 +1,14 @@
+{
+  "schema": 1,
+  "ffmpeg": {
+    "version": "8.0.1",
+    "source": "https://ffmpeg.org/releases/ffmpeg-8.0.1.tar.xz",
+    "source_sha256": "05ee0b03119b45c0bdb4df654b96802e909e0a752f72e4fe3794f487229e5a41",
+    "signature": "https://ffmpeg.org/releases/ffmpeg-8.0.1.tar.xz.asc",
+    "signature_sha256": "54ab4020bb4eb280444da74d7aabc282acf6e8500cf6feaefd9821373fa9e72c",
+    "key": "https://ffmpeg.org/ffmpeg-devel.asc",
+    "key_sha256": "397b3becedcd5a98769967ff1ff8501ddc89f8368b8f766e4701377d7dbaabe5",
+    "fingerprint": "FCF986EA15E6E293A5644F10B4322F04D67658D8",
+    "key_provenance": "Pinned from vendor HTTPS with the release; not an independently certified trust identity."
+  }
+}

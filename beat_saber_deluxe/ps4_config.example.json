@@ -1,0 +1,27 @@
+{
+  "comment": "Beat Saber Deluxe \u2014 PS4 Configuration",
+  "_description": "Copy this file to ps4_config.json and fill in your PS4 details. This file is not committed to git (see .gitignore).",
+  "ps4": {
+    "ip": "127.0.0.1",
+    "ftp_port": 2121,
+    "ftp_user": "anonymous",
+    "ftp_password": ""
+  },
+  "title": {
+    "id": "CUSA12878",
+    "patch_suffix": "-patch"
+  },
+  "paths": {
+    "afr_base": "/data/GoldHEN/AFR",
+    "afr_target_suffix": "_v3.bundle",
+    "game_data_dir": "./game_data",
+    "game_dump_dir": "./ps4_dump/CUSA12878-patch",
+    "template_dir": "Media/StreamingAssets/BeatmapLevelsData",
+    "output_dir": "./custom_songs"
+  },
+  "pipeline": {
+    "default_target": "startmeup",
+    "resource_size_override": 0,
+    "sample_rate": 44100
+  }
+}
