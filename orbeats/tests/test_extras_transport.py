@@ -53,6 +53,10 @@ def transport(tmp_path_factory):
     [
         "normal",
         "modules-present",
+        "send-error",
+        "ssl-error",
+        "diagnostic-error",
+        "no-logger",
         "fifty",
         "empty",
         "chunks",

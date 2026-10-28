@@ -160,7 +160,7 @@ static void* initialize(void*) {
 extern "C" int module_start(size_t argc,const void* args) {
     (void)argc;(void)args;
     if(startup_started || installed || leaderboard_has_hooks())return 0;
-    log("OrBeats Extras 0.0006: health activation and callback diagnostics");
+    log("OrBeats Extras 0.0007: verified HTTPS diagnostics and visible status panel");
     stopping.store(false);
     if(scePthreadCreate(&startup_thread,NULL,initialize,NULL,"OrBeatsInit")!=0){
         log("startup worker creation failed; no hooks installed");return 0;

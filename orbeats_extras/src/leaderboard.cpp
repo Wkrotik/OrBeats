@@ -58,6 +58,9 @@ static void begin(void* self) {
     if(!table_visible(ui,self,false) || !show_scores(ui,self,empty)){
         status_text(ui,self,"OrBeats Extras: leaderboard schema mismatch; scores hidden");log("leaderboard clear/managed schema failed");return;
     }
+    // Empty managed rows are already published. Keep the panel active for
+    // status text even if LoadingControl lives below the table GameObject.
+    if(!table_visible(ui,self,true)){log("leaderboard status panel activation failed");return;}
     ScoreKey key={};const char* problem=identity(self,key);
     if(problem){status_text(ui,self,problem);return;}
     status_text(ui,self,"ScoreSaber: loading top 100 PC scores (read-only)");selection=worker.select(&key);
@@ -138,6 +141,7 @@ bool install_leaderboard(uintptr_t base,void*(*resolve)(const char*),bool(*execu
         library=new(std::nothrow) BsdAdditive::RuntimeLibrary();if(library && !BsdAdditive::decode_library(*library,bytes,count)){delete library;library=NULL;}
     }
     free(bytes);
+    set_transport_logger(logger);
     if(!worker.start(fetch_scores,sceKernelGetProcessTime)){delete library;library=NULL;log("score worker start failed; no leaderboard hooks");return false;}
     void* callbacks[]={(void*)set_data,(void*)activate,(void*)deactivate,(void*)destroy,(void*)process};
     for(unsigned i=0;i<5;++i){

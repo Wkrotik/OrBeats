@@ -2,6 +2,9 @@
 #include "scoresaber.h"
 namespace OrBeatsExtras {
 enum class FetchResult { Ok, InvalidIdentity, Cancelled, Deadline, Network, Http, Missing, RateLimited, TooLarge, Protocol, Memory };
+// Set once before starting the worker. Messages contain operation/status only,
+// never URLs, identities, player names or response bodies.
+void set_transport_logger(void (*logger)(const char*));
 // Blocking, worker-thread-only. No Unity calls, no auth, no redirects/retries.
 // Cancellation/deadline is checked between bounded platform I/O calls.
 FetchResult fetch_scores(const char* original_sha1, int difficulty, unsigned limit,

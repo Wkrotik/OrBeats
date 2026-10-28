@@ -4,21 +4,22 @@ Optional, separate GoldHEN plugin for **Beat Saber PS4 CUSA12878 / patch 2.04**.
 It adds anonymous ScoreSaber viewing and a health-warning convenience option.
 OrBeats custom-song playback does not depend on Extras.
 
-**0.0006 is a local health-hook repair and leaderboard-diagnostics candidate.**
-Hardware 0.0005 installed both hooks, but the health warning still required
-interaction and the leaderboard remained blank. The game inlines the old health
-resolver; this candidate hooks the actual health view activation instead. Its
-fingerprinted prefix includes a RIP-relative instruction, so Extras uses an
-explicitly relocated native trampoline rather than executing an unrelocated SDK
-copy. The original activation still runs and starts the ordinary health coroutine.
+**Health auto-dismiss is hardware-confirmed on 0.0006. Anonymous leaderboard
+viewing is not yet hardware-validated.** On Animals, the native selection and
+input-pump callbacks accept the map identity, but the request returns `Network`
+before scores are received. Successful hook installation is not end-to-end proof.
 
-Leaderboard diagnostics now distinguish activation/selection/input-pump callbacks,
-UI schema/method failures, identity/status messages, native replies and successful
-row publication. They do not log player names, original hashes or response bodies.
-No leaderboard runtime cause has been established yet. Do not treat successful
-installation, compilation or fake-platform tests as working PS4 behavior.
-The bounded deferred module lookup and readable append-only log remain in place.
-No songs, library or main-plugin files are changed by this candidate.
+The local **0.0007 diagnostic candidate** records the failing PS4 HTTPS call,
+its hexadecimal result, and available HTTP/TLS error details. It does not log
+player names, original hashes, URLs or response bodies, disable certificate
+verification, or install permissive TLS callbacks. A logged network failure alone
+does not establish whether DNS, connection, TLS or an SDK setup call failed.
+
+The status path now reactivates the emptied table's GameObject before displaying
+loading or error text: the loading control may be below that parent in the game
+prefab. Fake-platform tests cover this ordering; actual PS4 visibility still needs
+confirmation. No songs, library, main-plugin or health-policy files are changed
+by this candidate. The proven 0.0006 health activation hook is retained.
 
 ## Anonymous leaderboard
 

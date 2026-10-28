@@ -33,6 +33,8 @@ int32_t sceHttpDeleteRequest(int32_t id);
 int32_t sceHttpAddRequestHeader(int32_t id, const char* name, const char* value, int32_t mode);
 int32_t sceHttpSendRequest(int32_t id, const void* body, size_t bytes);
 int32_t sceHttpGetStatusCode(int32_t id, int32_t* status);
+int32_t sceHttpGetLastErrno(int32_t id, int32_t* error);
+int32_t sceHttpsGetSslError(int32_t id, int32_t* error, uint32_t* details);
 int32_t sceHttpReadData(int32_t id, void* bytes, uint32_t capacity);
 uint64_t sceKernelGetProcessTime(void);
 }

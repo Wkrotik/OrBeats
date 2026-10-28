@@ -18,7 +18,7 @@ $(INTDIR)/main.o: src/main.cpp include/health.h include/health_activation.h incl
 	clang++ $(CXXFLAGS) -o $@ $<
 $(INTDIR)/scoresaber.o: src/scoresaber.cpp include/scoresaber.h third_party/cjson/cJSON.h | $(INTDIR)
 	clang++ $(CXXFLAGS) -o $@ $<
-$(INTDIR)/transport.o: src/transport.cpp include/transport.h include/scoresaber.h include/ps4_http.h | $(INTDIR)
+$(INTDIR)/transport.o: src/transport.cpp include/transport.h include/scoresaber.h include/ps4_http.h include/health.h | $(INTDIR)
 	clang++ $(CXXFLAGS) -o $@ $<
 $(INTDIR)/worker.o: src/worker.cpp include/worker.h include/transport.h | $(INTDIR)
 	clang++ $(CXXFLAGS) -o $@ $<

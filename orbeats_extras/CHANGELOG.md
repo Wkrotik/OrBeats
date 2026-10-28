@@ -1,5 +1,20 @@
 # OrBeats Extras changes
 
+## 0.0007 — HTTPS diagnostics and active status panel
+
+- User confirms health auto-dismiss on hardware0.0006. Retain that exact hook.
+- Animals identity and callbacks work, but native fetch returns Network. Log
+  failing SDK operations and hexadecimal results plus available request errno
+  and TLS verification details, without hashes, player data, URLs or bodies.
+- Keep certificate/hostname/date/CA verification and SNI enabled. No TLS bypass,
+  shared Net reinitialization, background retry loop or arbitrary endpoint.
+- Keep the empty managed table parent active before showing loading/status text.
+  Hiding the table may also hide a child loading control in the game prefab.
+- Regress setup failures, send/TLS errors, unavailable diagnostic APIs, no logger,
+  privacy and resource cleanup. Native and UI fake tests are not console proof.
+- Local diagnostic candidate only: no network root cause or successful PS4
+  score display established yet; no console files changed during development.
+
 ## 0.0006 — health activation repair and callback diagnostics
 
 - Hardware0.0005 installs both hooks but user still acknowledges the warning and

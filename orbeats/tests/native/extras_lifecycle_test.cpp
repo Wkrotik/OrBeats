@@ -18,6 +18,7 @@ extern "C" int64_t sceKernelRead(int fd,void* out,size_t count){assert(fd==1);si
 extern "C" int sceKernelClose(int fd){assert(fd==1);return 0;}
 extern "C" uint64_t sceKernelGetProcessTime(){return 1000000;}
 namespace OrBeatsExtras {
+void set_transport_logger(void (*)(const char*)){}
 FetchResult fetch_scores(const char*,int,unsigned,bool(*)(void*),void*,ScoreBoard*){assert(false);return FetchResult::Network;}
 }
 static void pause(){std::this_thread::sleep_for(std::chrono::milliseconds(1));}
@@ -63,13 +64,13 @@ int main(){
  standard.text="Standard";level.text=id;BeatmapKey first={&characteristic,0,0,&level},last=first;last.difficulty=4;
  assert(worker.start(fake_fetch,sceKernelGetProcessTime));held=true;
  set_data(&view,&first,NULL);assert(stats==1 && !fetch_calls && !active);
- activate(&view,true,true,true,NULL);assert(active==&view && roots==1 && !scope.active && !table.active);
+ activate(&view,true,true,true,NULL);assert(active==&view && roots==1 && !scope.active && table.active);
  until(fetch_calls,1);set_data(&view,&last,NULL);held=false;board_score(900);assert(stats==2 && roots==1 && table.active);
  assert(((Object*)((Object*)published)->rows[0])->text=="[SS/PC] Anonymous");
  deactivate(&view,true,true,NULL);assert(!active && !roots);unsigned before=fetch_calls;
  activate(&view,false,true,true,NULL);board_score(900);assert((unsigned)fetch_calls==before); // cached but generation-safe
  // Unknown identity/stock/characteristic never queries or borrows the old board.
- file_available=false;set_data(&view,&last,NULL);assert(!table.active && loading.text.find("reimport")!=std::string::npos);
+ file_available=false;set_data(&view,&last,NULL);assert(table.active && loading.text.find("reimport")!=std::string::npos);
  assert(((Object*)published)->rows.empty());file_available=true;
  standard.text="OneSaber";set_data(&view,&last,NULL);assert(loading.text.find("Standard")!=std::string::npos);
  standard.text="Standard";level.text="ost_song";set_data(&view,&last,NULL);assert(loading.text.find("identity")!=std::string::npos);level.text=id;
@@ -79,7 +80,7 @@ int main(){
  // Invalid new-key/schema also invalidates a pending request before returning.
  held=true;last.difficulty=2;set_data(&view,&last,NULL);activate(&view,false,true,true,NULL);until(fetch_calls,(int)before+1);
  sony_active=true;set_data(&view,&first,NULL);until(cancelled_calls,1);sony_active=false;held=false;
- for(unsigned i=0;i<20;++i)pump();assert(!table.active);
+ for(unsigned i=0;i<20;++i)pump();assert(table.active);
  destroy(&view,NULL);assert(!active && !roots && base_destroyed==1);
  deactivate(&view,true,true,NULL);assert(!roots && !active);
  ready=false;worker.stop();delete library;library=NULL;
