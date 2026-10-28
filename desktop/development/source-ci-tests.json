@@ -42,7 +42,9 @@
     "tests/test_webapp_js_syntax.py",
     "tests/test_webapp_launch.py",
     "tests/test_webapp_ps4_adapter.py",
-    "tests/test_webapp_songs.py"
+    "tests/test_webapp_songs.py",
+    "tests/test_plugin_branding.py",
+    "tests/test_orbeats_extras.py"
   ],
   "excluded_modules": [
     "test_additive_bundle_preparation.py",

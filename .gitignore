@@ -64,3 +64,8 @@ CLAUDE.md
 
 # Also ignore temporary development-venv symlinks in source exports.
 .venv
+
+# Separate Extras plugin build outputs.
+orbeats_extras/obj/
+orbeats_extras/obj-debug/
+orbeats_extras/*.prx

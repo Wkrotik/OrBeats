@@ -1,0 +1,22 @@
+# Separate GoldHEN plugin. Never installs or changes OrBeats' build outputs.
+DEBUG ?= 0
+TOOLCHAIN := $(OO_PS4_TOOLCHAIN)
+INTDIR := obj$(if $(filter 1,$(DEBUG)),-debug,)
+TARGET := orbeats_extras$(if $(filter 1,$(DEBUG)),_debug,).prx
+CXXFLAGS := --target=x86_64-pc-freebsd12-elf -fPIC -funwind-tables -c -isysroot $(TOOLCHAIN) -isystem $(TOOLCHAIN)/include -isystem $(TOOLCHAIN)/include/c++/v1 -Iinclude -Wall -Wextra -Werror
+ifeq ($(DEBUG),1)
+CXXFLAGS += -g -O0
+else
+CXXFLAGS += -O2
+endif
+.PHONY: all clean
+all: $(TARGET)
+$(INTDIR):
+	mkdir -p $@
+$(INTDIR)/main.o: src/main.cpp include/health.h | $(INTDIR)
+	clang++ $(CXXFLAGS) -o $@ $<
+$(TARGET): $(INTDIR)/main.o ../beat_saber_deluxe/link.x
+	ld.lld -m elf_x86_64 -pie -e _init --script ../beat_saber_deluxe/link.x --eh-frame-hdr -L$(TOOLCHAIN)/lib $(TOOLCHAIN)/lib/crtprx.o $(INTDIR)/main.o -lGoldHEN_Hook -lSceLibcInternal -lkernel -o $(INTDIR)/orbeats_extras.elf
+	$(TOOLCHAIN)/bin/linux/create-fself -in=$(INTDIR)/orbeats_extras.elf -out=$(INTDIR)/orbeats_extras.oelf --lib=$(TARGET) --paid 0x3800000000000011
+clean:
+	rm -f $(TARGET) $(INTDIR)/main.o $(INTDIR)/orbeats_extras.elf $(INTDIR)/orbeats_extras.oelf
