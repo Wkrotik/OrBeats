@@ -318,3 +318,17 @@ def test_full_64_map_batch_skips_failures_and_retains_all_results():
     assert sum(e["status"] == "complete" for e in results) == 48
     assert all(len(e.get("error", "")) <= 512 for e in results)
     assert queue.status()["error"]
+
+
+def test_pyinstaller_wrapper_never_hides_real_failure_before_next_job():
+    runner = FakeRunner()
+    queue = InstallQueue(runner)
+    queue.add('a', 'fixture')
+    queue.start()
+    wait_for(lambda: len(runner.jobs) == 1)
+    runner.jobs[0].lines.extend(['Traceback (most recent call last):',
+        'ValueError: actual map or connection reason',
+        '[PYI-12345:ERROR] Failed to execute script entrypoint due to unhandled exception!'])
+    runner.jobs[0].exit_code = 1
+    wait_for(lambda: bool(queue.status()['history']))
+    assert queue.status()['history'][0]['error'] == 'ValueError: actual map or connection reason'

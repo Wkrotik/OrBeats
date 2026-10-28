@@ -1,3 +1,16 @@
+## 0.5391 — default environment, identity BPM markers and instant chains
+
+- Empty environment lists with exact integer index0 retain the authored root
+  environment. Other invalid references still fail closed.
+- Top-level V2 BPM annotations are ignored only if validated and all exactly equal
+  an explicitly provided base BPM. Genuine tempo changes remain refused here.
+- Bounded uint32 `_atlasBeatsMap` annotation does not affect gameplay objects.
+- V3/V4 zero-duration chains retain every slice, geometry and exact endpoint.
+  The owned native BurstSliderSpawner handles equal endpoint times without a
+  division by their difference. Negative chain durations and zero-time arcs refuse.
+- Offline frozen import/prepare/independent verification passes unmodified public
+  47764,3c853,35c11,4980,a87e,55106,54d4e. This is not PS4 playback evidence.
+
 ## 0.5390 — default palette and descriptive timing annotations
 
 - Interpret only exact integer scheme index0 with an empty table as the vanilla

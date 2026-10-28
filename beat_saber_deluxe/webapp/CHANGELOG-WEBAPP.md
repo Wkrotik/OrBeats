@@ -1,3 +1,10 @@
+## 0.7.24 — preserve useful failed-job reasons
+
+- Failure summaries prefer the actual exception/refusal rather than PyInstaller's
+  generic last wrapper line. Complete raw logs remain available unchanged.
+- Package pipeline0.5391 compatibility fixes; no automatic retry, queue mutation,
+  feature loss or console update. Desktop0.1.11/plugin0.8077.
+
 ## 0.7.23 — platform output, owned SVG and GoldHEN-only connection
 
 - Live workers explicitly decode UTF-8 with replacement and retain lifecycle

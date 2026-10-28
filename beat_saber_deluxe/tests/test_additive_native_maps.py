@@ -619,3 +619,25 @@ def test_native_audio_sample_tolerance_is_exact_at_boundary(difference, accepted
     else:
         with pytest.raises(ValueError, match="durations disagree"):
             native.resample_audio(data, 44100, 6868222 + difference, "test")
+
+
+def test_zero_duration_chains_keep_slice_count_geometry_and_exact_timing():
+    data = advanced(); data['chains'][0]['tb'] = data['chains'][0]['hb']
+    before = copy.deepcopy(data)
+    assert native.chart(data, 2, 12) == 5
+    assert data == before
+    data['chains'][0]['tb'] = data['chains'][0]['hb'] - 0.001
+    with pytest.raises(ValueError, match='chains tail'): native.chart(data, 2, 12)
+    data = advanced(); data['arcs'][0]['tb'] = data['arcs'][0]['hb']
+    with pytest.raises(ValueError, match='arcs tail'): native.chart(data, 2, 12)
+
+
+def test_zero_duration_v3_chains_convert_losslessly_without_epsilon_or_dropped_slices():
+    data = {'version': '3.3.0', 'colorNotes': [{'b': 1, 'x': 1, 'y': 0, 'c': 0, 'd': 1}],
+            'burstSliders': [{'b': 1, 'tb': 1, 'c': 0, 'x': 1, 'y': 0, 'd': 1,
+                              'tx': 1, 'ty': 1, 'sc': 5, 's': 1}]}
+    before = copy.deepcopy(data)
+    out, _ = v3native.convert(data, audio(), 12)
+    assert out['chains'][0]['hb'] == out['chains'][0]['tb'] == 1
+    assert out['chainsData'][0] == dict(tx=1, ty=1, c=5, s=1)
+    assert native.chart(out, 2, 12) == 5 and data == before

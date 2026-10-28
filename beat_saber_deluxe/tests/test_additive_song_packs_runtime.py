@@ -55,7 +55,7 @@ def test_ui_exposes_approved_exception_and_version():
     assert js.count('"enable_additive_song_packs"') == 1
     assert 'const TOAST_VERSION = "v0.8077";' in js
     assert '"enable_additive_song_packs": "EXPERIMENTAL, OFF by default' in server
-    assert (ROOT / "VERSION").read_text().strip() == "0.5390"
+    assert (ROOT / "VERSION").read_text().strip() == "0.5391"
 
 
 def test_explicit_module_public_symbol_resolution_failure_paths(tmp_path):

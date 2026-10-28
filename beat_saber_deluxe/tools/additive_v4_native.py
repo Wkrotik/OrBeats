@@ -157,8 +157,10 @@ def chart(data, maxbeat, base_njs=10):
                 number(event.get(r, 0), "rotation lane", -360, 360, True)
             if key in ("arcs", "chains"):
                 tail = number(event.get("tb", 0), key + " tail beat", 0, maxbeat)
-                if tail <= head:
+                if tail < head or (key == "arcs" and tail == head):
                     raise ValueError(key + " tail must follow head")
+                # CUSA12878 BurstSliderSpawner RVA0x1B5D0A0 interpolates times;
+                # equal chain endpoints are valid. Never add timing epsilon.
                 index(event.get("hi" if key == "arcs" else "i", 0), data.get("colorNotesData", []), key + " head")
                 if key == "arcs":
                     # Native ArcItemConverter.Convert (CUSA12878 RVA0x9E57C0)

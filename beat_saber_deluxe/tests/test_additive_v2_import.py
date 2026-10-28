@@ -198,3 +198,32 @@ def test_direct_v3_zero_width_geometry_still_refused(tmp_path,width,duration):
     data['obstacles']=[{'b':0,'x':0,'y':0,'d':duration,'w':width,'h':5}]
     path.write_text(json.dumps(data))
     with pytest.raises(ValueError,match='wall geometry'):imp.prepare.load_song(folder)
+
+
+def test_redundant_top_level_tempo_is_identity_only_with_explicit_exact_base():
+    import copy
+    original = v2()
+    original['_BPMChanges'] = [{'_time': 1.25, '_BPM': 70, '_beatsPerBar': 4, '_metronomeOffset': 4}]
+    before = copy.deepcopy(original)
+    assert imp.convert_map(original, base_bpm=70) == imp.convert_map(v2())
+    assert original == before
+    for bpm in (None, True, 69.9999999, float('nan'), 0, '70'):
+        with pytest.raises(ValueError): imp.convert_map(original, base_bpm=bpm)
+    original['_BPMChanges'].append({'_time': 2, '_BPM': 71})
+    with pytest.raises(ValueError): imp.convert_map(original, base_bpm=70)
+
+
+@pytest.mark.parametrize('markers', [None, {}, 'none', [0], [{'_time': 0}],
+    [{'_time': True, '_BPM': 70}], [{'_time': 0, '_BPM': 70, 'customData': {}}]])
+def test_top_level_tempo_metadata_is_validated_even_for_constant_tempo(markers):
+    data = v2(); data['_BPMChanges'] = markers
+    with pytest.raises(ValueError): imp.convert_map(data, base_bpm=70)
+
+
+def test_legacy_atlas_scalar_annotation_never_changes_chart_objects():
+    original = v2(); original['_customData'] = {'_atlasBeatsMap': 285278464}
+    assert imp.convert_map(original) == imp.convert_map(v2())
+    assert original['_customData'] == {'_atlasBeatsMap': 285278464}
+    for value in (-1, 2**32, True, 0.0, 'tag', {}, []):
+        original['_customData']['_atlasBeatsMap'] = value
+        with pytest.raises(ValueError): imp.convert_map(original)

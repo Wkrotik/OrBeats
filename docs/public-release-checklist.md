@@ -4,7 +4,7 @@
 tag or system installation is authorized by this checklist. User separately
 authorized a private source repository/push and GitHub Actions for testing; see
 [private builds](private-builds.md). This is not public-release permission.
-Current source: plugin0.8077 / pipeline0.5390 / web0.7.23 / desktop0.1.10.
+Current source: plugin0.8077 / pipeline0.5391 / web0.7.24 / desktop0.1.11.
 User confirms0.1.7 Wayland repair,0.1.8 bd45 installation and Windows0.1.9
 plugin detection.0.1.10 adds deterministic worker output, the owned SVG logo,
 revised progress/scrolling, IP-only GoldHEN settings and two bounded map fixes.

@@ -1,3 +1,20 @@
+## 0.1.11 — recurring import compatibility fixes, testing candidate
+
+- Pipeline0.5391 / companion0.7.24, plugin unchanged0.8077.
+- Preserve the authored root environment for index0 with an empty environment
+  table. Other invalid references still refuse.
+- Accept validated top-level legacy BPM markers only when every value exactly
+  matches the explicit song BPM; no changing-tempo markers are discarded.
+- Accept bounded legacy `_atlasBeatsMap` scalar annotations. Preserve zero-time
+  chains and all slice geometry/timing; negative durations and zero-time arcs
+  remain invalid. No epsilon insertion, flattening or object loss.
+- Keep the actionable exception in failed-job summaries instead of the generic
+  PyInstaller wrapper. The older Konekomyu wrapper-only failure is not diagnosed
+  retroactively; its full frozen conversion now verifies successfully.
+- Seven original public maps pass frozen offline import, preparation and independent
+  bundle/chart/audio verification with no host media tools or console operations.
+  Local tests/runtime evidence and Windows hosted results are recorded separately.
+
 ## 0.1.10 — platform diagnostics and GoldHEN setup, testing candidate
 
 - Explicit UTF-8, unbuffered frozen task output and resilient live job draining;

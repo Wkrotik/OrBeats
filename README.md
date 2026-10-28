@@ -126,7 +126,7 @@ the app cannot manufacture the game's copyrighted assets.
   The **native Linux window also compiles and opens the real UI**, with a verified
   normal window-close/backend-drain test on private Xvfb. Startup deadline,
   failure status and backend monitoring are implemented. No system installs.
-  Linux candidate **0.1.9** bundles FFmpeg/ffprobe and isolated Ogg/Vorbis with
+  Linux candidate **0.1.11** bundles FFmpeg/ffprobe and isolated Ogg/Vorbis with
   offline conversion proof; the complete image is built against GLIBC2.35 and
   tested in a minimal Ubuntu22.04 userspace. Downloads keeps a collapsible active/
   last-job log above queue/history, with bounded scroll and reader-aware follow.

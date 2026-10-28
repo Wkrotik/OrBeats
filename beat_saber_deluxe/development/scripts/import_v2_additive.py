@@ -45,6 +45,8 @@ def validate_editor_metadata(custom):
             continue
         if key == '_bookmarksUseOfficialBpmEvents' and type(value) is bool:
             continue
+        if key == '_atlasBeatsMap' and type(value) is int and 0 <= value <= 0xffffffff:
+            continue  # Legacy scalar annotation; never interpreted as gameplay.
         if key == '_time' and type(value) in (int, float) and math.isfinite(value):
             continue  # last editor cursor position
         if key in ('_BPMChanges', '_bpmChanges'):
@@ -84,11 +86,15 @@ def is_empty_wall_placeholder(wall):
                     for k in ('_time', '_duration')))
 
 
-def convert_map(data, allow_rotations=False, *, normalization=None):
+def convert_map(data, allow_rotations=False, *, normalization=None, base_bpm=None):
     if not str(data.get('_version','')).startswith('2.'):
         raise ValueError('requires V2 beatmap version 2.x')
-    if data.get('_BPMChanges'):
+    markers = data.get('_BPMChanges', [])
+    validate_editor_metadata({'_BPMChanges': markers})
+    if markers and (type(base_bpm) not in (int, float) or not math.isfinite(base_bpm)
+                    or base_bpm <= 0 or any(marker['_BPM'] != base_bpm for marker in markers)):
         raise ValueError('unsupported top-level V2 BPM changes; runtime timing cannot be dropped')
+    # Exact base-tempo repeats cannot alter timing. Genuine changes still refuse.
     validate_editor_metadata(data.get('_customData', {}))
     if '_waypoints' in data and data['_waypoints'] != []:
         raise ValueError('nonempty V2 waypoints are unsupported')
@@ -157,7 +163,7 @@ def import_song(source,output,ffmpeg='ffmpeg'):
                 if name not in prepare.DIFFICULTIES or any(x['_difficulty']==name for x in ds):raise ValueError('unknown/duplicate difficulty')
                 raw=prepare.local_file(source,diff['_beatmapFilename']).read_bytes()
                 normalization = {}
-                normalized=convert_map(json.loads(raw.decode('utf-8-sig')), normalization=normalization)
+                normalized=convert_map(json.loads(raw.decode('utf-8-sig')), normalization=normalization, base_bpm=original['_beatsPerMinute'])
                 if normalization['empty_v2_wall_placeholders']:
                     ignored_placeholders[name] = normalization['empty_v2_wall_placeholders']
                 filename=name+'.dat';(stage/filename).write_bytes(prepare.canonical(normalized))

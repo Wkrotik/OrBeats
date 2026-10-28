@@ -218,7 +218,7 @@ def import_song(source, output, ffmpeg='ffmpeg'):
                 try:
                     if str(raw.get('_version', '')).startswith('2.'):
                         normalization = {}
-                        raw = v2.convert_map(raw, allow_rotations=mode in ('90Degree','360Degree'), normalization=normalization)
+                        raw = v2.convert_map(raw, allow_rotations=mode in ('90Degree','360Degree'), normalization=normalization, base_bpm=original['_beatsPerMinute'])
                         if normalization['empty_v2_wall_placeholders']:
                             ignored_placeholders[name] = normalization['empty_v2_wall_placeholders']
                     advanced = False
@@ -255,7 +255,7 @@ def import_song(source, output, ffmpeg='ffmpeg'):
                         if not (advanced and preserve_v3): validate_lighting(native_light, validate_audio(native_audio))
                         normalized = raw
                     elif str(raw.get('_version', '')).startswith('2.'):
-                        normalized = convert_map(v2.convert_map(raw), original['_beatsPerMinute'])
+                        normalized = convert_map(v2.convert_map(raw, base_bpm=original['_beatsPerMinute']), original['_beatsPerMinute'])
                     else:
                         normalized = convert_map(raw, original['_beatsPerMinute'])
                 except ValueError as exc:
@@ -265,9 +265,15 @@ def import_song(source, output, ffmpeg='ffmpeg'):
                 index = d.get('_environmentNameIdx')
                 if index is not None:
                     names = original.get('_environmentNames', [])
-                    if type(index) is not int or not isinstance(names, list) or not 0 <= index < len(names):
+                    if type(index) is not int or not isinstance(names, list) or index < 0:
                         raise ValueError('invalid lighting environment index')
-                    environment = names[index]
+                    if names:
+                        if index >= len(names) or not isinstance(names[index], str):
+                            raise ValueError('invalid lighting environment index')
+                        environment = names[index]
+                    elif index != 0:
+                        raise ValueError('invalid lighting environment index')
+                    # Empty table + index0 uses the authored root environment.
                 if environment in NATIVE_ENVIRONMENTS:
                     info['_environmentName'] = environment
                 if ((bool(native_light.get('eventBoxGroups')) or has_boxes(native_light) or bool(native_light.get('vfxEventBoxGroups'))) if native else has_boxes(normalized)):

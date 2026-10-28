@@ -269,3 +269,32 @@ def test_timing_annotations_are_bounded_numbers_not_playback_mods(key,value):
         imp.cosmetic_only({key:value},{'_firstNoteBeat','_introPadSeconds'})
     with pytest.raises(ValueError,match='custom metadata'):
         imp.cosmetic_only({key:1},set())
+
+
+@pytest.mark.parametrize('names,index,root,expected', [
+    ([], 0, 'BigMirrorEnvironment', 'BigMirrorEnvironment'),
+    ([], 0, 'DefaultEnvironment', 'DefaultEnvironment'),
+    (['TriangleEnvironment'], 0, 'DefaultEnvironment', 'TriangleEnvironment'),
+])
+def test_environment_default_index_does_not_invent_or_replace_authored_environment(tmp_path, names, index, root, expected):
+    if not shutil.which('ffmpeg'): pytest.skip('ffmpeg required')
+    source = tmp_path/'source'; imp.prepare.generate_probe(source)
+    file = source/'Info.dat'; info = json.loads(file.read_text())
+    info.update(_environmentName=root, _environmentNames=names)
+    for diff in info['_difficultyBeatmapSets'][0]['_difficultyBeatmaps']:
+        diff['_environmentNameIdx'] = index
+    file.write_text(json.dumps(info)); before = file.read_bytes()
+    imp.import_song(source, tmp_path/'out')
+    result = json.loads((tmp_path/'out/Info.dat').read_text())
+    assert result.get('_environmentName') == expected and file.read_bytes() == before
+
+
+@pytest.mark.parametrize('names,index', [([], 1), ([], -1), ([], True), ([], 0.0),
+    ({}, 0), (['DefaultEnvironment'], 1), ([{}], 0)])
+def test_invalid_environment_references_still_refuse(tmp_path, names, index):
+    if not shutil.which('ffmpeg'): pytest.skip('ffmpeg required')
+    source=tmp_path/'source';imp.prepare.generate_probe(source)
+    file=source/'Info.dat';info=json.loads(file.read_text());info['_environmentNames']=names
+    info['_difficultyBeatmapSets'][0]['_difficultyBeatmaps'][0]['_environmentNameIdx']=index
+    file.write_text(json.dumps(info))
+    with pytest.raises(ValueError,match='environment index'):imp.import_song(source,tmp_path/'out')
