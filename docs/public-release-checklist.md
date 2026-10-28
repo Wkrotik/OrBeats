@@ -4,9 +4,12 @@
 tag or system installation is authorized by this checklist. User separately
 authorized a private source repository/push and GitHub Actions for testing; see
 [private builds](private-builds.md). This is not public-release permission.
-Current source: plugin0.8077 / pipeline0.5389 / web0.7.22 / desktop0.1.9.
-User confirms0.1.7 Wayland repair and0.1.8 bd45 installation.0.1.9 adds the
-reachable active/last log; no new native map feature or automatic retry.
+Current source: plugin0.8077 / pipeline0.5390 / web0.7.23 / desktop0.1.10.
+User confirms0.1.7 Wayland repair,0.1.8 bd45 installation and Windows0.1.9
+plugin detection.0.1.10 adds deterministic worker output, the owned SVG logo,
+revised progress/scrolling, IP-only GoldHEN settings and two bounded map fixes.
+Neither new actual Windows installation success nor those maps' playback is
+claimed; no automatic console retry or new native plugin feature.
 
 ## Confirmed functional milestone
 
@@ -45,12 +48,14 @@ requiredGLIBC2.44; it is a reference, not the current release candidate.
 
 ## Remaining blocking gates
 
-1. **Windows build and real execution.** Target-specific PE/media inventories,
-   scoped DLL loading and NSIS/WebView2 config exist, but no native Windows helper,
-   window, source-built media or installer has passed native Windows validation.
-   Private Actions is now authorized and started. The first Linux source-only
-   run passed810tests/113skips; plugin setup stopped on missing llvm-ar, now fixed.
-   Windows success is pending; configuration tests alone still do not prove it.
+1. **Windows end-to-end installation and lifecycle.** Private Actions run
+   40674610679 passed native source-built media, frozen synthetic import/private
+   bootstrap/drain, seven MSVC tests and unsigned NSIS0.1.9 generation. The user
+   opened it and confirmed plugin detection, but reported a real installation
+   appearing stuck with no output.0.1.10 fixes encoding/buffering and adds a native
+   live-output regression; its new CI and actual installation still need checking.
+   Interactive installer/upgrade/uninstall, WebView2-first-run and state/recovery
+   preservation remain gates; CI generation is not blanket installer approval.
 2. **Complete license/source closure.** The baseline helper audit inventories
    18Python metadata sets, not a complete SBOM/legal approval. fsb5-1.0's missing
    notice is now recovered from an exact-source upstream commit, bundled with
