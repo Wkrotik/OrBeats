@@ -1,0 +1,13 @@
+{
+  "commit": "0c7feb41d8863b3c1f7bc516388cf1549e342596",
+  "run": 40673940370,
+  "url": "https://github.com/Wkrotik/OrBeats/actions/runs/40673940370",
+  "linux": "failure",
+  "windows": "skipped",
+  "release_approved": false,
+  "ps4_operations": false,
+  "logs": {
+    "reports/linux-ci-report/linux-plugin.txt": "Missing prerequisite: llvm-ar\n",
+    "reports/linux-ci-report/linux-tests.txt": "tests/test_patched_pack_bundle.py ................                       [ 64%]\ntests/test_pipeline.py ................................................. [ 69%]\n........................................................................ [ 77%]\n............                                                             [ 78%]\ntests/test_replacement_pack.py ..............                            [ 79%]\ntests/test_webapp_beatsage.py ..................s                        [ 82%]\ntests/test_webapp_boot_wiring.py ...                                     [ 82%]\ntests/test_webapp_deploy.py ........................                     [ 84%]\ntests/test_webapp_js_syntax.py ..                                        [ 85%]\ntests/test_webapp_launch.py ..........                                   [ 86%]\ntests/test_webapp_ps4_adapter.py ......................                  [ 88%]\ntests/test_webapp_songs.py ..................................            [ 92%]\ntests/test_desktop_backend.py .................s.s........s............. [ 96%]\n....                                                                     [ 97%]\ntests/test_private_source_repository.py .........................        [100%]\n\n=============================== warnings summary ===============================\n../.venv/lib/python3.12/site-packages/fastapi/testclient.py:1\n  /home/runner/work/OrBeats/OrBeats/.venv/lib/python3.12/site-packages/fastapi/testclient.py:1: StarletteDeprecationWarning: Using `httpx` with `starlette.testclient` is deprecated; install `httpx2` instead.\n    from starlette.testclient import TestClient as TestClient  # noqa\n\n-- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html\n============ 810 passed, 113 skipped, 1 warning in 78.31s (0:01:18) ============\n"
+  }
+}
