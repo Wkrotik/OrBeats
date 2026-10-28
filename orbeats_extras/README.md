@@ -4,31 +4,25 @@ Optional, separate GoldHEN plugin for **Beat Saber PS4 CUSA12878 / patch 2.04**.
 It adds anonymous ScoreSaber viewing and a health-warning convenience option.
 OrBeats custom-song playback does not depend on Extras.
 
-**Health auto-dismiss is hardware-confirmed. Anonymous leaderboard viewing is
-not yet hardware-validated.** The 0.0007 hardware log identifies the blocker:
-`sceHttpSetResolveRetry` returns `0x804311fe` during session setup, before a
-request is sent. This is not evidence of an internet, clock or certificate error.
-The loading/error message is now hardware-confirmed visible.
+Health auto-dismiss and anonymous ScoreSaber score display are hardware-confirmed
+on the tested PS4. The game’s existing panel is used as a **top-ten leaderboard**;
+no scrollbar or larger scrolling list is added.
 
-The local **0.0008 candidate** removes that optional DNS retry-policy setter.
-The platform keeps its default resolver policy; there is no application retry
-loop. Mandatory DNS/connect/send/receive timeouts, cancellation/deadline checks,
-certificate/hostname/date/CA verification and SNI remain unchanged. A synchronous
-platform call cannot be immediately cancelled, so the overall deadline is
-cooperative rather than a guaranteed hard wall-clock limit.
-
-HTTPS diagnostics continue to record failing operations, hexadecimal results,
-and available HTTP/TLS details without hashes, names, URLs or response bodies.
-The actual network request, successful score display and controller scrolling
-still need a PS4 check. This change does not touch health behavior, songs,
-library, the main plugin, INI or settings.
+HTTPS retains server/hostname/date/CA verification and SNI, mandatory phase
+timeouts, cooperative cancellation/deadline checks, and platform resolver
+defaults. There are no application retry loops. A synchronous platform call
+cannot be immediately cancelled, so the overall deadline is cooperative rather
+than a guaranteed hard wall-clock limit. Diagnostics exclude map hashes, player
+names, URLs and response bodies.
 
 ## Anonymous leaderboard
 
 Extras reuses the game's existing leaderboard panel rather than adding another
 menu or mod loader. For an imported **Standard** chart with a verified original
-map identity, it displays up to **100 public ScoreSaber scores**. Names are
-prefixed **`[SS/PC]`**: these are PC/ScoreSaber scores, **not PSN rankings**.
+map identity, it displays the **top 10 public ScoreSaber scores**, or fewer for a smaller
+board. Player names have no added prefix. These are ScoreSaber scores, **not
+PSN rankings**. Only the first API page is requested (up to 12 rows), with the
+result truncated to ten; ranks 11–100 are not fetched across further pages.
 There is no login, player identification, upload, avatar fetch, Friends or Around
 Me feature. PSN-only scope controls are hidden while this replacement is active.
 
@@ -124,7 +118,7 @@ fingerprint checks explicitly skip in source-only CI.
 
 Before treating this integration as console-ready, check: ordinary startup and
 health option; all stock/custom songs still work; verified HTTPS; correct chart,
-difficulty, rank, score and scrolling; rapid selection changes; leaving/reopening
+difficulty, rank, score and the ten-row display; rapid selection changes; leaving/reopening
 the view; missing identity/board/network; and coexistence with enabled plugins.
 The runtime manifest is read at title startup; no live library refresh is added.
 

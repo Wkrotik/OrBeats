@@ -20,7 +20,7 @@ $(INTDIR)/scoresaber.o: src/scoresaber.cpp include/scoresaber.h third_party/cjso
 	clang++ $(CXXFLAGS) -o $@ $<
 $(INTDIR)/transport.o: src/transport.cpp include/transport.h include/scoresaber.h include/ps4_http.h include/health.h | $(INTDIR)
 	clang++ $(CXXFLAGS) -o $@ $<
-$(INTDIR)/worker.o: src/worker.cpp include/worker.h include/transport.h | $(INTDIR)
+$(INTDIR)/worker.o: src/worker.cpp include/worker.h include/transport.h include/scoresaber.h | $(INTDIR)
 	clang++ $(CXXFLAGS) -o $@ $<
 $(INTDIR)/leaderboard.o: src/leaderboard.cpp $(wildcard include/*.h) $(wildcard ../orbeats/include/*.h) | $(INTDIR)
 	clang++ $(CXXFLAGS) -o $@ $<

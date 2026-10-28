@@ -84,16 +84,17 @@ int main(int argc,char** argv){
   return 0;
  }
  ScoreBoard board;memset(&board,0xaa,sizeof(board));
- unsigned limit=scenario=="fifty"?50:100;
+ unsigned limit=scenario=="ten"?10:scenario=="fifty"?50:100;
  FetchResult r=fetch_scores(scenario=="identity"?"generated_level_id":"8AF82A87167070A08EC63DBA0459C829C2954067",9,limit,cancelled,NULL,&board);
  assert(live==0 && retry_calls==0);
- if(scenario=="normal" || scenario=="fifty" || scenario=="chunks" || scenario=="modules-present" || scenario=="no-logger" || scenario=="unsupported-retry")assert(r==FetchResult::Ok && board.count==limit && pages==(limit==50?5:9) && tls_calls==1 && resolve_timeouts==pages);
+ if(scenario=="normal" || scenario=="ten" || scenario=="fifty" || scenario=="chunks" || scenario=="modules-present" || scenario=="no-logger" || scenario=="unsupported-retry")assert(r==FetchResult::Ok && board.count==limit && pages==(limit==10?1:limit==50?5:9) && tls_calls==1 && resolve_timeouts==pages);
  else if(scenario=="empty")assert(r==FetchResult::Ok && board.count==0 && pages==1);
  else {
   FetchResult expected=scenario=="identity"?FetchResult::InvalidIdentity:scenario.find("cancel")==0?FetchResult::Cancelled:scenario.find("deadline")!=std::string::npos || scenario=="time-backwards"?FetchResult::Deadline:scenario=="404"?FetchResult::Missing:scenario=="429"?FetchResult::RateLimited:scenario=="redirect" || scenario=="500"?FetchResult::Http:scenario=="oversize"?FetchResult::TooLarge:(scenario=="invalid-count" || scenario=="send-error" || scenario=="ssl-error" || scenario=="diagnostic-error" || scenario=="tls-policy-error" || scenario=="resolve-timeout-error")?FetchResult::Network:FetchResult::Protocol;
   assert(r==expected && board.count==0 && board.total==0 && !board.rows[0].name[0]);
   if(scenario=="identity" || scenario=="cancel-before")assert(calls==0);
  }
+ if(scenario=="ten")assert(board.total==108 && board.rows[0].rank==1 && board.rows[9].rank==10 && !board.rows[10].name[0]);
  if(scenario=="send-error" || scenario=="ssl-error" || scenario=="diagnostic-error"){
   assert(diagnostics.find("sceHttpSendRequest result=0x80431075")!=std::string::npos);
   if(scenario=="diagnostic-error")assert(diagnostics.find("TLS verification detail")==std::string::npos && diagnostics.find("HTTP errno")==std::string::npos);

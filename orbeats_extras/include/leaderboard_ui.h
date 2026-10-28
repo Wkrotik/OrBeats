@@ -75,8 +75,7 @@ inline bool show_scores(const UiApi& u,void* self,const ScoreBoard& board) {
     if(!roots.keep(list))return false;BsdAdditive::invoke(a,ctor,list,NULL,&threw);if(threw)return false;
     for(unsigned i=0;i<board.count;++i) {
         const ScoreRow& input=board.rows[i];if(input.rank!=(int)i+1 || input.score<0 || !memchr(input.name,0,sizeof(input.name)))return false;
-        char labelled[sizeof(input.name)+16];snprintf(labelled,sizeof(labelled),"[SS/PC] %s",input.name);
-        void* text=a.string_new(labelled);if(!roots.keep(text))return false;
+        void* text=a.string_new(input.name);if(!roots.keep(text))return false;
         void* row=a.object_new(row_class);if(!roots.keep(row))return false;
         int score=input.score,rank=input.rank;bool fc=input.full_combo;void* args[]={&score,text,&rank,&fc};
         BsdAdditive::invoke(a,row_ctor,row,args,&threw);if(threw)return false;

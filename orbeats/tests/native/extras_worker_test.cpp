@@ -10,7 +10,7 @@ static std::atomic<uint64_t> clock_value(1000000);
 static uint64_t now(){return clock_value.load();}
 static void sleep(){std::this_thread::sleep_for(std::chrono::milliseconds(1));}
 static FetchResult fetch(const char* hash,int difficulty,unsigned limit,bool(*cancelled)(void*),void* context,ScoreBoard* board){
- assert(strlen(hash)==40 && (difficulty==1 || difficulty==3) && limit==100);
+ assert(strlen(hash)==40 && (difficulty==1 || difficulty==3) && limit==10 && kLeaderboardScores==10);
  ++calls;++entered;
  for(unsigned i=0;hold.load() && i<4000;++i){if(cancelled(context)){++cancelled_count;return FetchResult::Cancelled;}sleep();}
  assert(!hold.load());

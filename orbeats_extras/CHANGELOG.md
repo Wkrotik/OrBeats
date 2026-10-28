@@ -1,5 +1,20 @@
 # OrBeats Extras changes
 
+## 0.0009 — top ten scores and unprefixed names
+
+- User confirms0.0008 displays ScoreSaber rows on PS4; health auto-dismiss is
+  already confirmed. The stock visible panel has no usable scrollbar in that
+  test, so deliberately request only the top10 instead of fetching100 rows.
+- A single API page returns up to12 rows; retain at most10, preserving original
+  ranks/scores/names/full-combo flags. Fewer available scores remain valid.
+- Remove the added [SS/PC] prefix from player names; keep ScoreSaber identified
+  in status text and documentation. No login, PSN scores or uploads are added.
+- Regress the worker’s literal10-row request, one-page transport/truncation,
+  managed name/rank/score publication, lifecycle and cleanup. Keep health,
+  certificates, identity verification, cancellation and cache behavior unchanged.
+- Local validation is separate from subsequent upload and PS4 confirmation.
+
+
 ## 0.0008 — remove the unsupported DNS retry-policy requirement
 
 - Hardware0.0007 now shows the error text. Its log identifies the setup blocker:

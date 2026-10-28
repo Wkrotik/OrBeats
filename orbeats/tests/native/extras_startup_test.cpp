@@ -107,8 +107,8 @@ int main(int argc,char** argv){
     }else assert(lists==1 && !sleeps && installs==1);
     if(scenario=="health-guard")assert(!installed && logs.find("code signature mismatch")!=std::string::npos);
     if(scenario=="log-open")assert(logs.empty() && !chmods);
-    else if(scenario=="chmod")assert(logs.find("permission repair failed")!=std::string::npos && logs.find("0.0008")!=std::string::npos && chmods && closes);
-    else assert(chmods && logs.find("0.0008")!=std::string::npos);
+    else if(scenario=="chmod")assert(logs.find("permission repair failed")!=std::string::npos && logs.find("0.0009")!=std::string::npos && chmods && closes);
+    else assert(chmods && logs.find("0.0009")!=std::string::npos);
     assert(module_stop(0,nullptr)==(hooked?-1:0));assert(joins==1 && !startup_started);
     return 0;
 }

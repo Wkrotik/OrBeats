@@ -60,6 +60,7 @@ def transport(tmp_path_factory):
         "unsupported-retry",
         "tls-policy-error",
         "resolve-timeout-error",
+        "ten",
         "fifty",
         "empty",
         "chunks",

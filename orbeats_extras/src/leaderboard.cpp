@@ -63,7 +63,7 @@ static void begin(void* self) {
     if(!table_visible(ui,self,true)){log("leaderboard status panel activation failed");return;}
     ScoreKey key={};const char* problem=identity(self,key);
     if(problem){status_text(ui,self,problem);return;}
-    status_text(ui,self,"ScoreSaber: loading top 100 PC scores (read-only)");selection=worker.select(&key);
+    status_text(ui,self,"ScoreSaber: loading top 10 scores (read-only)");selection=worker.select(&key);
 }
 static void set_data(void* self,const BeatmapKey* key,const void*) {
     log("leaderboard SetData callback entered");

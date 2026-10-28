@@ -85,21 +85,21 @@ static void diagnostic(const char* message){diagnostics+=message;diagnostics+="\
 static UiApi api(){UiApi u={};auto& a=u.managed;a.object_get_class=klass;a.class_get_name=name;a.class_get_namespace=ns;a.class_get_field_from_name=field;a.field_get_offset=offset;a.field_get_value=read;a.class_get_method_from_name=method;a.object_new=object_new;a.runtime_invoke=invoke;a.class_get_rank=rank;a.class_get_element_class=elem;a.gchandle_new=keep;a.gchandle_free=release;a.string_new=text_new;u.declaring_type=declaring;return u;}
 static void reset(){assert(!roots);allocated.clear();published=NULL;alloc_calls=root_calls=add_calls=0;fail_root=fail_alloc=throw_add=0;missing_method=bad_offset=sony_active=false;view.k=&viewK;loading.text.clear();scope.active=table.active=true;}
 int main(){
- UiApi u=api();u.log=diagnostic;ScoreBoard board={};board.total=board.count=100;
- for(unsigned i=0;i<100;++i){board.rows[i].score=10000-(int)i;board.rows[i].rank=(int)i+1;board.rows[i].full_combo=true;strcpy(board.rows[i].name,"Player");}
+ UiApi u=api();u.log=diagnostic;ScoreBoard board={};board.total=108;board.count=10;
+ for(unsigned i=0;i<10;++i){board.rows[i].score=10000-(int)i;board.rows[i].rank=(int)i+1;board.rows[i].full_combo=true;strcpy(board.rows[i].name,"Player");}
  reset();assert(hide_scopes(u,&view));assert(!scope.active);
  assert(table_visible(u,&view,false) && !table.active);
  assert(status_text(u,&view,"ScoreSaber: loading PC scores"));assert(loading.text=="ScoreSaber: loading PC scores");
  assert(show_scores(u,&view,board));assert(!roots && special==-1 && loading.text.empty());
- auto* list=(Object*)published;assert(list->k==&listK && list->rows.size()==100);
- for(unsigned i=0;i<100;++i){auto* row=(Object*)list->rows[i];assert(row->k==&rowK && row->rank==(int)i+1 && row->score==10000-(int)i && row->combo && row->text=="[SS/PC] Player");}
+ auto* list=(Object*)published;assert(list->k==&listK && list->rows.size()==10);
+ for(unsigned i=0;i<10;++i){auto* row=(Object*)list->rows[i];assert(row->k==&rowK && row->rank==(int)i+1 && row->score==10000-(int)i && row->combo && row->text=="Player");}
  assert(table_visible(u,&view,true) && table.active);
  ScoreBoard empty={};assert(show_scores(u,&view,empty));assert(((Object*)published)->rows.empty() && !roots);
- for(int n=1;n<=201;++n){reset();fail_root=n;assert(!show_scores(u,&view,board));assert(!published && !roots);}
- for(int n=1;n<=201;++n){reset();fail_alloc=n;assert(!show_scores(u,&view,board));assert(!published && !roots);}
- reset();throw_add=50;assert(!show_scores(u,&view,board));assert(!published && !roots);
- reset();board.rows[80].rank=1;assert(!show_scores(u,&view,board));assert(!published && !roots);board.rows[80].rank=81;
- reset();memset(board.rows[80].name,'x',sizeof(board.rows[80].name));assert(!show_scores(u,&view,board));assert(!published && !roots);strcpy(board.rows[80].name,"Player");
+ for(int n=1;n<=21;++n){reset();fail_root=n;assert(!show_scores(u,&view,board));assert(!published && !roots);}
+ for(int n=1;n<=21;++n){reset();fail_alloc=n;assert(!show_scores(u,&view,board));assert(!published && !roots);}
+ reset();throw_add=5;assert(!show_scores(u,&view,board));assert(!published && !roots);
+ reset();board.rows[8].rank=1;assert(!show_scores(u,&view,board));assert(!published && !roots);board.rows[8].rank=9;
+ reset();memset(board.rows[8].name,'x',sizeof(board.rows[8].name));assert(!show_scores(u,&view,board));assert(!published && !roots);strcpy(board.rows[8].name,"Player");
  reset();bad_offset=true;assert(!show_scores(u,&view,board) && !published && !roots);
  reset();sony_active=true;assert(!show_scores(u,&view,board) && !published && !roots);
  reset();missing_method=true;assert(!show_scores(u,&view,board) && !published && !roots);

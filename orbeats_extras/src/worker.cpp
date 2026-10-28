@@ -65,7 +65,7 @@ void* ScoreWorker::run(void* context) {
             }
         }
         Cancellation cancel={w,generation};
-        if(!cached)reply.result=w->fetch_(key.hash,key.difficulty,100,cancelled,&cancel,&reply.board);
+        if(!cached)reply.result=w->fetch_(key.hash,key.difficulty,kLeaderboardScores,cancelled,&cancel,&reply.board);
         if(cancelled(&cancel))continue;
         if(!cached && reply.result!=FetchResult::Cancelled) {
             Cache& c=w->cache_[w->next_++%8];c.valid=true;c.key=key;c.result=reply.result;c.board=reply.board;

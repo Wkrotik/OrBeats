@@ -23,7 +23,7 @@ FetchResult fetch_scores(const char*,int,unsigned,bool(*)(void*),void*,ScoreBoar
 }
 static void pause(){std::this_thread::sleep_for(std::chrono::milliseconds(1));}
 static FetchResult fake_fetch(const char* hash,int difficulty,unsigned count,bool(*cancel)(void*),void* context,ScoreBoard* out){
- assert(std::this_thread::get_id()!=ui_thread && strlen(hash)==40 && count==100);++fetch_calls;
+ assert(std::this_thread::get_id()!=ui_thread && strlen(hash)==40 && count==10);++fetch_calls;
  for(unsigned i=0;held && i<4000;++i){if(cancel(context)){++cancelled_calls;return FetchResult::Cancelled;}pause();}
  assert(!held);if(cancel(context)){++cancelled_calls;return FetchResult::Cancelled;}
  out->total=out->count=1;out->rows[0].rank=1;out->rows[0].score=difficulty*100;strcpy(out->rows[0].name,"Anonymous");return FetchResult::Ok;
@@ -66,7 +66,7 @@ int main(){
  set_data(&view,&first,NULL);assert(stats==1 && !fetch_calls && !active);
  activate(&view,true,true,true,NULL);assert(active==&view && roots==1 && !scope.active && table.active);
  until(fetch_calls,1);set_data(&view,&last,NULL);held=false;board_score(900);assert(stats==2 && roots==1 && table.active);
- assert(((Object*)((Object*)published)->rows[0])->text=="[SS/PC] Anonymous");
+ assert(((Object*)((Object*)published)->rows[0])->text=="Anonymous");
  deactivate(&view,true,true,NULL);assert(!active && !roots);unsigned before=fetch_calls;
  activate(&view,false,true,true,NULL);board_score(900);assert((unsigned)fetch_calls==before); // cached but generation-safe
  // Unknown identity/stock/characteristic never queries or borrows the old board.
