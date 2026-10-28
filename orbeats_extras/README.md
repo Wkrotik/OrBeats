@@ -4,22 +4,24 @@ Optional, separate GoldHEN plugin for **Beat Saber PS4 CUSA12878 / patch 2.04**.
 It adds anonymous ScoreSaber viewing and a health-warning convenience option.
 OrBeats custom-song playback does not depend on Extras.
 
-**Health auto-dismiss is hardware-confirmed on 0.0006. Anonymous leaderboard
-viewing is not yet hardware-validated.** On Animals, the native selection and
-input-pump callbacks accept the map identity, but the request returns `Network`
-before scores are received. Successful hook installation is not end-to-end proof.
+**Health auto-dismiss is hardware-confirmed. Anonymous leaderboard viewing is
+not yet hardware-validated.** The 0.0007 hardware log identifies the blocker:
+`sceHttpSetResolveRetry` returns `0x804311fe` during session setup, before a
+request is sent. This is not evidence of an internet, clock or certificate error.
+The loading/error message is now hardware-confirmed visible.
 
-The local **0.0007 diagnostic candidate** records the failing PS4 HTTPS call,
-its hexadecimal result, and available HTTP/TLS error details. It does not log
-player names, original hashes, URLs or response bodies, disable certificate
-verification, or install permissive TLS callbacks. A logged network failure alone
-does not establish whether DNS, connection, TLS or an SDK setup call failed.
+The local **0.0008 candidate** removes that optional DNS retry-policy setter.
+The platform keeps its default resolver policy; there is no application retry
+loop. Mandatory DNS/connect/send/receive timeouts, cancellation/deadline checks,
+certificate/hostname/date/CA verification and SNI remain unchanged. A synchronous
+platform call cannot be immediately cancelled, so the overall deadline is
+cooperative rather than a guaranteed hard wall-clock limit.
 
-The status path now reactivates the emptied table's GameObject before displaying
-loading or error text: the loading control may be below that parent in the game
-prefab. Fake-platform tests cover this ordering; actual PS4 visibility still needs
-confirmation. No songs, library, main-plugin or health-policy files are changed
-by this candidate. The proven 0.0006 health activation hook is retained.
+HTTPS diagnostics continue to record failing operations, hexadecimal results,
+and available HTTP/TLS details without hashes, names, URLs or response bodies.
+The actual network request, successful score display and controller scrolling
+still need a PS4 check. This change does not touch health behavior, songs,
+library, the main plugin, INI or settings.
 
 ## Anonymous leaderboard
 

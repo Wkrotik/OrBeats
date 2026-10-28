@@ -20,7 +20,6 @@ int32_t sceHttpSetAutoRedirect(int32_t id, int32_t enabled);
 int32_t sceHttpSetAuthEnabled(int32_t id, int32_t enabled);
 int32_t sceHttpSetCookieEnabled(int32_t id, int32_t enabled);
 int32_t sceHttpSetInflateGZIPEnabled(int32_t id, int32_t enabled);
-int32_t sceHttpSetResolveRetry(int32_t id, int32_t retries);
 int32_t sceHttpSetResolveTimeOut(int32_t id, uint32_t microseconds);
 int32_t sceHttpSetConnectTimeOut(int32_t id, uint32_t microseconds);
 int32_t sceHttpSetSendTimeOut(int32_t id, uint32_t microseconds);

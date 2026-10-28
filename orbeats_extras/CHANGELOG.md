@@ -1,5 +1,22 @@
 # OrBeats Extras changes
 
+## 0.0008 — remove the unsupported DNS retry-policy requirement
+
+- Hardware0.0007 now shows the error text. Its log identifies the setup blocker:
+  sceHttpSetResolveRetry returns0x804311fe before any request is sent. Do not
+  attribute this pre-request failure to internet, clock or TLS verification.
+- Remove that optional DNS policy setter and its production ABI declaration.
+  Keep platform resolver defaults; no application retry loop. Mandatory phase
+  timeouts, cooperative cancellation/deadline and all TLS0xbd checks remain.
+- Regress with a canary setter returning the exact hardware error: assert it is
+  never called while verified fake requests paginate100 rows. The same error
+  on TLS configuration or mandatory DNS timeout must still fail before send.
+- Retain hardware-confirmed health auto-dismiss, visible statuses, diagnostic
+  privacy and scoped cleanup. No console/library/main-plugin/settings changes.
+- Local candidate only. Removing the observed setup blocker does not establish
+  successful PS4 HTTPS, populated rows or controller scrolling.
+
+
 ## 0.0007 — HTTPS diagnostics and active status panel
 
 - User confirms health auto-dismiss on hardware0.0006. Retain that exact hook.

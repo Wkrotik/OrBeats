@@ -4,7 +4,7 @@
 #include <stdint.h>
 #include <string.h>
 namespace OrBeatsExtras {
-static const char kVersion[]="0.0007";
+static const char kVersion[]="0.0008";
 // Missing file hides the warning. An explicit SHOW token restores normal startup.
 static const char kOptIn[]="ORBEATS_EXTRAS_HEALTH_V1\n";
 static const char kShowHealth[]="ORBEATS_EXTRAS_SHOW_HEALTH_V1\n";

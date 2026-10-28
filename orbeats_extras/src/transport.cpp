@@ -51,8 +51,11 @@ struct Session {
             configured("sceHttpSetAutoRedirect",sceHttpSetAutoRedirect(templ,0)) &&
             configured("sceHttpSetAuthEnabled",sceHttpSetAuthEnabled(templ,0)) &&
             configured("sceHttpSetCookieEnabled",sceHttpSetCookieEnabled(templ,0)) &&
-            configured("sceHttpSetInflateGZIPEnabled",sceHttpSetInflateGZIPEnabled(templ,0)) &&
-            configured("sceHttpSetResolveRetry",sceHttpSetResolveRetry(templ,0));
+            configured("sceHttpSetInflateGZIPEnabled",sceHttpSetInflateGZIPEnabled(templ,0));
+        // Do not require sceHttpSetResolveRetry: hardware returns 0x804311fe
+        // before any request. This optional DNS policy is not a TLS safeguard.
+        // Keep the platform's resolver policy; per-phase timeouts below remain
+        // mandatory. There are no application-level retry loops.
     }
 };
 struct Request {
