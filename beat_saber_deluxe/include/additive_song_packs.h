@@ -9,7 +9,7 @@
 
 namespace BsdAdditive {
 static const char kPackId[] = "bsd_additive_stock_proof_v1";
-static const char kPackName[] = "Custom Songs";
+static const char kPackName[] = "OrBeats";
 static const size_t kMaxPacks = 512;
 static const size_t kMaxLevels = 4096;
 static const size_t kMaxGeneratedLevels = 64; // bounded native resource budget; companion shares this bound

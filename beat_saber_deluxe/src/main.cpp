@@ -27,8 +27,9 @@
 #include "additive_runtime_library.h"
 #include "additive_probe_profile.h"
 #include "additive_menu_files.h"
+#include "orbeats_branding.h"
 
-#define PLUGIN_VERSION "v0.8077"
+#define PLUGIN_VERSION "v0.8078"
 __attribute__((used)) static const char kNativeMapsCapability[]="ORB_NATIVE_MAPS_V1 ORB_PRESENTATION_V1 ORB_MODES_V1";
 // Diagnostic build identity stays in logs, not in player notifications.
 #ifdef VERBOSE_LOG
@@ -1716,6 +1717,15 @@ static int64_t menu_file_read(int fd,void* out,size_t n){return sceKernelRead(fd
 static void menu_file_close(int fd){sceKernelClose(fd);}
 static const BsdAdditive::MenuFileIo kMenuIo={menu_file_open,menu_file_read,menu_file_close,malloc,free};
 static int additive_read_menu(const BsdAdditive::MenuFileSpec& spec,BsdAdditive::MediaBytes* out){
+    // The pack cover belongs to the plugin, not any song's mutable FTP files.
+    if (&spec==&BsdAdditive::kMenuPack) {
+        if (!out) return 1;
+        if (out->data||out->size) return -1;
+        unsigned char* data=(unsigned char*)malloc(OrBeatsBrand::kLogoBytes);
+        if (!data) return -1;
+        memcpy(data,OrBeatsBrand::kLogoPng,OrBeatsBrand::kLogoBytes);
+        out->data=data;out->size=OrBeatsBrand::kLogoBytes;return 1;
+    }
     BsdAdditive::MenuFileDiagnostic d;
     int result=BsdAdditive::read_menu_file(kMenuIo,spec,out,&d);
     if(result!=1){
@@ -1726,6 +1736,31 @@ static int additive_read_menu(const BsdAdditive::MenuFileSpec& spec,BsdAdditive:
         log_write(message);
     }
     return result;
+}
+// The shell needs a file URI. Failure only loses the toast icon, never song loading.
+static bool prepare_notification_icon(void) {
+    const char* path="/data/GoldHEN/plugins/orbeats-logo.png";
+    const char* temp="/data/GoldHEN/plugins/orbeats-logo.png.stage-08078";
+    uint64_t hash=UINT64_C(14695981039346656037);
+    for(size_t i=0;i<OrBeatsBrand::kLogoBytes;++i){hash^=OrBeatsBrand::kLogoPng[i];hash*=UINT64_C(1099511628211);}
+    BsdAdditive::MenuFileDiagnostic diagnostic;
+    BsdAdditive::MenuFileSpec wanted={path,OrBeatsBrand::kLogoBytes,hash};
+    if(BsdAdditive::read_menu_file(kMenuIo,wanted,NULL,&diagnostic)==1)return true;
+    int fd=sceKernelOpen(temp,O_WRONLY|O_CREAT|O_EXCL,0644);
+    if(fd<0)return false;
+    size_t at=0;
+    while(at<OrBeatsBrand::kLogoBytes){
+        int64_t n=(int64_t)sceKernelWrite(fd,OrBeatsBrand::kLogoPng+at,OrBeatsBrand::kLogoBytes-at);
+        if(n<=0||(uint64_t)n>OrBeatsBrand::kLogoBytes-at)break;
+        at+=(size_t)n;
+    }
+    int closed=sceKernelClose(fd);
+    BsdAdditive::MenuFileSpec staged={temp,OrBeatsBrand::kLogoBytes,hash};
+    if(at!=OrBeatsBrand::kLogoBytes||closed!=0||
+       BsdAdditive::read_menu_file(kMenuIo,staged,NULL,&diagnostic)!=1||sceKernelRename(temp,path)!=0){
+        sceKernelUnlink(temp);return false;
+    }
+    return BsdAdditive::read_menu_file(kMenuIo,wanted,NULL,&diagnostic)==1;
 }
 static void additive_free_menu_pair(void){
     free((void*)g_menu_song.data);g_menu_song={};
@@ -2140,6 +2175,10 @@ extern "C" int module_start(size_t argc, const void *args) {
                      "OrBeats %s — disabled\nBy Wkrotik\n(official songs only)",
                      PLUGIN_VERSION);
         }
+        if(prepare_notification_icon()) {
+            notif.useIconImageUri=1;
+            snprintf(notif.iconUri,sizeof(notif.iconUri),"file:///data/GoldHEN/plugins/orbeats-logo.png");
+        } else log_write("[BRANDING] custom notification icon unavailable; using normal toast");
         sceKernelSendNotificationRequest(0,&notif,sizeof(notif),0);
     }
 

@@ -17,7 +17,7 @@ def test_first_position_is_only_for_independent_ids_with_stock_proof_last():
     assert "if (verify[stock_begin + n] != src[n])" in header
     assert "if (verify[custom_index] != pack)" in header
     # Pack identity/display name is not a punctuation-based sorting workaround.
-    assert 'kPackName[] = "Custom Songs"' in header
+    assert 'kPackName[] = "OrBeats"' in header
     assert 'kPackId[] = "bsd_additive_stock_proof_v1"' in header
 
 
@@ -51,7 +51,7 @@ const elements = {
 };
 const context = { $: id => { assert(id in elements, "stale DOM id: " + id); return elements[id]; } };
 vm.createContext(context); vm.runInContext(code, context); context.updateToastSim();
-assert.strictEqual(elements["toast-title"].textContent, `OrBeats v0.8077${on ? "" : " — disabled"}`);
+assert.strictEqual(elements["toast-title"].textContent, `OrBeats v0.8078${on ? "" : " — disabled"}`);
 assert.strictEqual(elements["toast-status"].textContent, on ? "" : "(official songs only)");
 assert.strictEqual(elements["toast-status"].hidden, on);
 assert(!JSON.stringify(elements).includes("features ON"));
@@ -80,5 +80,5 @@ def test_boot_toast_and_web_placeholder_have_credits_but_no_counter():
     assert "FEATURE_FLAG_KEYS" not in js
     assert "toast-count" not in html + js
     assert 'id="toast-status" hidden' in html
-    assert 'OrBeats v0.8077' in html
-    assert (ROOT / "webapp/VERSION").read_text().strip() == "0.7.24"
+    assert 'OrBeats v0.8078' in html
+    assert (ROOT / "webapp/VERSION").read_text().strip() == "0.7.25"

@@ -991,7 +991,7 @@ let flagsDirty = false;
 // Simulated PS4 launch toast — mirrors the plugin's exact format
 // (main.cpp module_start): "OrBeats vX\nBy Wkrotik"
 // — or "disabled … (official songs only)" when the kill switch is off.
-const TOAST_VERSION = "v0.8077";
+const TOAST_VERSION = "v0.8078";
 
 function updateToastSim() {
   const checks = $("flags-list").querySelectorAll("input[type=checkbox]");

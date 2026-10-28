@@ -1,3 +1,16 @@
+## 0.8078 — owned OrBeats pack and notification branding
+
+- Custom pack display name is OrBeats; internal pack/song IDs unchanged.
+- Embed the owned desktop logo as a512px PNG for the pack; stop depending on
+  the old remote pack-cover file. Individual song artwork/audio are unchanged.
+- Reuse exactly that PNG for the startup toast through an owned file URI.
+  Bounded staged write/readback/rename; icon failures retain the normal toast.
+  No song manifest rewrite, automatic deployment or new mod capability.
+- Both native builds and host/sanitizer tests pass. Console appearance and shell
+  file-URI rendering are not yet hardware-confirmed for this candidate.
+- Menu/settings, anonymous ScoreSaber, startup-health and selected Chroma/Noodle
+  feasibility notes are in docs/plugin-expansion-research.md; not implemented.
+
 ## [0.8077] — bounded environment palette array candidate
 
 - Accept both the declared UnityEngine.Object[] and the covariant requested

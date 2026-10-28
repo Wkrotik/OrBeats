@@ -284,7 +284,7 @@ class TestInGameToggleResearchedFacts:
 
 class TestInGameToggleVersions:
     def test_plugin_version_bumped(self):
-        assert '#define PLUGIN_VERSION "v0.8077"' in _code()
+        assert '#define PLUGIN_VERSION "v0.8078"' in _code()
 
     def test_debug_variant_identity_is_log_only(self):
         """Keep diagnostic identity in logs, never in the player boot toast."""
@@ -329,12 +329,12 @@ class TestInGameToggleWebappSurfaces:
         with open(os.path.join(WEBAPP, "static", "app.js"), encoding="utf-8") as f:
             code = f.read()
         assert '"enable_in_game_plugin_toggle"' in code
-        assert 'TOAST_VERSION = "v0.8077"' in code
+        assert 'TOAST_VERSION = "v0.8078"' in code
 
     def test_index_placeholder_uses_current_count_free_toast(self):
         with open(os.path.join(WEBAPP, "static", "index.html"), encoding="utf-8") as f:
             code = f.read()
         assert " features ON)" not in code
         assert 'id="toast-count"' not in code
-        assert 'OrBeats v0.8077' in code
+        assert 'OrBeats v0.8078' in code
         assert 'id="toast-status" hidden' in code

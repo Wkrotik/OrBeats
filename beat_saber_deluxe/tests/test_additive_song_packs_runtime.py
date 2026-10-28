@@ -53,7 +53,7 @@ def test_ui_exposes_approved_exception_and_version():
     js = (ROOT / "webapp/static/app.js").read_text()
     server = (ROOT / "webapp/server.py").read_text()
     assert js.count('"enable_additive_song_packs"') == 1
-    assert 'const TOAST_VERSION = "v0.8077";' in js
+    assert 'const TOAST_VERSION = "v0.8078";' in js
     assert '"enable_additive_song_packs": "EXPERIMENTAL, OFF by default' in server
     assert (ROOT / "VERSION").read_text().strip() == "0.5391"
 

@@ -110,6 +110,11 @@ the app cannot manufacture the game's copyrighted assets.
   is **64 entries**, not an unlimited library; large-library console performance
   has not been demonstrated.
 - Current installed playlist candidate: **v0.8077**; companion **0.7.22**.
+- Local plugin branding candidate: **v0.8078**, not installed. The custom pack is
+  named **OrBeats**, with the owned logo also used by its startup toast; IDs and
+  songs stay unchanged. See [native extension research](docs/plugin-expansion-research.md)
+  for menu/settings, anonymous ScoreSaber and selected-mod feasibility.
+  Existing desktop0.1.11 bundles remain unchanged; web0.7.25 is source-only.
   Source pipeline is **0.5389** (the independent running source service still
   reports its earlier import-time0.5387 until an idle preserving reload).
   **Hardware recovery confirmed:** user reports0.8077 restores Custom Songs and
