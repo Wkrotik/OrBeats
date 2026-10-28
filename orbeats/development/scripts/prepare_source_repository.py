@@ -39,6 +39,7 @@ EXTENSIONS = {
 ROOT_FILES = (
     "AGENTS.md",
     "README.md",
+    "icon.svg",
     "LICENSE",
     ".gitignore",
     ".gitattributes",

@@ -83,3 +83,41 @@ int main(int argc,char**argv){
     result = subprocess.run([str(exe), str(tmp_path/'logo.png'), str(tmp_path/'logo.png.stage-08078')],
                             check=True, capture_output=True, text=True)
     assert 'fallback checks passed' in result.stdout
+
+
+def test_owned_svg_is_the_canonical_product_artwork():
+    root = ROOT.parent
+    canonical = (root / 'icon.svg').read_bytes()
+    assert (ROOT / 'webapp/static/orbeats.svg').read_bytes() == canonical
+    assert (root / 'desktop/ui/icon.svg').read_bytes() == canonical
+    assert b'#ABE28F' in canonical and b'<svg' in canonical
+    html = (ROOT / 'webapp/static/companion.html').read_text()
+    assert html.count('/static/orbeats.svg') >= 3
+    assert 'src="icon.svg"' in (root / 'desktop/ui/index.html').read_text()
+
+
+def test_required_raster_derivatives_keep_transparency_and_smooth_edges():
+    root = ROOT.parent
+    for name in ('icon.png', 'icon.ico'):
+        image = Image.open(root / 'desktop/src-tauri/icons' / name).convert('RGBA')
+        w, h = image.size
+        assert image.getextrema()[-1] == (0, 255)
+        assert all(image.getpixel(xy)[3] == 0 for xy in ((0, 0), (w-1, 0), (0, h-1), (w-1, h-1)))
+        assert any(0 < a < 255 for a in image.getchannel('A').tobytes())
+
+
+def test_readme_is_a_stable_introduction_with_real_local_assets():
+    root = ROOT.parent
+    text = (root / 'README.md').read_text()
+    assert len(text.splitlines()) < 100
+    assert '<img src="icon.svg"' in text
+    assert 'experimental' not in text.lower()
+    assert 'SHA256' not in text and 'tests passed' not in text
+    for link in re.findall(r'(?:src="|\]\()([^"\s)]+)', text):
+        if link.startswith(('https://', 'http://', '#')):
+            continue
+        assert (root / link.split('#')[0]).is_file(), link
+    for image in ('companion-dark.png', 'companion-light.png'):
+        with Image.open(root / 'docs/images' / image) as picture:
+            assert picture.size == (1440, 1040)
+    assert 'illustrative sample maps' in text

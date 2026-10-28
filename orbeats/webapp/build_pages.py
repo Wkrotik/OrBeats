@@ -77,6 +77,7 @@ def build(out_dir: Path) -> list[Path]:
     # appeared dead: no mode badge, no toggles, no preview).
     html = html.replace('href="/static/style.css"', 'href="style.css"')
     html = html.replace('src="/static/app.js"', 'src="app.js"')
+    html = html.replace('src="/static/orbeats.svg"', 'src="orbeats.svg"')
     html = html.replace('href="/static/dumper.cfg"', 'href="dumper.cfg"')
     if "pages-banner" not in html:
         html = html.replace("<main>", PAGES_BANNER + "\n\n<main>", 1)

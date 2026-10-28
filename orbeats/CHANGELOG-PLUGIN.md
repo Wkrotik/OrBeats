@@ -1,3 +1,10 @@
+## 0.8079 — transparent canonical OrBeats logo
+
+- Use the supplied root icon.svg as the canonical product artwork. The playlist
+  cover and startup notification share its antialiased transparent PNG derivative.
+- Keep OrBeats pack names/IDs, song artwork, library formats and gameplay unchanged.
+- No automatic console deployment; this artwork revision needs a PS4 visual check.
+
 ## 0.8078 — owned OrBeats pack and notification branding
 
 - Custom pack display name is OrBeats; internal pack/song IDs unchanged.

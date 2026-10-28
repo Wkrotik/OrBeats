@@ -226,7 +226,7 @@ class TestPluginSourcePins:
         assert "g_extractor_state" in code
 
     def test_plugin_version_bumped(self):
-        assert '#define PLUGIN_VERSION "v0.8078"' in self._code()
+        assert '#define PLUGIN_VERSION "v0.8079"' in self._code()
 
     def test_toast_no_longer_counts_extractor_as_a_feature(self):
         code = self._code()

@@ -57,6 +57,9 @@ def test_export_default_denies_personal_inputs_history_and_binaries(path):
         "orbeats/webapp/static/dumper.cfg",
         "orbeats/tools/native/fnv.c",
         "LICENSE",
+        "icon.svg",
+        "docs/images/companion-dark.png",
+        "docs/getting-started.md",
     ],
 )
 def test_export_allows_required_source_and_safe_build_inputs(path):

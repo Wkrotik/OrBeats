@@ -1,3 +1,13 @@
+## 0.1.12 — canonical transparent branding and source layout
+
+- Use the supplied root icon.svg in the companion and startup UI; regenerate
+  transparent native desktop PNG/ICO and plugin artwork from the same source.
+- Bundle plugin0.8079 / companion0.7.26 / pipeline0.5391.
+- Main source directory is now orbeats; orbeats_extras remains a separate plugin.
+  Existing console paths and internal library IDs are unchanged.
+- Replace the README status board with a concise overview, navigation and clearly
+  labelled sample-data screenshots. Setup/build details move to dedicated guides.
+
 ## 0.1.11 — recurring import compatibility fixes, testing candidate
 
 - Pipeline0.5391 / companion0.7.24, plugin unchanged0.8077.

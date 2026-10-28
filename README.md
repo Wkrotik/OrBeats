@@ -1,207 +1,66 @@
+<div align="center">
+
+<img src="icon.svg" width="112" height="112" alt="OrBeats logo">
+
 # OrBeats
 
-An experimental **Beat Saber PS4 custom-song plugin and local companion**.
-Independent custom songs appear in a first-position OrBeats pack without
-replacing original or DLC songs. One plugin, with modular internals.
+**Custom songs for Beat Saber on PS4.**
 
-**Supported console build:** CUSA12878, patch 2.04, GoldHEN with plugin support.
-Other game versions/regions are not supported. This is not a PS4 emulator or a
-way to bypass DLC ownership. Original game files and music are not distributed.
+Browse BeatSaver, build your library, and play without replacing the original soundtrack or DLC.
 
-## Companion
+[![Get started](https://img.shields.io/badge/Get_started-ABE28F?style=for-the-badge&logoColor=101813)](docs/getting-started.md)
+[![Builds](https://img.shields.io/badge/Windows_%26_Linux-Builds-26382C?style=for-the-badge)](https://github.com/Wkrotik/OrBeats/actions/workflows/private-build.yml)
+[![License](https://img.shields.io/badge/License-GPL--3.0-26382C?style=for-the-badge)](LICENSE)
 
-The new companion provides:
+[Installation](docs/getting-started.md) · [Map support](docs/native-map-expansion.md) · [Development](docs/development.md)
 
-- **Discover:** BeatSaver search, direct map links, rating/date filters, covers,
-  mapper information, chart statistics and complete API metadata.
-- **Your library:** read installed maps directly from the PS4; view metadata and
-  remove individual custom maps without touching stock songs.
-- **Settings:** PS4 FTP connection, safe local plugin deployment, light/dark
-  theme and explicit update-feed availability.
-- Staged imports with file readback, a progress/activity indicator and collapsible
-  logs that can be copied or saved for reports.
-- Supported 44.1/48 kHz Vorbis imports retain original audio packets without
-  re-encoding; other audio uses uncompressed PCM16 fallback. Existing installed
-  songs are not automatically converted.
+</div>
 
-### Run from this checkout
+## Your next session, made simple
 
-Install Python 3.11+ and FFmpeg. Keep FFmpeg available on `PATH`. A native plugin
-artifact must be built separately before the Settings deployment button is usable.
-No game dump is required to use an already configured additive library.
+- **Discover maps** with BeatSaver search, previews, filters and difficulty details.
+- **Install from your computer** with a Windows or Linux companion—no rebuilding the plugin for each song.
+- **Manage your library** with queued imports, installation logs and individual or bulk removal.
+- **Keep the originals**: custom songs live in their own **OrBeats** pack alongside stock songs and DLC.
+- **Make it yours** with light and dark themes.
 
-Linux/macOS:
+<table>
+<tr>
+<td width="50%"><img src="docs/images/companion-dark.png" alt="OrBeats Discover page in dark mode"><br><sub>Discover · dark theme</sub></td>
+<td width="50%"><img src="docs/images/companion-light.png" alt="OrBeats custom-song library in light mode"><br><sub>Your library · light theme</sub></td>
+</tr>
+</table>
 
-```sh
-python3 -m venv .venv
-.venv/bin/python -m pip install -r orbeats/requirements-companion.txt
-.venv/bin/python orbeats/webapp/server.py
-```
+<sub>Screenshots show the companion with illustrative sample maps, not an active console session.</sub>
 
-Windows (PowerShell):
+## Get started
 
-```powershell
-py -3 -m venv .venv
-.venv\Scripts\python.exe -m pip install -r orbeats/requirements-companion.txt
-.venv\Scripts\python.exe orbeats/webapp/server.py
-```
+You need **Beat Saber CUSA12878, patch 2.04**, on a PS4 with **GoldHEN plugin support and FTP enabled**, plus a Windows x64 or Linux x64 computer. Other game builds are not supported.
 
-Open **http://127.0.0.1:8765**. In Settings, enter your PS4 IP; the modern
-GoldHEN connection uses port2121 and anonymous access. Keep this server local:
-it controls console files and stores your connection settings on your computer.
-Native Linux and Windows candidates exist; Windows installation is not yet fully
-hardware-validated. macOS and phone-only Android are not supported releases.
+1. Open the companion and enter your PS4's IP address in **Console & settings**.
+2. Set up the plugin and conversion template using the [installation guide](docs/getting-started.md).
+3. Find a map, add it to Downloads and start the queue.
+4. Once installation finishes, launch Beat Saber and open the **OrBeats** pack.
 
-For faster checksums, optionally build the tiny C helper once with an installed
-GCC/Clang-compatible compiler:
+**Fully close Beat Saber before installing, removing songs or updating plugins.** OrBeats checks that the title is closed before writing console files.
 
-```sh
-.venv/bin/python orbeats/development/scripts/build_native_hash.py
-# Windows: .venv\Scripts\python.exe with the same script path
-```
+## Map support
 
-There is no runtime compilation. Without the helper, the same checksum runs in
-Python. Linux is validated; Windows/macOS helper builds are not yet exercised.
+OrBeats imports supported vanilla **V2, V3 and V4** maps, including supported arcs, chains and lighting. It preserves authored gameplay rather than silently dropping unsupported features.
 
-Main song audio now prefers compatible original Ogg Vorbis packets, without a
-second lossy encode; other sources retain PCM16. The source-checkout path uses
-`fsb5` and open-source libvorbis/libvorbisenc/libogg when available. Missing codec
-libraries keep the PCM fallback. No proprietary FMOD SDK is needed for normal
-imports. Linux AppImage and private Windows installer candidates bundle the media
-tools and codec libraries; neither is a public release. Existing installed songs, covers and WAV previews are not
-automatically changed. See [compression validation](docs/compressed-audio-experiment.md).
+The library supports **up to 64 custom songs**. Chroma, Noodle Extensions and custom environments are not supported. See the [compatibility guide](docs/native-map-expansion.md) for precise requirements and limits.
 
-### Before importing, removing maps or deploying the plugin
+## Documentation
 
-**Fully close Beat Saber; leave GoldHEN FTP enabled.** No live library refresh is
-implemented. Start Beat Saber only after the operation finishes successfully.
-The companion checks title state and refuses writes while it is mounted.
+- [Installation and everyday use](docs/getting-started.md)
+- [Map compatibility](docs/native-map-expansion.md)
+- [Building and contributing](docs/development.md)
+- [CLI, file formats and recovery](docs/additive-companion.md)
+- [Desktop packaging](desktop/README.md)
+- [Plugin changelog](orbeats/CHANGELOG-PLUGIN.md) · [Companion changelog](orbeats/webapp/CHANGELOG-WEBAPP.md)
 
-The active filename is **`orbeats.prx`** (including when deploying the diagnostic
-build). The installer migrates the old owned filename/registration together and
-preserves other plugins and existing songs. Recovery archives live in local
-`ps4_backups/transactions/`, including the original FSELF and a journal. Temporary
-`.stage-`/`.rollback-` files are transaction state only; successful operations
-remove them. An interrupted or concurrent operation stops for recovery rather
-than deleting unknown bytes. Do not clear its lock without inspecting the local
-journal. Historical names in compatibility readers and upstream attribution
-are not active product branding.
+## Credits and license
 
-## Source layout
+Developed by **Wkrotik**, building on [Beat Saber Deluxe by Chris Primeish and contributors](https://github.com/free5ty1e/BeatSaberPcCustomSongToPs4InstallConverter). OrBeats retains and modifies upstream code under [GPL-3.0](LICENSE).
 
-- `orbeats/`: main plugin, conversion pipeline, companion backend and host tests.
-- `orbeats_extras/`: separate optional Extras plugin and development probes.
-- `desktop/`: native Tauri shell, curated backend packaging and release tooling.
-- `docs/`: maintained architecture, compatibility and release documentation.
-
-The inherited `beat_saber_deluxe/` directory is now `orbeats/`; scripts, CI and
-packaging use the new path. Console paths, pack IDs and library formats did not
-change. Obsolete memory-injection experiments are archived locally, not exported.
-
-
-Imports use temporary working directories, not a permanent computer-side music
-collection. Converted bundles, art, previews and metadata are installed on the
-PS4. Existing library content supplies the conversion template. On a truly empty
-setup, you must supply your own legally obtained, validated prepared template;
-the app cannot manufacture the game's copyrighted assets.
-
-## Compatibility and limits
-
-- **Local expanded-map candidate:** validated V2/V3/V4 with arcs/chains, native
-  V4 NJS/lighting, changing-BPM event boxes, catalog-reviewed environments,
-  Standard/OneSaber/NoArrows/90Degree/360Degree routes, authored palettes,
-  bounded offsets/loudness and separate previews. Expanded paths require the
-  new plugin capability. Bloom and Looping the Rooms have user-reported passing
-  tests; that does not validate every expanded feature. Here Come the Cats exposed
-  a palette-registration regression repaired in0.8077; the user confirms playlist
-  recovery and playback. Unknown fields and mod
-  requirements refuse rather than silently discard behaviours.
-  See [native-map support and precise limits](docs/native-map-expansion.md).
-- No advertised eight-song limit. The current parser/registration resource bound
-  is **64 entries**, not an unlimited library; large-library console performance
-  has not been demonstrated.
-- Current installed plugin: **v0.8078**; source companion **0.7.25**.
-- Plugin branding is hardware-confirmed: the custom pack is
-  named **OrBeats**, with the owned logo also used by its startup toast; IDs and
-  songs stay unchanged. See [native extension research](docs/plugin-expansion-research.md)
-  for menu/settings, anonymous ScoreSaber and selected-mod feasibility.
-  Existing desktop0.1.11 bundles remain unchanged; web0.7.25 is source-only.
-  Source pipeline is **0.5391**. Existing running processes and installed desktop
-  candidates are not automatically rebuilt or restarted by source changes.
-  **Hardware recovery confirmed:** user reports0.8077 restores Custom Songs and
-  Here Come the Cats plays correctly.0.8077 accepts both declared Object[] and
-  covariant EnvironmentInfoSO[] with unchanged bounded entry checks. All **27**
-  songs/settings/queue were preserved. Exact visual parity and every advanced
-  feature combination are not established by this report.
-- Active plugin is **orbeats.prx** with one GoldHEN registration. Fourteen owned
-  old backups were archived locally and removed; unrelated plugins/backups were
-  untouched. Successful updates retain recovery locally, not in console clutter.
-- [Tauri desktop work](desktop/README.md) now includes a tested **frozen Linux
-  backend** without host Python on PATH, private authenticated API,
-  persistent state/paused queue, and graceful close during fake publication.
-  The **native Linux window also compiles and opens the real UI**, with a verified
-  normal window-close/backend-drain test on private Xvfb. Startup deadline,
-  failure status and backend monitoring are implemented. No system installs.
-  Linux candidate **0.1.11** bundles FFmpeg/ffprobe and isolated Ogg/Vorbis with
-  offline conversion proof; the complete image is built against GLIBC2.35 and
-  tested in a minimal Ubuntu22.04 userspace. Downloads keeps a collapsible active/
-  last-job log above queue/history, with bounded scroll and reader-aware follow.
-  Complete license/source review, real-console Windows installs and broader
-  distribution/installer checks remain pending. It is **not a public-ready release**.
-- Extras has a local default-off health-warning prototype and anonymous ScoreSaber
-  development probe; native leaderboard transport/UI are not yet integrated.
-  See [`orbeats_extras/README.md`](orbeats_extras/README.md).
-- No official release repository/feed is configured. The UI reports update
-  checking as unavailable rather than claiming that you are up to date.
-
-[Protocol, CLI, recovery and implementation notes](docs/additive-companion.md)
-· [Plugin changelog](orbeats/CHANGELOG-PLUGIN.md)
-· [Pipeline changelog](orbeats/CHANGELOG-PIPELINE.md)
-· [Companion changelog](orbeats/webapp/CHANGELOG-WEBAPP.md)
-· [Performance findings and portability](docs/performance-and-portability.md)
-
-## Development
-
-Use the project-local OpenOrbis/GoldHEN tooling in `.devcontainer/` to build the
-plugin. Run the complete host suite with:
-
-```sh
-bash orbeats/development/scripts/run_additive_host_tests.sh
-```
-
-Tests and uploads are not evidence of hardware playback. Never deploy while the
-game is running. Preserve rollback copies, existing custom songs and unrelated
-plugins. Settings deployment reads and merges **the user's existing
-`/data/GoldHEN/plugins.ini`**; a repository-wide replacement INI is not shipped.
-
-Legacy replacement tools still used by conversion/regressions remain; they are
-not the new companion's import path. Obsolete parallel converter/plugin
-scaffolds, unrelated Rock Band test code and hardcoded bulk-deploy wrappers have
-been removed. Historical documentation is under `docs/legacy/` and `.ai_memory/`;
-it is not a current installation guide.
-
-## Attribution and license
-
-OrBeats is independently developed from **Beat Saber Deluxe by Chris Primeish**
-and contributors. It retains and modifies upstream code, not just inspiration:
-https://github.com/free5ty1e/BeatSaberPcCustomSongToPs4InstallConverter
-
-Additive development and OrBeats integration: **Wkrotik**. Original source
-attribution is retained. GPL-3.0 applies; see [LICENSE](LICENSE). An independent
-repository name or GitHub fork setting does not change upstream attribution or
-license obligations. Preserve notices and corresponding-source obligations when
-distributing modified binaries.
-GoldHEN, OpenOrbis, UnityPy and BeatSaver belong to their respective projects.
-Beat Saber and PlayStation belong to their respective owners; no affiliation is
-claimed. Song creators retain rights to their work.
-
-### Desktop distribution targets
-
-The first release targets **Windows x64** and **Linux x64 AppImage** (optional
-`.deb`). The current development AppImage is rebuilt on **Ubuntu22.04 /
-GLIBC2.35**, and passes isolated userspace window/close and offline conversion
-checks without host Python, FFmpeg or WebKit. Windows execution, broader
-clean-machine/installer tests and full licensing/source gates remain open.
-No public release is published yet. See the
-[baseline evidence](desktop/packaging/LINUX-BASELINE.md) and
-[AppImage recipe](desktop/packaging/APPIMAGE.md).
+Thanks to the GoldHEN, OpenOrbis, BeatSaver and UnityPy projects. OrBeats is not affiliated with Beat Games, Meta or Sony. Game files, music and DLC are not distributed; song creators retain the rights to their work.

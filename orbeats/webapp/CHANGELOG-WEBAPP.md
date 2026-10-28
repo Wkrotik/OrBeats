@@ -1,3 +1,9 @@
+## 0.7.26 — transparent product artwork
+
+- Use the supplied icon.svg in the sidebar, hero and favicon, without the former
+  rounded background tile. Native raster derivatives keep transparent backgrounds.
+- No install, queue or library behavior changes.
+
 ## 0.7.24 — preserve useful failed-job reasons
 
 - Failure summaries prefer the actual exception/refusal rather than PyInstaller's

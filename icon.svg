@@ -1,0 +1,13 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="256" height="256" viewBox="0 0 256 256">
+  <title>Green audio waveform icon</title>
+  <g fill="none" stroke="#ABE28F" stroke-width="14" stroke-linecap="round" stroke-linejoin="round">
+    <circle cx="128" cy="128" r="99.5"/>
+  </g>
+  <g fill="#ABE28F">
+    <rect x="66" y="110" width="14" height="37" rx="7"/>
+    <rect x="94" y="93" width="14" height="71" rx="7"/>
+    <rect x="122" y="74" width="14" height="109" rx="7"/>
+    <rect x="150" y="93" width="14" height="71" rx="7"/>
+    <rect x="178" y="110" width="14" height="37" rx="7"/>
+  </g>
+</svg>

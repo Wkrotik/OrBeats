@@ -29,7 +29,7 @@
 #include "additive_menu_files.h"
 #include "orbeats_branding.h"
 
-#define PLUGIN_VERSION "v0.8078"
+#define PLUGIN_VERSION "v0.8079"
 __attribute__((used)) static const char kNativeMapsCapability[]="ORB_NATIVE_MAPS_V1 ORB_PRESENTATION_V1 ORB_MODES_V1";
 // Diagnostic build identity stays in logs, not in player notifications.
 #ifdef VERBOSE_LOG

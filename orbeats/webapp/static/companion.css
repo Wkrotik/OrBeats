@@ -132,14 +132,9 @@ aside {
 	color: var(--ink);
 }
 .brand-icon {
-	display: grid;
-	place-items: center;
 	width: 42px;
 	height: 42px;
-	background: var(--accent);
-	color: var(--surface);
-	border-radius: 14px;
-	font-size: 30px;
+	object-fit: contain;
 }
 nav {
 	display: grid;
@@ -226,16 +221,11 @@ p {
 	font-size: 14px;
 }
 .record {
-	border-radius: 50%;
 	flex-shrink: 0;
 	width: 200px;
 	height: 200px;
-	border: 22px solid #283e31;
-	background: repeating-radial-gradient(circle, #2c4436 0 2px, #344e3d 3px 5px);
-	box-shadow: 18px 20px 0 #0000000c;
 	display: grid;
 	place-items: center;
-	transform: rotate(-15deg);
 }
 .record span {
 	border-radius: 50%;
@@ -455,7 +445,7 @@ p {
 .installation-progress.stopped span { background: var(--muted); }
 @keyframes installation-activity { from { transform: translateX(-100%); } to { transform: translateX(360%); } }
 @media (prefers-reduced-motion: reduce) { .installation-progress span { animation: none; transform: translateX(100%); } .installation-progress.complete span, .installation-progress.stopped span { transform: none; } }
-.record img { border-radius: 20px; }
+.record img { border-radius: 0; }
 
 details {
 	margin-top: 15px;
