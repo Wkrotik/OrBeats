@@ -1,3 +1,12 @@
+## 0.5390 — default palette and descriptive timing annotations
+
+- Interpret only exact integer scheme index0 with an empty table as the vanilla
+  default; retain authored per-difficulty RGB overrides and all other index guards.
+- Accept finite bounded numeric InfoV2 _firstNoteBeat/_introPadSeconds annotations
+  without applying offsets or altering audio/notes. Mod requirements still refuse.
+- Unmodified letter54d4e and Konekomyu55106 pass frozen offline import, preparation
+  and independent bundle verification:278/732 and1227notes. No PS4 retry performed.
+
 ## [0.5389] — exact legacy empty-wall placeholders
 
 - Ignore only V2 obstacles containing exactly the five standard fields with all

@@ -245,3 +245,27 @@ def test_editor_bookmarks_and_cosmetic_colors_are_not_gameplay_mods():
     d['customData']['bookmarks'][0]['position']=[4,0]
     with pytest.raises(ValueError,match='bookmark'):imp.convert_map(d,120)
     with pytest.raises(ValueError,match='requirements'):imp.cosmetic_only({'_requirements':['Noodle Extensions']},set())
+
+
+def test_descriptive_info_timing_does_not_retime_audio_or_notes(tmp_path):
+    if not shutil.which('ffmpeg'): pytest.skip('ffmpeg required')
+    root=tmp_path/'source';imp.prepare.generate_probe(root)
+    original=imp.prepare.load_song(root)
+    path=root/'Info.dat';info=json.loads(path.read_bytes())
+    info['_customData']={'_firstNoteBeat':5,'_introPadSeconds':1.765}
+    path.write_text(json.dumps(info))
+    before={p.name:p.read_bytes() for p in root.iterdir()}
+    out=tmp_path/'normalized';report=imp.import_song(root,out)
+    assert {p.name:p.read_bytes() for p in root.iterdir()}==before
+    song=imp.prepare.load_song(out)
+    assert report['duration_seconds']==original['samples']/44100
+    assert song['samples']==original['samples'] and song['maps']==original['maps']
+
+
+@pytest.mark.parametrize('key',['_firstNoteBeat','_introPadSeconds'])
+@pytest.mark.parametrize('value',[True,False,None,'5',-1,float('nan'),float('inf'),100001])
+def test_timing_annotations_are_bounded_numbers_not_playback_mods(key,value):
+    with pytest.raises(ValueError,match='timing annotation'):
+        imp.cosmetic_only({key:value},{'_firstNoteBeat','_introPadSeconds'})
+    with pytest.raises(ValueError,match='custom metadata'):
+        imp.cosmetic_only({key:1},set())

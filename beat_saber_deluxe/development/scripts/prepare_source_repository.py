@@ -112,9 +112,9 @@ def prepare(output):
         value = source.read_bytes()
         if len(value) > 2000000 or SECRET.search(value):
             raise ValueError("Oversized source or credential-like content: " + relative)
-        if source.suffix.lower() not in {".png"}:
+        if source.suffix.lower() not in {".png", ".ico"}:
             text = value.decode("utf-8")
-            text = text.replace("/home/neo/Projects/OrBeats", "/path/to/OrBeats")
+            text = text.replace("/path/to/OrBeats", "/path/to/OrBeats")
             value = text.encode("utf-8")
         inventory[relative] = value
     inventory["beat_saber_deluxe/beat_saber_song_ids.json"] = (

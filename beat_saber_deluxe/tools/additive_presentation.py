@@ -90,6 +90,9 @@ def from_info(info):
         for d in group.get("_difficultyBeatmaps", []):
             palette = {}
             idx = d.get("_beatmapColorSchemeIdx", -1)
+            # Some InfoV2 exporters emit default index 0 with no schemes.
+            if type(idx) is int and idx == 0 and not schemes:
+                idx = -1
             if type(idx) is not int or idx < -1 or idx >= len(schemes):
                 raise ValueError("invalid authored color scheme index")
             if idx >= 0:

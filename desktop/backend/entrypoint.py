@@ -50,6 +50,14 @@ def runtime_path(root):
 
 
 def task(args):
+    # Frozen Python ignores -u; both ends of the job pipe use explicit UTF-8.
+    for stream in (sys.stdout, sys.stderr):
+        stream.reconfigure(
+            encoding="utf-8",
+            errors="backslashreplace",
+            line_buffering=True,
+            write_through=True,
+        )
     root = Path(os.environ["ORBEATS_RUNTIME_ROOT"]).resolve()
     verify(root)
     runtime_path(root)

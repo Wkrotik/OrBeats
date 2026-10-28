@@ -106,3 +106,14 @@ def test_export_refuses_source_symlinks(tmp_path, monkeypatch):
     bad.symlink_to(tmp_path / "README.md")
     with pytest.raises(ValueError, match="symlinks"):
         export.prepare(tmp_path / ".publication/review")
+
+
+def test_export_preserves_owned_binary_icon_without_text_decoding(tmp_path, monkeypatch):
+    fake_source(tmp_path, monkeypatch)
+    icon = tmp_path / 'desktop/src-tauri/icons/icon.ico'
+    icon.parent.mkdir(parents=True)
+    data = b'\x00\x00\x01\x00\x01\x00\xc9\xff'
+    icon.write_bytes(data)
+    out = tmp_path / '.publication/review'
+    export.prepare(out)
+    assert (out / icon.relative_to(tmp_path)).read_bytes() == data

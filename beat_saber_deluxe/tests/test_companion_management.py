@@ -176,7 +176,8 @@ def test_settings_hide_password_validate_ip_and_expose_honest_update_state(monke
     assert value['updates']['state']=='unconfigured'
     assert c.post('/api/orbis/settings',json={'ip':'not-an-ip'}).status_code==400
     assert c.post('/api/orbis/settings',json={'ip':'192.168.1.22','port':2121,'user':'anonymous'}).status_code==200
-    assert saved[0]['ps4']['ftp_password']=='secret'
+    assert saved[0]['ps4']['ftp_password']==''
+    assert saved[0]['ps4']['ftp_user']=='anonymous' and saved[0]['ps4']['ftp_port']==2121
 
 
 def test_origin_guard_rebinding_and_new_home_shell():

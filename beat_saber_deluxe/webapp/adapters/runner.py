@@ -157,9 +157,12 @@ class SingleJobRunner:
                 proc = subprocess.Popen(
                     popen_argv, cwd=job.cwd, stdout=subprocess.PIPE,
                     stderr=subprocess.STDOUT, text=True, bufsize=1,
+                    encoding="utf-8", errors="replace",
+                    env={**os.environ, "PYTHONIOENCODING": "utf-8", "PYTHONUNBUFFERED": "1"},
                     start_new_session=True,
                 )
                 job.pid = proc.pid
+                job.lines.append("[job] Worker started; waiting for installation output…")
             except Exception:
                 self._job=previous
                 raise
@@ -167,20 +170,25 @@ class SingleJobRunner:
         def _drain():
             assert proc.stdout is not None
             truncated = False
-            for line in proc.stdout:
+            try:
+                for line in proc.stdout:
+                    with job.lock:
+                        if len(job.lines) < MAX_BUFFER_LINES:
+                            job.lines.append(line.rstrip("\n"))
+                        elif not truncated:
+                            job.lines.append("… log truncated (max lines reached)")
+                            truncated = True
+            except (OSError, UnicodeError) as e:
                 with job.lock:
-                    if len(job.lines) < MAX_BUFFER_LINES:
-                        job.lines.append(line.rstrip("\n"))
-                    elif not truncated:
-                        job.lines.append("… log truncated (max lines reached)")
-                        truncated = True
-            proc.wait()
-            with job.lock:
-                job.ended_at = time.time()
-                job.exit_code = proc.returncode
-                # A finished flags job clears the pending-flags hint
-                if self.pending_flags and job.exit_code is not None:
-                    self.pending_flags = None
+                    job.lines.append("[job] Output stream failed: " + str(e))
+            finally:
+                proc.stdout.close()
+                proc.wait()
+                with job.lock:
+                    job.ended_at = time.time()
+                    job.exit_code = proc.returncode
+                    if self.pending_flags and job.exit_code is not None:
+                        self.pending_flags = None
 
         threading.Thread(target=_drain, daemon=True).start()
         return job

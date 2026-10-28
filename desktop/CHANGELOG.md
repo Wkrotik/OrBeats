@@ -1,3 +1,21 @@
+## 0.1.10 — platform diagnostics and GoldHEN setup, testing candidate
+
+- Explicit UTF-8, unbuffered frozen task output and resilient live job draining;
+  Windows regression now runs on the native Actions runner. Original Windows
+  stall is not yet reproduced; do not claim a confirmed FTP fix.
+- Owned SVG logo in brand/hero/favicon; compositor-based activity indicator with
+  reduced-motion support. Linux WebKit smooth-scroll interpolation disabled only
+  inside this webview; no wheel interception or desktop preference changes.
+- Connection form asks only PS4 IP; save fixes GoldHEN2121/anonymous/no password.
+  Separate advanced conversion-seed recovery explains that it is not FTP setup.
+- Pipeline0.5390 fixes empty-table/default-palette and descriptive Info annotations;
+  frozen original54d4e/55106 import/prepare/independent verification passes with no
+  host Python/media on PATH or console operations. Plugin remains0.8077.
+- Full1647hosttests pass/124skip, seven release Rust tests and desktop/mobile browser
+  fixtures pass. Packaging/runtime and native Windows checks recorded separately.
+- GitHub Actions artifact downloads are ZIP containers around the NSIS.exe; public
+  release assets can expose the .exe directly. No release is created here.
+
 ## 0.1.9 — Downloads log usability, not a public release
 
 - Companion0.7.22: collapsible active/last log before queue/history, bounded scroll,

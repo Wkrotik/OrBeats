@@ -47,14 +47,9 @@ def read_settings():
 def save_settings(body: dict):
     try:
         ip = str(ipaddress.ip_address(body["ip"]))
-        port = int(body.get("port", 2121))
-        if not 1 <= port <= 65535:
-            raise ValueError("Invalid FTP port")
         cfg = settings()
         a = cfg.setdefault("ps4", {})
-        a.update(ip=ip, ftp_port=port, ftp_user=str(body.get("user", "anonymous")))
-        if body.get("password") is not None:
-            a["ftp_password"] = str(body["password"])
+        a.update(ip=ip, ftp_port=2121, ftp_user="anonymous", ftp_password="")
         cfg["additive_template"] = str(body.get("template", cfg.get("additive_template", "")))
         config.save_config(cfg)
         return {"ok": True}

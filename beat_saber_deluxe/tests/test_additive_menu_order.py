@@ -81,4 +81,4 @@ def test_boot_toast_and_web_placeholder_have_credits_but_no_counter():
     assert "toast-count" not in html + js
     assert 'id="toast-status" hidden' in html
     assert 'OrBeats v0.8077' in html
-    assert (ROOT / "webapp/VERSION").read_text().strip() == "0.7.22"
+    assert (ROOT / "webapp/VERSION").read_text().strip() == "0.7.23"

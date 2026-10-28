@@ -422,11 +422,9 @@ async function pollActivity() {
 			$("job").hidden = false;
 			$("job-title").textContent = progress.running ? (queue.active?.title || "Installation in progress") : progress.job.cancelled ? "Installation cancelled" : progress.job.exit_code === 0 ? "Installation complete" : "Installation stopped";
 			$("cancel-job").disabled = !progress.running;
-			if (progress.running) $("progress").removeAttribute("value");
-			else {
-				$("progress").max = 1;
-				$("progress").value = 1;
-			}
+			$("progress").classList.toggle("complete", !progress.running && progress.job.exit_code === 0);
+			$("progress").classList.toggle("stopped", !progress.running && progress.job.exit_code !== 0);
+			$("progress").setAttribute("aria-valuetext", progress.running ? "Working; exact progress unavailable" : progress.job.exit_code === 0 ? "Installation complete" : "Installation stopped");
 		}
 		updateLogControls();
 		state.queueError = state.queueError === "Connection interrupted. Refresh or wait to reconnect; do not retry installations blindly." ? "" : state.queueError;
@@ -579,8 +577,6 @@ async function removeMaps(ids) {
 async function loadSettings() {
 	const s = await api("/api/orbis/settings");
 	$("ip").value = s.ip;
-	$("port").value = s.port;
-	$("user").value = s.user;
 	$("template").value = s.template;
 	$("updates").textContent = s.updates.message;
 }
@@ -682,21 +678,19 @@ async function initialize() {
 	);
 	$("connection").onsubmit = safely(async (e) => {
 		e.preventDefault();
-		const body = {
-			ip: $("ip").value.trim(),
-			port: Number($("port").value),
-			user: $("user").value,
-			template: $("template").value,
-		};
-		if ($("password").value) body.password = $("password").value;
+		const body = { ip: $("ip").value.trim() };
 		await api("/api/orbis/settings", {
 			method: "POST",
 			body: JSON.stringify(body),
 		});
-		$("password").value = "";
 		notify(
 			"Connection saved. Test it with your PS4 on and GoldHEN FTP enabled.",
 		);
+	});
+	$("template-settings").onsubmit = safely(async (e) => {
+		e.preventDefault();
+		await api("/api/orbis/settings", {method: "POST", body: JSON.stringify({ip: $("ip").value.trim(), template: $("template").value.trim()})});
+		notify("Conversion seed saved. No files were uploaded.");
 	});
 	$("test-connection").onclick = safely(async () => {
 		await api("/api/orbis/library");

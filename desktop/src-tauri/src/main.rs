@@ -150,6 +150,13 @@ fn start(app: &tauri::AppHandle) -> Result<(), Box<dyn std::error::Error>> {
                 .build();
             match created {
                 Ok(window) => {
+                    #[cfg(target_os = "linux")]
+                    let _ = window.with_webview(|view| {
+                        use webkit2gtk::{SettingsExt, WebViewExt};
+                        if let Some(settings) = view.inner().settings() {
+                            settings.set_enable_smooth_scrolling(false);
+                        }
+                    });
                     if state.lock().expect("backend state poisoned").close.can_present() {
                         if let Some(status) = window_handle.get_webview_window("status") {
                             let _ = status.hide();

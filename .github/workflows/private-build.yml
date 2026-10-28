@@ -85,6 +85,8 @@ jobs:
           try {
             python -m venv .venv
             .venv/Scripts/python -m pip install -r beat_saber_deluxe/requirements-companion.txt -r desktop/requirements-build.txt pytest httpx
+            Push-Location beat_saber_deluxe
+            try { ../.venv/Scripts/python -m pytest tests/test_platform_install_fixes.py -q 2>&1 | Tee-Object ../temp/ci-reports/windows-output-regressions.txt } finally { Pop-Location }
             .venv/Scripts/python desktop/freeze_backend.py --output temp/windows-frozen --media temp/windows-media/payload
             .venv/Scripts/python desktop/development/smoke_windows_backend.py --helper temp/windows-frozen/dist/orbeats-backend/orbeats-backend.exe | Tee-Object temp/ci-reports/windows-backend.txt
             .venv/Scripts/python desktop/packaging/stage_candidate.py --target windows-x64 --backend temp/windows-frozen/dist/orbeats-backend --output temp/windows-stage

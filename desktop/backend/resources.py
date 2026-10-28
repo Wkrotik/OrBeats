@@ -34,6 +34,7 @@ FILES = (
     "webapp/adapters/testsong.py",
     "webapp/adapters/webapp_state.py",
     "webapp/static/companion.html",
+    "webapp/static/orbeats.svg",
     "webapp/static/companion.css",
     "webapp/static/companion.js",
     "webapp/static/index.html",

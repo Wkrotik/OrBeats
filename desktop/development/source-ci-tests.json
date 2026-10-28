@@ -10,6 +10,7 @@
     "tests/test_clean_slate_wipe.py",
     "tests/test_companion_audit_guards.py",
     "tests/test_companion_log.py",
+    "tests/test_desktop_backend.py",
     "tests/test_desktop_linux_baseline.py",
     "tests/test_desktop_session.py",
     "tests/test_discovery_presentation.py",
@@ -31,6 +32,8 @@
     "tests/test_pack_mode_pipeline.py",
     "tests/test_patched_pack_bundle.py",
     "tests/test_pipeline.py",
+    "tests/test_platform_install_fixes.py",
+    "tests/test_private_source_repository.py",
     "tests/test_replacement_pack.py",
     "tests/test_webapp_beatsage.py",
     "tests/test_webapp_boot_wiring.py",
@@ -38,9 +41,7 @@
     "tests/test_webapp_js_syntax.py",
     "tests/test_webapp_launch.py",
     "tests/test_webapp_ps4_adapter.py",
-    "tests/test_webapp_songs.py",
-    "tests/test_desktop_backend.py",
-    "tests/test_private_source_repository.py"
+    "tests/test_webapp_songs.py"
   ],
   "excluded_modules": [
     "test_additive_bundle_preparation.py",

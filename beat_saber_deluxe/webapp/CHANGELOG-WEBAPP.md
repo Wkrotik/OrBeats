@@ -1,3 +1,15 @@
+## 0.7.23 — platform output, owned SVG and GoldHEN-only connection
+
+- Live workers explicitly decode UTF-8 with replacement and retain lifecycle
+  completion on output errors. Immediate startup line distinguishes spawn from
+  a silent child; frozen children flush output before exit.
+- Smooth compositor activity indicator replaces native indeterminate progress;
+  reduced-motion and success/stopped states retained. Owned SVG replaces note glyph.
+- Main connection form asks only IP and saves2121/anonymous/empty password.
+  Local conversion-seed fallback stays in separate advanced recovery, not FTP form.
+- No automatic subnet scan or installation retry. GoldHEN service discovery is a
+  separate best-effort feature; manual IP remains the reliable supported path.
+
 ## [0.7.22] — reachable active/last installation log
 
 - Move collapsible log directly after current job and before pending/history lists.

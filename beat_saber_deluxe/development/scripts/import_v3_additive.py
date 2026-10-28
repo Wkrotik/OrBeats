@@ -148,6 +148,10 @@ def cosmetic_only(custom, allowed):
     if not isinstance(custom, dict):
         raise ValueError('unsupported requirements/custom metadata')
     for key, value in custom.items():
+        if key in {'_firstNoteBeat', '_introPadSeconds'} and key in allowed:
+            if type(value) not in (int, float) or not math.isfinite(value) or not 0 <= value <= 100000:
+                raise ValueError('invalid descriptive timing annotation: ' + key)
+            continue
         if key in allowed:
             continue
         if key in empty_lists and value == []:
@@ -168,7 +172,8 @@ def import_song(source, output, ffmpeg='ffmpeg'):
     original = json.loads(infos[0].read_text(encoding='utf-8-sig'))
     if not str(original.get('_version', '')).startswith('2.'):
         raise ValueError('InfoV2 required')
-    cosmetic_only(original.get('_customData', {}), {'_editors', '_contributors'})
+    # Descriptive annotations are not playback offsets; retain authored note/audio timing.
+    cosmetic_only(original.get('_customData', {}), {'_editors', '_contributors', '_firstNoteBeat', '_introPadSeconds'})
     audio = prepare.local_file(source, original['_songFilename'])
     info = {k: original[k] for k in ('_songName', '_songSubName', '_songAuthorName', '_levelAuthorName', '_beatsPerMinute') if k in original}
     for key in ('_orbeatsLufs', '_colorSchemes'):
