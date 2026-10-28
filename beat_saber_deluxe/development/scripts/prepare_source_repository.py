@@ -31,6 +31,7 @@ EXTENSIONS = {
     ".json",
     ".svg",
     ".png",
+    ".ico",
     ".yml",
     ".yaml",
     ".x",
@@ -113,7 +114,7 @@ def prepare(output):
             raise ValueError("Oversized source or credential-like content: " + relative)
         if source.suffix.lower() not in {".png"}:
             text = value.decode("utf-8")
-            text = text.replace("/path/to/OrBeats", "/path/to/OrBeats")
+            text = text.replace("/home/neo/Projects/OrBeats", "/path/to/OrBeats")
             value = text.encode("utf-8")
         inventory[relative] = value
     inventory["beat_saber_deluxe/beat_saber_song_ids.json"] = (

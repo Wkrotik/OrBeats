@@ -3,7 +3,7 @@
   ".devcontainer/setup_additive_host.sh": "ce6bc10125ae1332d0f0bf94b6e87daddd94eb14df1ebdfe48b59e5a2713a6eb",
   ".devcontainer/setup_additive_toolchain.sh": "125e2a0764549676ada3e7147a4830be47ef494f92f4634d002fe3600b805dfe",
   ".gitattributes": "f70d755466b101646b043fe3c62c4f8a39eae827c1a2a303a2d39ccd93f534f8",
-  ".github/workflows/private-build.yml": "04ef4d704418154dab123d2cda39fec8e033c1632eb7dbe5a02fd3a13e699760",
+  ".github/workflows/private-build.yml": "42a3cf003272e7d6007fb6b00cee5aeb74d9a6f645bfc004d3544ef8d460ea45",
   ".gitignore": "2d172b1143e171ad0197b7471d7ea04d99d998318b52f639a75a291f0eb85f18",
   "AGENTS.md": "cd905a66d9e261488581610f291a921ea5f1d4b4c77b0b378a7d9e52c36da885",
   "LICENSE": "3972dc9744f6499f0f9b2dbf76696f2ae7ad8af9b23dde66d6af86c9dfb36986",
@@ -69,7 +69,7 @@
   "beat_saber_deluxe/development/scripts/prepare_additive_bundle.py": "767864aec0d459109c2e6868e1b5527c4c9c4187c01dde436f2ea8df29ef09d8",
   "beat_saber_deluxe/development/scripts/prepare_additive_media.py": "e3ac67f753abceec5076b60b0b8b0242524bc841853505cdbf5af18165efa809",
   "beat_saber_deluxe/development/scripts/prepare_binary_patch.py": "38e3e85f8d7fa74c6c8a7c2c5af4d58e2028293343d0eb4e8fb6ce5c27b73564",
-  "beat_saber_deluxe/development/scripts/prepare_source_repository.py": "450807e95d239030a7bb492ed4ab2cace41fa2ab12333dbed845b371b950b994",
+  "beat_saber_deluxe/development/scripts/prepare_source_repository.py": "b55a3794e42c4c5ab9db3db553b65d7369cdd44e44538f4e040d9f72f0068246",
   "beat_saber_deluxe/development/scripts/preview_spike.py": "323f845697e2b6267a69c1fb466a3f82e1ab7e3be48f77ce4bcdc73a7e39b944",
   "beat_saber_deluxe/development/scripts/probe_additive_registration.py": "2343dddcd8d8846fc291fe3e10bb951afba1ec148d20ff8c15c766d6e1e06f86",
   "beat_saber_deluxe/development/scripts/probe_vorbis_audio.py": "f337ab177ad04d60856d369e3c8816bf0b7e768a6d878aa5e80bddc4394ba753",
@@ -316,5 +316,7 @@
   "requirements.txt": "6448ee7293b52ae68f15e452de588bd51db1a5d907e1496967dc58560ec184f2",
   "scripts/development/index.md": "001363d8898d77d61696bae42fcd91a4d9d294965ea3b028f24d31759158de6d",
   "scripts/development/modify_pack_bundle.py": "3a2c428d3bc07fd0e3e3a8dc8af6aefd93ac1a75808c1375f182618f79ac4a44",
-  "scripts/development/regen_il2cpp_dump.sh": "d86b359c177d80dcd834886547c2dca54d7fee75a23e57d3c4a72286c5c873f4"
+  "scripts/development/regen_il2cpp_dump.sh": "d86b359c177d80dcd834886547c2dca54d7fee75a23e57d3c4a72286c5c873f4",
+  "desktop/src-tauri/icons/icon.ico": "3399ee221beb3a24329d502eff663d4f144791086a424a28bf72aca2306cb1b9",
+  "desktop/development/make_windows_icon.py": "b914040ffcaa8123d2d13111b7636b611463ac8dd9a9aa5726421ac645bd2ba6"
 }

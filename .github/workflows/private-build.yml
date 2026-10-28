@@ -20,7 +20,7 @@ jobs:
         with:
           python-version: '3.12'
       - name: Host prerequisites (ephemeral hosted runner only)
-        run: sudo apt-get update && sudo apt-get install -y clang lld ffmpeg libogg0 libvorbis0a libvorbisenc2
+        run: sudo apt-get update && sudo apt-get install -y clang lld llvm ffmpeg libogg0 libvorbis0a libvorbisenc2
       - name: Declared source-only regression subset (no owned game fixtures)
         run: |
           mkdir -p temp/ci-reports
