@@ -822,3 +822,11 @@ th {
 [data-theme="dark"] .compatibility-unsupported { color: #ffb7ad; background: #422622; }
 [data-theme="dark"] .compatibility-unknown { color: #f0d28e; background: #3b321e; }
 #confirm-message { white-space: pre-line; overflow-wrap: anywhere; max-height: 45dvh; overflow-y: auto; }
+
+/* Keep navigation outside the elastic page scroller (WebKit/GTK in particular). */
+@media (min-width: 721px) {
+    html, body { height: 100%; overflow: hidden; overscroll-behavior: none; }
+    .shell { height: 100dvh; min-height: 0; overflow: hidden; }
+    aside { position: relative; height: 100%; min-height: 0; overflow-y: auto; overscroll-behavior: none; }
+    main { height: 100%; min-height: 0; overflow-y: auto; overscroll-behavior-y: none; overflow-anchor: none; scrollbar-gutter: stable; }
+}

@@ -12,7 +12,7 @@ Browse BeatSaver, build your library, and play without replacing the original so
 [![Builds](https://img.shields.io/badge/Windows_%26_Linux-Builds-26382C?style=for-the-badge)](https://github.com/Wkrotik/OrBeats/actions/workflows/private-build.yml)
 [![License](https://img.shields.io/badge/License-GPL--3.0-26382C?style=for-the-badge)](LICENSE)
 
-[Installation](docs/getting-started.md) · [Map support](docs/native-map-expansion.md) · [Development](docs/development.md)
+[Downloads](https://github.com/Wkrotik/OrBeats/releases/latest) · [Installation](docs/getting-started.md) · [Map support](docs/native-map-expansion.md) · [Development](docs/development.md)
 
 </div>
 
@@ -22,6 +22,9 @@ Browse BeatSaver, build your library, and play without replacing the original so
 - **Install from your computer** with a Windows or Linux companion—no rebuilding the plugin for each song.
 - **Manage your library** with queued imports, installation logs and individual or bulk removal.
 - **Keep the originals**: custom songs live in their own **OrBeats** pack alongside stock songs and DLC.
+- **Add optional Extras** for health-warning auto-dismiss and a read-only top-ten
+  ScoreSaber leaderboard on supported custom maps.
+- **Check for updates** to the companion and both plugins from the official repository.
 - **Make it yours** with light and dark themes.
 
 <table>

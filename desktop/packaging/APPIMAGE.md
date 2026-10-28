@@ -7,18 +7,19 @@ framework. Neither a container nor host Python/FFmpeg should be required by user
 
 ## Current baseline candidate
 
-Desktop0.1.6 is now rebuilt inside **Ubuntu22.04 / GLIBC2.35**, including the
-shell, frozen Python3.12 helper, FFmpeg and codecs. All467ELFs meet that bound
-without private GLIBC interfaces. The actual final image opens/closes in a
-separate Ubuntu runtime with no host `/usr`/WebKit/Python/media tools and also
-on the modern Arch host; isolated offline conversion passes. The recovered
-fsb5MIT notice/provenance is included and checked against its exact source.
-See [baseline recipe and final artifact](LINUX-BASELINE.md).
+Desktop **0.1.13**, rebuilt inside Ubuntu 22.04 / GLIBC 2.35, includes the updated
+sealed helper, both plugins and the source-built media/codecs. It is
+179,902,968 bytes, SHA-256
+`52c60618f35d5746d67c6d4c7d8cf0f393f74fd98fcb7c76202bf90592c67cca`.
+All 467 ELF files pass the GLIBC <= 2.35/no-private-interface audit.
+The actual final image passes authenticated UI/WM-close/backend-drain in the
+separate runtime with no host `/usr`, WebKit, Python or development overlay.
+Only one window is visible after startup; no status window resurfaces on close.
 
-The optimized Linux release-profile image is now **179,759,608 bytes** and also
-preserves synthetic prior settings/queue/recovery on restart. DefaultFUSE, full
-clean-machine/Wayland/driver tests, Windows execution and complete legal/source closure remain open. Nothing is
-published. Prior0.1.5 below is a retained development reference only.
+The recovered fsb5 MIT notice is checked against exact installed sources. That
+specific check is **not** complete third-party notice/source/relink closure.
+Default FUSE, full distro/driver coverage and installer lifecycle remain unproven.
+Nothing is published yet; see the current [release checklist](../../docs/public-release-checklist.md).
 
 ## Earlier Arch prototype evidence
 

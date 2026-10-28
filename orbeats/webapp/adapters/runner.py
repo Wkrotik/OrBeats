@@ -160,6 +160,7 @@ class SingleJobRunner:
                     encoding="utf-8", errors="replace",
                     env={**os.environ, "PYTHONIOENCODING": "utf-8", "PYTHONUNBUFFERED": "1"},
                     start_new_session=True,
+                    creationflags=getattr(subprocess, "CREATE_NO_WINDOW", 0) if os.name == "nt" else 0,
                 )
                 job.pid = proc.pid
                 job.lines.append("[job] Worker started; waiting for installation output…")

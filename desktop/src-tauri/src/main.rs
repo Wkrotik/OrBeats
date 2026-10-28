@@ -142,6 +142,20 @@ fn start(app: &tauri::AppHandle) -> Result<(), Box<dyn std::error::Error>> {
                 .title("OrBeats")
                 .inner_size(1240.0, 820.0)
                 .min_inner_size(760.0, 560.0)
+                .visible(false)
+                .on_page_load(|window, payload| {
+                    // Do not expose the initial blank/bootstrap webview. Present
+                    // only the authenticated application document after loading.
+                    if payload.event() == tauri::webview::PageLoadEvent::Finished
+                        && payload.url().path() == "/" {
+                        if let Some(state) = window.try_state::<Arc<Mutex<Backend>>>() {
+                            if state.lock().expect("backend state poisoned").close.can_present() {
+                                if let Some(status) = window.app_handle().get_webview_window("status") { let _ = status.hide(); }
+                                let _ = window.show();
+                            }
+                        }
+                    }
+                })
                 // No remote browsing, external browser launch, popups or file downloads.
                 // BeatSaver artwork/audio fetches are subresources, not navigation.
                 .on_navigation(move |next| next.origin() == origin)
@@ -157,11 +171,7 @@ fn start(app: &tauri::AppHandle) -> Result<(), Box<dyn std::error::Error>> {
                             settings.set_enable_smooth_scrolling(false);
                         }
                     });
-                    if state.lock().expect("backend state poisoned").close.can_present() {
-                        if let Some(status) = window_handle.get_webview_window("status") {
-                            let _ = status.hide();
-                        }
-                    } else {
+                    if !state.lock().expect("backend state poisoned").close.can_present() {
                         let _ = window.hide();
                     }
                 }
@@ -205,7 +215,11 @@ fn main() {
             if let tauri::WindowEvent::CloseRequested { api, .. } = event {
                 if let Some(state) = window.try_state::<Arc<Mutex<Backend>>>() {
                     api.prevent_close();
-                    show_status(window.app_handle(), "Finishing active work before closing. New work is blocked; an active publication will not be killed.");
+                    // Close visually once. Do not resurface the startup webview
+                    // while the owned backend safely drains active publication.
+                    for label in ["main", "status"] {
+                        if let Some(view) = window.app_handle().get_webview_window(label) { let _ = view.hide(); }
+                    }
                     request_stop(&state, window.app_handle(), true);
                 }
             }

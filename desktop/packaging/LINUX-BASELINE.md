@@ -68,7 +68,18 @@ Use the project-local venv created with the pinned Python3.12 interpreter. Run:
    refuses `GLIBC_PRIVATE` and build-only/private files. It emits no legal or
    clean-machine approval. This audit complements actual runtime tests.
 
-## Actual candidate and evidence
+## Current 0.1.13 preparation
+
+The same pinned baseline now produces desktop 0.1.13, with sealed helper1749files /
+AppDir2336files. The final image is 179,902,968 bytes, SHA-256
+`52c60618f35d5746d67c6d4c7d8cf0f393f74fd98fcb7c76202bf90592c67cca`;
+all467ELFs still meet GLIBC<=2.35. Actual-image runtime testing verifies one
+visible authenticated view and no resurfaced status view on ordinary close.
+The backend drains, exits cleanly and leaves a fresh paused queue. This is a
+local candidate, not a published release or blanket installer/legal approval.
+See [current release checklist](../../docs/public-release-checklist.md).
+
+## Earlier 0.1.6 candidate and evidence
 
 - `temp/linux-baseline-work/source/temp/appimage-baseline-release-sealed-01/OrBeats_0.1.6_amd64.AppImage`
 - **179,759,608 bytes**, SHA256

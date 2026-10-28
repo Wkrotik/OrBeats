@@ -42,7 +42,7 @@ def packaged(tmp_path):
         # Source-helper tests need no built PS4 artifacts or acquired templates.
         value = (
             b"not a deployable plugin fixture"
-            if name == "orbeats.prx"
+            if name.endswith(".prx")
             else (ROOT / "orbeats" / name).read_bytes()
         )
         target.write_bytes(value)

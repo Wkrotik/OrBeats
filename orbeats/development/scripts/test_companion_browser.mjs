@@ -57,6 +57,7 @@ async function until(expression) {
 async function checkDownloadsModal() {
   await evaluate(`(()=>{const spacer=document.createElement('div');spacer.id='scroll-fixture';spacer.style.height='3000px';document.querySelector('main').append(spacer);scrollTo(0,200);document.getElementById('open-downloads').click();const content=document.createElement('div');content.id='modal-scroll-fixture';content.style.height='2000px';document.getElementById('downloads').append(content)})()`);
   const originalScroll = await evaluate('scrollY');
+  const mainScroll = await evaluate("document.querySelector('main').scrollTop");
   const rect = await evaluate("(()=>{const d=document.getElementById('downloads'),r=d.getBoundingClientRect();d.scrollTop=d.scrollHeight;return {x:r.x+r.width/2,y:r.y+r.height/2,left:r.left,top:r.top}})()");
   await send('Input.dispatchMouseEvent', { type: 'mouseWheel', x: rect.x, y: rect.y, deltaX: 0, deltaY: 600 });
   await new Promise(resolve => setTimeout(resolve, 150));
@@ -81,7 +82,11 @@ async function checkDownloadsModal() {
   assert.equal(await evaluate("document.getElementById('downloads').open"), true);
   for (const type of ['mousePressed', 'mouseReleased']) await send('Input.dispatchMouseEvent', {type,x:2,y:2,button:'left',clickCount:1});
   assert.equal(await evaluate("document.getElementById('downloads').open"), false, 'Backdrop click did not dismiss');
-  assert.notEqual(await evaluate("getComputedStyle(document.documentElement).overflow"), 'hidden');
+  assert.equal(await evaluate("document.querySelector('main').scrollTop"), mainScroll, 'Modal scrolled desktop content');
+  if (await evaluate('innerWidth>720')) {
+    assert.equal(await evaluate("getComputedStyle(document.documentElement).overflow"), 'hidden');
+    assert.equal(await evaluate("getComputedStyle(document.querySelector('main')).overflowY"), 'auto');
+  } else assert.notEqual(await evaluate("getComputedStyle(document.documentElement).overflow"), 'hidden');
   await evaluate("document.getElementById('modal-scroll-fixture').remove();document.getElementById('scroll-fixture').remove();scrollTo(0,0)");
 }
 async function checkDetailsBackdrop() {
@@ -143,9 +148,12 @@ const fixture = {
   description: '<script>window.pwned=true</script>', versions: [{ diffs: [{ characteristic: 'Standard', difficulty: 'Expert', ne: false, me: false, chroma: false, cinema: false, notes: 1024, bombs: 16, obstacles: 94, nps: 4.9, njs: 14 }], coverURL: 'https://cdn.beatsaver.com/fixture.png', previewURL: 'https://cdn.beatsaver.com/fixture.mp3' }]
 };
 const song = { id: 'bsd_additive_000000000000000000000001', title: 'Installed fixture', author: 'Artist', duration: 209, bpm: 132, bytes: 1000, mask: 8, stats: [[0, 0, 0, 0, 0], [0, 0, 0, 0, 0], [0, 0, 0, 0, 0], [1024, 16, 94, 14, 0], [0, 0, 0, 0, 0]] };
-const hooks = `(()=>{const original=window.fetch.bind(window),map=${JSON.stringify(fixture)},song=${JSON.stringify(song)};window.testOriginalSongs=[{...song,info:map},{...song,id:song.id.replace(/1$/,'2'),title:'Compression [Vorbis test]'}];window.testSongs=structuredClone(window.testOriginalSongs);window.testDeletes=[];window.testDeleteError='';window.testDeleteDelay=false;window.testQueue={pending:[],active:null,history:[],paused:true,message:''};window.testProgress={job:null,running:false,index:0,lines:[]};window.confirm=()=>{throw Error('Native browser confirmation used')};window.fetch=async(url,options={})=>{const path=String(url);let value;
-if(path==='/api/orbis/settings')value={ip:'192.168.1.67',port:2121,user:'anonymous',template:'',updates:{message:'No release feed configured'}};
+const hooks = `(()=>{const original=window.fetch.bind(window),map=${JSON.stringify(fixture)},song=${JSON.stringify(song)};window.testOriginalSongs=[{...song,info:map},{...song,id:song.id.replace(/1$/,'2'),title:'Compression [Vorbis test]'}];window.testSongs=structuredClone(window.testOriginalSongs);window.testPluginWrites=[];window.testUpdateOffline=false;window.testDeletes=[];window.testDeleteError='';window.testDeleteDelay=false;window.testQueue={pending:[],active:null,history:[],paused:true,message:''};window.testProgress={job:null,running:false,index:0,lines:[]};window.confirm=()=>{throw Error('Native browser confirmation used')};window.fetch=async(url,options={})=>{const path=String(url);let value;
+if(path==='/api/orbis/settings')value={ip:'192.168.1.67',port:2121,user:'anonymous',template:'',updates:{state:'not_checked',message:'Official GitHub release has not been checked.'}};
 else if(path==='/api/orbis/plugin'&&(!options.method||options.method==='GET'))value={installed:true,installed_version:'0.8068',available_version:'0.8071',capability_matches:true,declared_version_matches:true,max_songs:8,registration:'registered_once',runtime_verified:false};
+else if(path==='/api/orbis/extras'){if(options.method==='POST'){window.testPluginWrites.push('bundled-extras');value={ok:true,message:'Extras installed (offline fixture)'}}else value={installed:true,installed_version:'0.0008',available_version:'0.0009',registration:'enabled'}}
+else if(path==='/api/orbis/updates')value=window.testUpdateOffline?{state:'unavailable',message:'Update check unavailable. This does not mean up to date.'}:{state:'checked',message:'Official GitHub release checked.',versions:{app:{current:'0.1.13',latest:'0.1.14',update_available:true},main:{current:'0.8079',latest:'0.8079',update_available:false},extras:{current:'0.0009',latest:'0.0010',update_available:true}}};
+else if(path.startsWith('/api/orbis/updates/')&&options.method==='POST'){window.testPluginWrites.push(path.split('/').at(-1));value={ok:true,message:'Release installed (offline fixture)'}}
 else if(path==='/api/ping')value={webapp_version:'0.7.15',pipeline_version:'0.5383',plugin_version:'v0.8071'};
 else if(path.startsWith('/api/orbis/search?'))value={docs:[map]};
 else if(path.startsWith('/api/jobs/lines?')){const p=window.testProgress,q=new URL(path,location.href).searchParams;value={...p,lines:p.lines.slice(q.get('job_id')===p.job?.id?Number(q.get('after')):0)}}
@@ -338,6 +346,37 @@ try {
   assert.equal(await evaluate("document.getElementById('plugin-version').textContent.includes('8-song profile')"),true);
   assert.equal(await evaluate("document.getElementById('plugin-version').textContent.includes('Available: 0.8071')"),true);
 
+  assert.equal(await evaluate("document.querySelector('aside #theme')"), null);
+  assert.equal(await evaluate("document.querySelector('aside').textContent.includes('Local companion')"),false);
+  await evaluate("document.getElementById('check-extras-version').click()");
+  await until("document.getElementById('extras-version').textContent.includes('Installed: 0.0008')");
+  await evaluate("document.getElementById('deploy-extras').click()");
+  await until("document.getElementById('confirm-action').open");
+  await evaluate("document.querySelector('#confirm-action [value=cancel]').click()");
+  assert.deepEqual(await evaluate('window.testPluginWrites'),[]);
+  await evaluate("document.getElementById('deploy-extras').click()");
+  await until("document.getElementById('confirm-action').open");
+  await evaluate("document.getElementById('confirm-accept').click()");
+  await until("window.testPluginWrites.length===1");
+  assert.deepEqual(await evaluate('window.testPluginWrites'),['bundled-extras']);
+  await evaluate("document.getElementById('check-updates').click()");
+  await until("document.getElementById('updates').textContent.includes('latest 0.1.14 (update available)')");
+  await evaluate("window.testUpdateOffline=true;document.getElementById('check-updates').click()");
+  await until("document.getElementById('updates').textContent.includes('does not mean up to date')");
+  await evaluate("document.getElementById('release-extras').click()");
+  await until("document.getElementById('confirm-action').open");
+  await evaluate("document.getElementById('confirm-accept').click()");
+  await until("window.testPluginWrites.length===2");
+  assert.deepEqual(await evaluate('window.testPluginWrites'),['bundled-extras','extras']);
+  // Wheel repeatedly into both scroll limits; sidebar geometry must not follow.
+  const asideTop=await evaluate("document.querySelector('aside').getBoundingClientRect().top");
+  await evaluate("document.getElementById('theme-settings').scrollIntoView({block:'center'})");
+  for(const deltaY of [2000,2000,-4000,-4000]) {
+    await send('Input.dispatchMouseEvent',{type:'mouseWheel',x:1000,y:400,deltaX:0,deltaY});
+    await new Promise(resolve=>setTimeout(resolve,80));
+    assert.equal(await evaluate("document.querySelector('aside').getBoundingClientRect().top"),asideTop);
+    assert.equal(await evaluate('scrollY'),0);
+  }
   assert.equal(await evaluate("document.getElementById('ip').value"), '192.168.1.67');
   await evaluate(`window.testProgress={job:{id:'1793030351128670239',exit_code:null,cancelled:false},running:true,index:4,lines:['   Project: /private/project','[additive] Retaining 3 library entries; unrelated map files are not audited.','[additive] Validating and converting map/audio...','[additive] Import refused: fixture error']}`);
   await until("state.jobId==='1793030351128670239'");
@@ -402,7 +441,7 @@ try {
   const libraryMobile = await send('Page.captureScreenshot', {format:'png',captureBeyondViewport:false});
   await writeFile(output + '/library-mobile.png', Buffer.from(libraryMobile.data,'base64'));
   assert.deepEqual(errors, []);
-  console.log(JSON.stringify({ ok: true, viewport: '1440x1100 + 390x844', checks: ['minimal header/brand', 'escaped metadata', 'cover click preview start/stop', 'library cover retry without search cache', 'new and legacy map information without library playback controls', 'visible paused-queue removal guard', 'compression-test removal and selected-only serial bulk removal', 'bulk failure stops and selection refresh', 'opt-in whole-card/keyboard library selection', 'metadata compatibility hints, vote counts and relative dates', 'quiet sidebar queue, failed-map Retry and popup', 'active/last log before80history entries, bounded desktop/mobile scroll, follow/pause/jump with no focus or page-scroll theft', 'solid dismissible bottom toast without reflow/focus theft', 'Downloads/details outside-click dismissal, padding/drag/cancel guards desktop/mobile', 'in-page confirmation/accept/cancel/Escape', 'primary button hover contrast', 'read-only binary plugin version and registration check', 'settings', 'no horizontal overflow', 'no JS exceptions'], contrast, consoleWrites: false, api: 'offline fixtures', screenshots: output }, null, 2));
+  console.log(JSON.stringify({ ok: true, viewport: '1440x1100 + 390x844', checks: ['minimal header/brand', 'escaped metadata', 'cover click preview start/stop', 'library cover retry without search cache', 'new and legacy map information without library playback controls', 'visible paused-queue removal guard', 'compression-test removal and selected-only serial bulk removal', 'bulk failure stops and selection refresh', 'opt-in whole-card/keyboard library selection', 'metadata compatibility hints, vote counts and relative dates', 'quiet sidebar queue, failed-map Retry and popup', 'active/last log before80history entries, bounded desktop/mobile scroll, follow/pause/jump with no focus or page-scroll theft', 'solid dismissible bottom toast without reflow/focus theft', 'Downloads/details outside-click dismissal, padding/drag/cancel guards desktop/mobile', 'in-page confirmation/accept/cancel/Escape', 'primary button hover contrast', 'read-only binary plugin version and registration check', 'Extras/version and explicit confirmed bundled/release installation (mock writes only)', 'official updates/offline state', 'sidebar stable under repeated wheel scrolling', 'settings', 'no horizontal overflow', 'no JS exceptions'], contrast, consoleWrites: false, api: 'offline fixtures', screenshots: output }, null, 2));
 } finally {
   socket.close(); await fetch(cdp + '/json/close/' + page.id);
 }

@@ -14,12 +14,14 @@ and installs maps; `orbeats.prx` makes the custom pack appear in the game.
 
 ## Install the companion
 
-Use a Windows installer (`.exe`) or Linux AppImage from the project's builds.
-Before a public release, candidates are available through the private
-[Actions builds](https://github.com/Wkrotik/OrBeats/actions/workflows/private-build.yml).
-GitHub wraps Actions artifacts in a ZIP; extract the installer before running it.
-Release readiness and platform test results belong in the
-[distribution checklist](public-release-checklist.md), not the main README.
+Release downloads belong on the official [GitHub Releases page](https://github.com/Wkrotik/OrBeats/releases/latest):
+Windows x64 installer (`.exe` directly, not a ZIP), Linux x64 AppImage, and the
+separate `orbeats.prx` and `orbeats_extras.prx` plugins. If no release is listed,
+use the source/build instructions; a release must not be assumed to exist.
+[Actions builds](https://github.com/Wkrotik/OrBeats/actions/workflows/private-build.yml)
+are development candidates. GitHub wraps **Actions artifacts**, not the intended
+release installer, in a ZIP. See the [distribution checklist](public-release-checklist.md)
+for evidence and remaining validation limits.
 
 - **Windows:** run the installer. Unsigned candidates may trigger SmartScreen;
   verify the source and checksum before deciding whether to proceed.
@@ -43,6 +45,28 @@ Python, FFmpeg or a proprietary FMOD SDK installed to use them.
 
 A title-state refusal means the game must be closed; it is not a reason to bypass
 the guard. The companion never launches the game for you.
+
+## Optional Extras and updates
+
+Install/check the main plugin first, then use **Install Extras** in Console &
+settings while Beat Saber is fully closed. Extras is registered only for
+CUSA12878; it does not replace the main plugin or modify your song library.
+Unknown existing binaries/ambiguous registrations are refused rather than erased.
+
+Extras adds health-warning auto-dismiss (preserving existing settings) and a
+**read-only top-ten ScoreSaber leaderboard** for supported Standard custom-map
+difficulties. It does not submit scores or sign into a ScoreSaber account. Older
+songs imported without their original map identity must be reimported for score
+lookup. Unranked/unsupported maps and network failures are not fake empty success.
+
+**Check updates** queries the official public GitHub release for the desktop app
+and both bundled plugin versions. This is separate from **Check PS4 version**;
+a bundled-version comparison is not a claim about the console's installed files.
+An unavailable/offline feed does not mean up to date. Desktop upgrades are manual:
+copy the release link and download the new installer/AppImage. Plugin release
+installation is explicit and confirmed; it verifies the manifest's SHA-256,
+byte count and embedded version before the usual closed-title/readback/local
+recovery transaction. No program is downloaded and automatically executed.
 
 ## Add and manage songs
 

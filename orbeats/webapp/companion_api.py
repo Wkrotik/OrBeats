@@ -5,6 +5,8 @@ import ipaddress
 import urllib.parse
 
 import library_manager as library
+import extras_manager as extras
+import release_updates
 from adapters import beatsaver, config, paths
 from fastapi import APIRouter, HTTPException
 from fastapi.responses import Response
@@ -37,8 +39,8 @@ def read_settings():
         "password_set": bool(a.get("ftp_password")),
         "template": cfg.get("additive_template", ""),
         "updates": {
-            "state": "unconfigured",
-            "message": "No official release feed configured; update checking is unavailable, not up to date.",
+            "state": "not_checked",
+            "message": "Check official GitHub releases for app and plugin updates.",
         },
     }
 
@@ -127,3 +129,32 @@ def deploy_plugin():
     if not artifact.is_file():
         raise HTTPException(409, "Build the plugin first; no verified release artifact is bundled.")
     return guarded(library.deploy_plugin, settings(), artifact)
+
+
+@router.get("/extras")
+def extras_version():
+    return guarded(extras.status, settings(), paths.PROJECT_DIR / "orbeats_extras.prx")
+
+
+@router.post("/extras")
+def deploy_extras():
+    artifact = paths.PROJECT_DIR / "orbeats_extras.prx"
+    if not artifact.is_file():
+        raise HTTPException(409, "Extras is not bundled in this build")
+    return guarded(extras.deploy, settings(), artifact)
+
+
+@router.get("/updates")
+def updates():
+    artifact = paths.PROJECT_DIR / "orbeats.prx"
+    extra = paths.PROJECT_DIR / "orbeats_extras.prx"
+    main_version = library.binary_version(library.elf_from_fself(artifact.read_bytes())) if artifact.is_file() else None
+    extras_version = extras.version(library.elf_from_fself(extra.read_bytes())) if extra.is_file() else None
+    return release_updates.check(main_version, extras_version)
+
+
+@router.post("/updates/{kind}")
+def install_release(kind: str):
+    if kind not in ("main", "extras"):
+        raise HTTPException(400, "Unknown plugin")
+    return guarded(release_updates.install, settings(), kind)

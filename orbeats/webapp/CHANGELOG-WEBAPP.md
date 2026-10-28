@@ -1,5 +1,20 @@
 ## 0.7.26 — transparent product artwork
 
+## 0.7.28
+
+- Install/check the bundled optional OrBeats Extras plugin independently from the
+  song library. Closed-title verification, exact GoldHEN registration, full
+  readback and local rollback archives also apply to Extras.
+- Explicitly check the official GitHub release for desktop/main/Extras updates.
+  Plugin downloads require the release manifest's SHA-256, size and embedded
+  version before the normal safe installer runs. Offline is not "up to date";
+  desktop upgrades remain a manual download, never automatic execution.
+- Remove the redundant sidebar companion label/theme button (theme remains in
+  Settings), and isolate desktop main-panel scrolling from the fixed sidebar.
+- Desktop0.1.13 starts the main view hidden until its authenticated document loads,
+  hides both views while safely draining on close, and suppresses Windows worker
+  console windows. No active console publication is killed to close faster.
+
 - Use the supplied icon.svg in the sidebar, hero and favicon, without the former
   rounded background tile. Native raster derivatives keep transparent backgrounds.
 - No install, queue or library behavior changes.

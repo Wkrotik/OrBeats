@@ -1,23 +1,51 @@
-# First public release gates — preparation only
+# Release readiness — desktop 0.1.13
 
-**Targets: Windows x64 NSIS + Linux x64 AppImage, deb optional.** No publication,
-tag or system installation is authorized by this checklist. User separately
-authorized a private source repository/push and GitHub Actions for testing; see
-[private builds](private-builds.md). This is not public-release permission.
-Current source: plugin0.8077 / pipeline0.5391 / web0.7.24 / desktop0.1.11.
-User confirms0.1.7 Wayland repair,0.1.8 bd45 installation and Windows0.1.9
-plugin detection.0.1.10 adds deterministic worker output, the owned SVG logo,
-revised progress/scrolling, IP-only GoldHEN settings and two bounded map fixes.
-Neither new actual Windows installation success nor those maps' playback is
-claimed; no automatic console retry or new native plugin feature.
+**Targets:** Windows x64 NSIS installer (`.exe`, not a ZIP), Linux x64
+AppImage, `orbeats.prx` 0.8079 and `orbeats_extras.prx` 0.0009. No macOS/ARM
+support is claimed. Pipeline 0.5393; webapp 0.7.28.
 
-## Confirmed functional milestone
+The owner has authorized source commit/push, release publication and making the
+repository public **after** the release is ready. That permission is not itself
+proof that these technical/distribution gates passed. The repository must remain
+private while publication is incomplete. Only the audited source-only checkout
+is pushed; no game inputs, dumps, songs, console backups or personal profiles.
 
-The user confirms0.8077 restores Custom Songs and Here Come the Cats plays
-correctly;27existing songs were preserved. This does not prove exact authored
-colour parity, Practice seeking, stock regression or every feature combination.
-See `map-hardware-test-matrix.md`; mods/custom environments remain out of scope.
-Do not widen compatibility claims simply because packaging changes.
+## Current preparation
+
+- Extras installation is a separate closed-title/readback/local-rollback
+  transaction. It preserves the main plugin, library and existing health settings.
+- Official stable GitHub release checks distinguish unavailable from up to date.
+  Explicit plugin downloads require the release manifest's size, SHA-256 and
+  embedded version before reaching the existing guarded installer. App upgrades
+  remain manual. Checks compare bundled plugin versions, not unchecked PS4 state.
+- Removed the redundant sidebar text/theme button (theme remains in Settings).
+  Desktop content scrolls independently of the sidebar. The startup view is hidden
+  before the authenticated main view appears; closing hides both views while the
+  backend drains active mutations. Windows child jobs use CREATE_NO_WINDOW.
+- Offline browser fixtures cover confirmations, Extras/version display, release
+  and unavailable states, sidebar wheel scrolling and existing desktop/mobile UI.
+- New final AppImage: 179,902,968 bytes, SHA-256
+  `52c60618f35d5746d67c6d4c7d8cf0f393f74fd98fcb7c76202bf90592c67cca`.
+  All 467 ELF files pass GLIBC <= 2.35 and no-private-GLIBC checks. Actual image
+  launch/WM-close in an isolated Ubuntu 22.04 runtime proves one visible app view,
+  no resurfaced close window, graceful backend drain and a fresh paused queue.
+- GitHub SSH fetch/push works. The configured API token authenticates the owner
+  but returns 404 for this private repository (also through GitHub MCP). Release
+  creation/asset download/visibility administration need authorized repository API
+  access. Do not make the repository public early to work around this.
+- `desktop/packaging/stage_release.py` curates exact assets/checksums/feed manifest
+  into a fresh local folder. Missing Windows/Linux output is explicitly incomplete.
+  This tool never publishes, copies a whole working directory or claims legal or
+  installer lifecycle approval.
+
+## Confirmed hardware scope
+
+Custom songs and Animals Hard/lighting repair were confirmed on the user's PS4.
+Extras health-warning dismissal and anonymous read-only ScoreSaber retrieval were
+confirmed; the later top-ten/unprefixed-name change still needs a user check.
+This does not establish every authored colour/Practice/stock feature combination.
+See `map-hardware-test-matrix.md`. Other game regions/patches, arbitrary managed
+mods and custom environments remain unsupported.
 
 ## Linux packaging milestones actually completed
 
@@ -48,12 +76,11 @@ requiredGLIBC2.44; it is a reference, not the current release candidate.
 
 ## Remaining blocking gates
 
-1. **Windows end-to-end installation and lifecycle.** Private Actions run
-   40674610679 passed native source-built media, frozen synthetic import/private
-   bootstrap/drain, seven MSVC tests and unsigned NSIS0.1.9 generation. The user
-   opened it and confirmed plugin detection, but reported a real installation
-   appearing stuck with no output.0.1.10 fixes encoding/buffering and adds a native
-   live-output regression; its new CI and actual installation still need checking.
+1. **Windows end-to-end installation and lifecycle.** Earlier private Actions
+   builds passed native source-built media, frozen synthetic import/bootstrap/
+   drain, seven MSVC tests and NSIS generation. The real-map live-output regression
+   and its encoding/buffering fix are retained. A new 0.1.13 target-native build is
+   required; older CI is not proof for these closing/Extras changes.
    Interactive installer/upgrade/uninstall, WebView2-first-run and state/recovery
    preservation remain gates; CI generation is not blanket installer approval.
 2. **Complete license/source closure.** The baseline helper audit inventories
@@ -74,10 +101,11 @@ requiredGLIBC2.44; it is a reference, not the current release candidate.
    interrupted recovery and restart paused. Source/frozen tests already cover many
    cases but do not replace testing each final platform artifact. Decide signing/
    trust documentation, provide checksums/provenance and independent artifact scan.
-5. **Public documentation and user approval.** Bounded compatibility/known limits,
-   closed-title requirement, local rollback/recovery, versions/changelog, private
-   file scan, no telemetry or automatic upload/publish/tag/release. Ask for final
-   distribution approval only after remaining gates are clearly accounted for.
+5. **Public documentation and access.** Keep supported-game/feature limits,
+   closed-title/local recovery requirements, unsigned Windows trust expectations
+   and checksums explicit. The owner's publication approval is already granted;
+   do not ask for it again. Resolve the private-repository API permission blocker,
+   verify all final assets, then publish and only afterward change visibility.
 
 ## Current local evidence (never upload output directories wholesale)
 
@@ -95,7 +123,11 @@ requiredGLIBC2.44; it is a reference, not the current release candidate.
 Static audits explicitly keep legal/clean-machine approval false. Baseline userspace
 success is meaningful progress, not authorization or readiness to publish.
 
-Latest complete local host validation:1617passed127skipped with1inherited Starlette warning;
-seven Rust release tests pass. Actual-image synthetic prior-state restart retains
+Latest complete local host validation: **1859 passed / 124 skipped**, with one
+inherited Starlette warning, using the final frozen helper. Seven Rust release
+tests and 32 focused release/Extras regressions pass. The same final AppImage
+also passes native launch/close on the modern host, plus an offline frozen
+five-difficulty/12-second synthetic import in the isolated Ubuntu runtime with
+empty PATH and no host Python/FFmpeg (529200 samples). No console write occurs. Actual-image synthetic prior-state restart retains
 settings/paused pending/history/older runtime/local recovery. This adds a real
 artifact-level preservation check, not a full installer-upgrade/uninstall claim.

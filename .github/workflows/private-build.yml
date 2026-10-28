@@ -1,4 +1,4 @@
-name: Private source and Windows candidate
+name: Source, plugins and Windows build
 on:
   push:
     branches: [main]
@@ -34,6 +34,8 @@ jobs:
           export OO_PS4_TOOLCHAIN="$PWD/.tools/openorbis/OpenOrbis/PS4Toolchain"
           make -C orbeats clean
           make -C orbeats -j2
+          make -C orbeats_extras -j2
+          cp orbeats_extras/orbeats_extras.prx orbeats/orbeats_extras.prx
           python - <<'PY'
           from pathlib import Path
           p=Path('orbeats/orbeats.prx')
@@ -42,7 +44,9 @@ jobs:
       - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
         with:
           name: native-plugin
-          path: orbeats/orbeats.prx
+          path: |
+            orbeats/orbeats.prx
+            orbeats/orbeats_extras.prx
           retention-days: 7
           if-no-files-found: error
       - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02

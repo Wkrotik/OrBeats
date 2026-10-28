@@ -220,14 +220,17 @@ def plugin_status(config, artifact):
             "registration": registration, "runtime_verified": False}
 
 
-def deploy_plugin(config, artifact):
+def deploy_plugin(config, artifact, release_version=None):
     candidate = Path(artifact).read_bytes()
     canonical = elf_from_fself(candidate)
     if len(candidate) > 2000000:
         raise ValueError("Oversized plugin")
     source = (Path(__file__).resolve().parents[1] / "src/main.cpp").read_text()
     match = re.search(r'#define PLUGIN_VERSION "(v[0-9.]+)"', source)
-    if not match or match[1].encode() + b"\x00" not in canonical or b"OrBeats" not in canonical:
+    if release_version is not None:
+        if binary_version(canonical) != release_version:
+            raise ValueError("Verified release version does not match binary")
+    elif not match or match[1].encode() + b"\x00" not in canonical or b"OrBeats" not in canonical:
         raise ValueError("Build the current OrBeats plugin first; stale or unrelated artifact refused")
     run = uuid.uuid4().hex
     plugin = "/data/GoldHEN/plugins/orbeats.prx"

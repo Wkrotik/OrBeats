@@ -173,7 +173,7 @@ def test_settings_hide_password_validate_ip_and_expose_honest_update_state(monke
     saved=[];monkeypatch.setattr(companion_api.config,'save_config',saved.append)
     c=TestClient(server.app);value=c.get('/api/orbis/settings').json()
     assert 'secret' not in json.dumps(value) and value['password_set']
-    assert value['updates']['state']=='unconfigured'
+    assert value['updates']['state']=='not_checked'
     assert c.post('/api/orbis/settings',json={'ip':'not-an-ip'}).status_code==400
     assert c.post('/api/orbis/settings',json={'ip':'192.168.1.22','port':2121,'user':'anonymous'}).status_code==200
     assert saved[0]['ps4']['ftp_password']==''

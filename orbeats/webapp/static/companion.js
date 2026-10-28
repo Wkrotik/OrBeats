@@ -614,7 +614,6 @@ async function initialize() {
 	$("queue-start").onclick = () => queueAction("start");
 	$("queue-pause").onclick = () => queueAction("pause");
 	$("queue-clear").onclick = () => queueAction("clear");
-	$("theme").onclick = theme;
 	$("theme-settings").onclick = theme;
 	$("close-details").onclick = () => $("details").close();
 	$("search-form").onsubmit = safely(async (e) => {
@@ -724,6 +723,31 @@ async function initialize() {
 		notify(r.message);
         await checkPluginVersion();
 	});
+    async function checkExtrasVersion() {
+        const r = await api("/api/orbis/extras");
+        $("extras-version").textContent = `Installed: ${r.installed_version || (r.installed ? "Unknown binary" : "Not installed")} · Bundled: ${r.available_version || "Unavailable"} · ${r.registration}. Disk check, not an in-game check.`;
+    }
+    $("check-extras-version").onclick = safely(checkExtrasVersion);
+    $("deploy-extras").onclick = safely(async () => {
+        if (state.busy) throw Error("Wait for the active job.");
+        if (!await confirmAction("Install Extras?", "Beat Saber must be fully closed. Extras will be enabled for CUSA12878. Existing songs and health settings are preserved.", "Install")) return;
+        notify("Installing Extras with readback and local recovery. Keep Beat Saber closed.");
+        const r = await api("/api/orbis/extras", {method: "POST"});
+        notify(r.message); await checkExtrasVersion();
+    });
+    $("check-updates").onclick = safely(async () => {
+        $("updates").textContent = "Checking official GitHub release…";
+        const r = await api("/api/orbis/updates");
+        $("updates").textContent = r.message + (r.versions ? " " + Object.entries(r.versions).map(([k,v]) => `${k}: bundled ${v.current || "unknown"}, latest ${v.latest}${v.update_available ? " (update available)" : ""}`).join(" · ") : "");
+    });
+    $("copy-release-link").onclick = safely(async () => { await navigator.clipboard.writeText("https://github.com/Wkrotik/OrBeats/releases/latest"); notify("Official download link copied."); });
+    for (const kind of ["main", "extras"]) $("release-" + kind).onclick = safely(async () => {
+        if (state.busy) throw Error("Wait for the active job.");
+        if (!await confirmAction("Install latest " + kind + "?", "Download from the official GitHub release, verify its SHA-256, then install with readback and local recovery. Beat Saber must be fully closed.", "Download and install")) return;
+        notify("Downloading and verifying official plugin. Keep Beat Saber closed.");
+        const r = await api("/api/orbis/updates/" + kind, {method:"POST"}); notify(r.message);
+        await (kind === "main" ? checkPluginVersion() : checkExtrasVersion());
+    });
 	$("cancel-job").onclick = safely(async () => {
 		await api("/api/jobs/cancel", { method: "POST" });
 		$("queue-message").textContent = "Stopping installation. The queue is paused; wait for the process to stop.";

@@ -80,6 +80,7 @@ def merge_ini(original, title="CUSA12878", path="/data/GoldHEN/plugins/orbeats.p
             and (line.startswith("/data/GoldHEN/plugins/beat_saber_deluxe") or line.startswith("/data/GoldHEN/plugins/orbeats"))
             and line.endswith(".prx")
             and line != path
+            and line != "/data/GoldHEN/plugins/orbeats_extras.prx"
         ):
             raise ValueError("Another variant of this plugin is enabled; review plugins.ini to prevent loading twice.")
     if present > 1:

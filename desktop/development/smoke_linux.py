@@ -98,6 +98,37 @@ lib.XQueryTree.argtypes = [
     C.POINTER(C.c_uint),
 ]
 lib.XFetchName.argtypes = [C.c_void_p, C.c_ulong, C.POINTER(C.c_char_p)]
+
+
+class Attributes(C.Structure):
+    _fields_ = [
+        ("x", C.c_int),
+        ("y", C.c_int),
+        ("width", C.c_int),
+        ("height", C.c_int),
+        ("border_width", C.c_int),
+        ("depth", C.c_int),
+        ("visual", C.c_void_p),
+        ("root", C.c_ulong),
+        ("window_class", C.c_int),
+        ("bit_gravity", C.c_int),
+        ("win_gravity", C.c_int),
+        ("backing_store", C.c_int),
+        ("backing_planes", C.c_ulong),
+        ("backing_pixel", C.c_ulong),
+        ("save_under", C.c_int),
+        ("colormap", C.c_ulong),
+        ("map_installed", C.c_int),
+        ("map_state", C.c_int),
+        ("all_event_masks", C.c_long),
+        ("your_event_mask", C.c_long),
+        ("do_not_propagate_mask", C.c_long),
+        ("override_redirect", C.c_int),
+        ("screen", C.c_void_p),
+    ]
+
+
+lib.XGetWindowAttributes.argtypes = [C.c_void_p, C.c_ulong, C.POINTER(Attributes)]
 lib.XFree.argtypes = [C.c_void_p]
 app = None
 d = None
@@ -208,7 +239,7 @@ try:
         ]
     app = subprocess.Popen(command, env=env, stdout=log, stderr=log)
 
-    def windows():
+    def windows(*, visible_only=False):
         result = []
         rr = C.c_ulong()
         parent = C.c_ulong()
@@ -227,7 +258,12 @@ try:
             if lib.XFetchName(d, children[i], C.byref(name)) and name.value:
                 text = name.value.decode(errors="replace")
                 if text == "OrBeats":
-                    result.append(children[i])
+                    attributes = Attributes()
+                    if not visible_only or (
+                        lib.XGetWindowAttributes(d, children[i], C.byref(attributes))
+                        and attributes.map_state == 2
+                    ):
+                        result.append(children[i])
                 lib.XFree(name)
         if children:
             lib.XFree(children)
@@ -242,12 +278,17 @@ try:
                 + "; inspect native-window.log"
             )
         found = windows()
-        if len(found) >= 2:
+        visible = windows(visible_only=True)
+        if len(found) >= 2 and visible == [max(found)]:
             ready = True
             break
         time.sleep(0.2)
     assert ready, "Main authenticated window did not appear"
     time.sleep(3)
+    visible = windows(visible_only=True)
+    assert len(visible) == 1 and visible == [max(windows())], (
+        "Startup status resurfaced or main window stayed hidden"
+    )
     from PIL import ImageGrab
 
     image = ImageGrab.grab(xdisplay=display)
@@ -281,13 +322,25 @@ try:
     event = Event()
     event.client.type = 33
     event.client.display = d
-    event.client.window = found[-1]
+    event.client.window = visible[0]
     event.client.message_type = lib.XInternAtom(d, b"WM_PROTOCOLS", 0)
     event.client.format = 32
     event.client.data[0] = lib.XInternAtom(d, b"WM_DELETE_WINDOW", 0)
-    assert lib.XSendEvent(d, found[-1], 0, 0, C.byref(event))
+    assert lib.XSendEvent(d, visible[0], 0, 0, C.byref(event))
     lib.XFlush(d)
-    assert app.wait(timeout=20) == 0, "Native shell did not close cleanly"
+    hidden = False
+    closing_visibility = []
+    deadline = time.monotonic() + 20
+    while app.poll() is None and time.monotonic() < deadline:
+        current = windows(visible_only=True)
+        closing_visibility.append(len(current))
+        if not current:
+            hidden = True
+        elif hidden:
+            raise AssertionError("An extra window resurfaced while the backend drained")
+        time.sleep(0.01)
+    assert app.wait(timeout=1) == 0, "Native shell did not close cleanly"
+    assert not windows(visible_only=True), "Window survived clean close"
     states = list((out / "native-data").rglob("queue.json"))
     assert len(states) == 1
     state = json.loads(states[0].read_text())
@@ -298,6 +351,9 @@ try:
         "authenticated_main_window_created": True,
         "screenshot": str((out / "native-window.png").relative_to(root)),
         "close_via_wm": True,
+        "single_visible_authenticated_window": True,
+        "no_resurfaced_close_window": True,
+        "closing_visible_window_counts": closing_visibility,
         "backend_drained_and_exited": True,
         "fresh_state_queue_paused": True,
         "ps4_writes": False,

@@ -92,6 +92,8 @@ def main():
         "server",
         "companion_api",
         "library_manager",
+        "extras_manager",
+        "release_updates",
         "batch_runner",
         "beatsage_client",
         "runtime_dispatch",
