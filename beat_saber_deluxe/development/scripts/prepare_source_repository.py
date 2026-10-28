@@ -74,7 +74,15 @@ def eligible(relative):
     p = Path(relative)
     if any(x in EXCLUDED_PARTS or x.startswith(".") for x in p.parts[1:]):
         return False
-    if p.parts[0] not in {"beat_saber_deluxe", "desktop", "docs", ".github", ".devcontainer", "scripts"}:
+    if p.parts[0] not in {
+        "beat_saber_deluxe",
+        "orbeats_extras",
+        "desktop",
+        "docs",
+        ".github",
+        ".devcontainer",
+        "scripts",
+    }:
         return str(p) in ROOT_FILES
     if p.parts[:3] in (("beat_saber_deluxe", "development", "docs"), ("beat_saber_deluxe", "development", "fixtures")):
         return False
@@ -87,6 +95,14 @@ def eligible(relative):
     if p.name in {"ps4_config.json", "webapp_state.json", "queue.json", "runtime-state.json"} or p.name.startswith(
         ("catalog_", "redirects_", "experiment_log")
     ):
+        return False
+    if p.name in {
+        "MEMORY_INJECTION_STATUS.md",
+        "memory_scan_implementation.cpp",
+        "memory_scan_implementation.md",
+        "memory_inject_test.py",
+        "memory_inject_plugin.cpp",
+    }:
         return False
     if p.name == "beat_saber_song_ids.json":
         return False  # replaced with a source-only empty catalog, never copied
@@ -101,7 +117,7 @@ def prepare(output):
         raise ValueError("Choose a fresh .publication/ output; existing exports are never overwritten")
     inventory = {}
     candidates = [ROOT / name for name in ROOT_FILES]
-    for name in ("beat_saber_deluxe", "desktop", "docs", ".github", ".devcontainer", "scripts"):
+    for name in ("beat_saber_deluxe", "orbeats_extras", "desktop", "docs", ".github", ".devcontainer", "scripts"):
         candidates.extend((ROOT / name).rglob("*"))
     for source in sorted(set(candidates)):
         if not source.is_file() or not eligible(source.relative_to(ROOT)):

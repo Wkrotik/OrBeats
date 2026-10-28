@@ -18,6 +18,10 @@ spec.loader.exec_module(export)
 @pytest.mark.parametrize(
     "path",
     [
+        "beat_saber_deluxe/MEMORY_INJECTION_STATUS.md",
+        "beat_saber_deluxe/development/scripts/memory_inject_plugin.cpp",
+        "orbeats_extras/orbeats_extras.prx",
+        "orbeats_extras/obj/main.o",
         ".git/config",
         ".agent/project_summary.md",
         ".ai_memory/transcript.md",
@@ -42,6 +46,9 @@ def test_export_default_denies_personal_inputs_history_and_binaries(path):
 @pytest.mark.parametrize(
     "path",
     [
+        "orbeats_extras/src/main.cpp",
+        "orbeats_extras/include/health.h",
+        "orbeats_extras/development/scoresaber.py",
         "desktop/src-tauri/src/main.rs",
         "desktop/src-tauri/Cargo.lock",
         ".github/workflows/private-build.yml",
@@ -110,10 +117,10 @@ def test_export_refuses_source_symlinks(tmp_path, monkeypatch):
 
 def test_export_preserves_owned_binary_icon_without_text_decoding(tmp_path, monkeypatch):
     fake_source(tmp_path, monkeypatch)
-    icon = tmp_path / 'desktop/src-tauri/icons/icon.ico'
+    icon = tmp_path / "desktop/src-tauri/icons/icon.ico"
     icon.parent.mkdir(parents=True)
-    data = b'\x00\x00\x01\x00\x01\x00\xc9\xff'
+    data = b"\x00\x00\x01\x00\x01\x00\xc9\xff"
     icon.write_bytes(data)
-    out = tmp_path / '.publication/review'
+    out = tmp_path / ".publication/review"
     export.prepare(out)
     assert (out / icon.relative_to(tmp_path)).read_bytes() == data
