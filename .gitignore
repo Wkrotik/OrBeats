@@ -15,15 +15,15 @@ Il2CppDumper/
 bak/
 # Private inputs/caches may remain after removing the obsolete tracked scaffold.
 beat-saber-ps4-custom-songs/
-beat_saber_deluxe/*.prx
-beat_saber_deluxe/beat_saber_deluxe/x64/Debug/
-beat_saber_deluxe/build/
-beat_saber_deluxe/custom_songs/
-beat_saber_deluxe/obj/
-beat_saber_deluxe/ps4_config.json
-beat_saber_deluxe/src/*.o
-beat_saber_deluxe/src/*.elf
-beat_saber_deluxe/src/*.oelf
+orbeats/*.prx
+orbeats/orbeats/x64/Debug/
+orbeats/build/
+orbeats/custom_songs/
+orbeats/obj/
+orbeats/ps4_config.json
+orbeats/src/*.o
+orbeats/src/*.elf
+orbeats/src/*.oelf
 investigation/
 ps4_dump/
 rb4dx_installer/
@@ -32,21 +32,21 @@ temp/
 *.blob
 *.cab
 *.bundle
-beat_saber_deluxe/.coverage
+orbeats/.coverage
 song_metadata.json
 ps4_backups/
-beat_saber_deluxe/webapp/webapp_state.json
-beat_saber_deluxe/webapp/batches/
+orbeats/webapp/webapp_state.json
+orbeats/webapp/batches/
 
 # M13: staged local songs (extracted map zips + the staging manifest) and
 # transient Beat Sage audio uploads — user content, never committed
-beat_saber_deluxe/webapp/staged_songs/
-beat_saber_deluxe/webapp/beatsage_uploads/
+orbeats/webapp/staged_songs/
+orbeats/webapp/beatsage_uploads/
 
 # Additive local-development environment and native debug intermediates
 .venv/
 .tools/
-beat_saber_deluxe/obj-debug/
+orbeats/obj-debug/
 
 # Tauri intermediates and private desktop state (never package the checkout).
 desktop/src-tauri/target/

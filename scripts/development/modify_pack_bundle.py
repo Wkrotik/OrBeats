@@ -74,9 +74,9 @@ if not found_target:
             pass
 else:
     # Save the modified bundle
-    output_path = '/workspace/beat_saber_deluxe/custom_songs/rolling_pack_modded.bundle'
+    output_path = '/workspace/orbeats/custom_songs/rolling_pack_modded.bundle'
     # Save using save_bundle from the pipeline
-    sys.path.insert(0, '/workspace/beat_saber_deluxe/tools')
+    sys.path.insert(0, '/workspace/orbeats/tools')
     from full_custom_song_pipeline import save_bundle
     save_bundle(bf, output_path)
     print(f"\nSaved modified bundle to: {output_path}")

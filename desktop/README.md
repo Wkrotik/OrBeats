@@ -49,7 +49,7 @@ build dependencies locally (never a system package change):
 .venv/bin/python desktop/freeze_backend.py --output temp/desktop-frozen-new
 # Choose a fresh project-local output directory for every build.
 ORBEATS_TEST_FROZEN_BACKEND="$PWD/temp/desktop-frozen-new/dist/orbeats-backend/orbeats-backend" \
-  .venv/bin/python -m pytest beat_saber_deluxe/tests/test_desktop_backend.py -q
+  .venv/bin/python -m pytest orbeats/tests/test_desktop_backend.py -q
 ```
 
 Source-helper alternative: generate resources with

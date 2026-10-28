@@ -7,11 +7,11 @@ This document contains technical details for developers working on the Beat Sabe
 We use a dynamic release body generation process to ensure GitHub Releases always contain accurate changelogs.
 
 ### Pre-Release Checklist
-1. **Increment Version:** Bump version in `beat_saber_deluxe/VERSION` (pipeline) and `src/main.cpp` (plugin).
-2. **Update Changelogs:** Add entries to `beat_saber_deluxe/CHANGELOG-PLUGIN.md` and `beat_saber_deluxe/CHANGELOG-PIPELINE.md`.
-3. **Generate Release Body:** Run the release preparation script to update `beat_saber_deluxe/CI_RELEASE.md` automatically:
+1. **Increment Version:** Bump version in `orbeats/VERSION` (pipeline) and `src/main.cpp` (plugin).
+2. **Update Changelogs:** Add entries to `orbeats/CHANGELOG-PLUGIN.md` and `orbeats/CHANGELOG-PIPELINE.md`.
+3. **Generate Release Body:** Run the release preparation script to update `orbeats/CI_RELEASE.md` automatically:
    ```bash
-   python3 beat_saber_deluxe/tools/prepare_release.py
+   python3 orbeats/tools/prepare_release.py
    ```
 4. **Tag:** `git tag vX.YY`
 5. **Push:** `git push origin vX.YY`
@@ -19,7 +19,7 @@ We use a dynamic release body generation process to ensure GitHub Releases alway
 The CI/CD pipeline (`.github/workflows/plugin-build.yml`) will automatically build the artifacts and create the release body using `CI_RELEASE.md`.
 
 ## Automation Scripts
-All pipeline automation scripts are located in `beat_saber_deluxe/tools/`.
+All pipeline automation scripts are located in `orbeats/tools/`.
 - `full_custom_song_pipeline.py`: Main conversion tool.
 - `hevag_encoder.py`: Audio format conversion.
 - `prepare_release.py`: Automation for release body generation.

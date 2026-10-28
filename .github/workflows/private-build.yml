@@ -32,17 +32,17 @@ jobs:
           set -o pipefail
           bash .devcontainer/setup_additive_toolchain.sh 2>&1 | tee temp/ci-reports/linux-plugin.txt
           export OO_PS4_TOOLCHAIN="$PWD/.tools/openorbis/OpenOrbis/PS4Toolchain"
-          make -C beat_saber_deluxe clean
-          make -C beat_saber_deluxe -j2
+          make -C orbeats clean
+          make -C orbeats -j2
           python - <<'PY'
           from pathlib import Path
-          p=Path('beat_saber_deluxe/orbeats.prx')
+          p=Path('orbeats/orbeats.prx')
           assert p.read_bytes()[:4] == bytes.fromhex('4f153d1d')
           PY
       - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
         with:
           name: native-plugin
-          path: beat_saber_deluxe/orbeats.prx
+          path: orbeats/orbeats.prx
           retention-days: 7
           if-no-files-found: error
       - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
@@ -65,7 +65,7 @@ jobs:
       - uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093
         with:
           name: native-plugin
-          path: beat_saber_deluxe
+          path: orbeats
       - uses: msys2/setup-msys2@ec48f7c5447b3140e2b088413ae3a55687bccb6e
         with:
           msystem: UCRT64
@@ -84,8 +84,8 @@ jobs:
           New-Item -ItemType Directory -Force temp/ci-reports | Out-Null
           try {
             python -m venv .venv
-            .venv/Scripts/python -m pip install -r beat_saber_deluxe/requirements-companion.txt -r desktop/requirements-build.txt pytest httpx
-            Push-Location beat_saber_deluxe
+            .venv/Scripts/python -m pip install -r orbeats/requirements-companion.txt -r desktop/requirements-build.txt pytest httpx
+            Push-Location orbeats
             try { ../.venv/Scripts/python -m pytest tests/test_platform_install_fixes.py -q 2>&1 | Tee-Object ../temp/ci-reports/windows-output-regressions.txt } finally { Pop-Location }
             .venv/Scripts/python desktop/freeze_backend.py --output temp/windows-frozen --media temp/windows-media/payload
             .venv/Scripts/python desktop/development/smoke_windows_backend.py --helper temp/windows-frozen/dist/orbeats-backend/orbeats-backend.exe | Tee-Object temp/ci-reports/windows-backend.txt

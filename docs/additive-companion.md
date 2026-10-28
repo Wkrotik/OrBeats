@@ -3,8 +3,8 @@
 ## Run and connect
 
 Install Python 3.11+ and FFmpeg (including ffprobe) on PATH. Install
-`beat_saber_deluxe/requirements-companion.txt` in a virtual environment and run
-`beat_saber_deluxe/webapp/server.py` with that environment's Python.
+`orbeats/requirements-companion.txt` in a virtual environment and run
+`orbeats/webapp/server.py` with that environment's Python.
 See the [README](../README.md) for Linux/macOS and Windows commands.
 The default address is **http://127.0.0.1:8765**; keep the server local.
 
@@ -76,9 +76,9 @@ later import remains possible. This is not a turnkey fresh-console asset dumper.
 CLI uses the same additive backend:
 
 ```sh
-.venv/bin/python beat_saber_deluxe/tools/full_custom_song_pipeline.py \
+.venv/bin/python orbeats/tools/full_custom_song_pipeline.py \
   --additive-install --download-beat-saver-song 4ebb2 \
-  --config beat_saber_deluxe/ps4_config.json
+  --config orbeats/ps4_config.json
 # Alternatively: --song-dir /path/to/map instead of the BeatSaver argument.
 ```
 

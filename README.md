@@ -1,7 +1,7 @@
 # OrBeats
 
 An experimental **Beat Saber PS4 custom-song plugin and local companion**.
-Independent custom songs appear in a first-position Custom Songs pack without
+Independent custom songs appear in a first-position OrBeats pack without
 replacing original or DLC songs. One plugin, with modular internals.
 
 **Supported console build:** CUSA12878, patch 2.04, GoldHEN with plugin support.
@@ -34,29 +34,29 @@ Linux/macOS:
 
 ```sh
 python3 -m venv .venv
-.venv/bin/python -m pip install -r beat_saber_deluxe/requirements-companion.txt
-.venv/bin/python beat_saber_deluxe/webapp/server.py
+.venv/bin/python -m pip install -r orbeats/requirements-companion.txt
+.venv/bin/python orbeats/webapp/server.py
 ```
 
 Windows (PowerShell):
 
 ```powershell
 py -3 -m venv .venv
-.venv\Scripts\python.exe -m pip install -r beat_saber_deluxe/requirements-companion.txt
-.venv\Scripts\python.exe beat_saber_deluxe/webapp/server.py
+.venv\Scripts\python.exe -m pip install -r orbeats/requirements-companion.txt
+.venv\Scripts\python.exe orbeats/webapp/server.py
 ```
 
-Open **http://127.0.0.1:8765**. In Settings, enter your PS4 IP and GoldHEN FTP
-port (usually 2121). Keep this server local: it controls console files and stores
-your FTP settings on your computer. Windows/macOS launch paths are documented;
-only Linux has been exercised in this development environment. Android is a
-future target, not a supported phone-only release today.
+Open **http://127.0.0.1:8765**. In Settings, enter your PS4 IP; the modern
+GoldHEN connection uses port2121 and anonymous access. Keep this server local:
+it controls console files and stores your connection settings on your computer.
+Native Linux and Windows candidates exist; Windows installation is not yet fully
+hardware-validated. macOS and phone-only Android are not supported releases.
 
 For faster checksums, optionally build the tiny C helper once with an installed
 GCC/Clang-compatible compiler:
 
 ```sh
-.venv/bin/python beat_saber_deluxe/development/scripts/build_native_hash.py
+.venv/bin/python orbeats/development/scripts/build_native_hash.py
 # Windows: .venv\Scripts\python.exe with the same script path
 ```
 
@@ -67,8 +67,8 @@ Main song audio now prefers compatible original Ogg Vorbis packets, without a
 second lossy encode; other sources retain PCM16. The source-checkout path uses
 `fsb5` and open-source libvorbis/libvorbisenc/libogg when available. Missing codec
 libraries keep the PCM fallback. No proprietary FMOD SDK is needed for normal
-imports. Portable builds must bundle the codec libraries; desktop/mobile packaging
-is not delivered yet. Existing installed songs, covers and WAV previews are not
+imports. Linux AppImage and private Windows installer candidates bundle the media
+tools and codec libraries; neither is a public release. Existing installed songs, covers and WAV previews are not
 automatically changed. See [compression validation](docs/compressed-audio-experiment.md).
 
 ### Before importing, removing maps or deploying the plugin
@@ -84,8 +84,19 @@ preserves other plugins and existing songs. Recovery archives live in local
 `.stage-`/`.rollback-` files are transaction state only; successful operations
 remove them. An interrupted or concurrent operation stops for recovery rather
 than deleting unknown bytes. Do not clear its lock without inspecting the local
-journal. Historical names in compatibility readers, source-directory paths and
-upstream attribution are not active product branding.
+journal. Historical names in compatibility readers and upstream attribution
+are not active product branding.
+
+## Source layout
+
+- `orbeats/`: main plugin, conversion pipeline, companion backend and host tests.
+- `orbeats_extras/`: separate optional Extras plugin and development probes.
+- `desktop/`: native Tauri shell, curated backend packaging and release tooling.
+- `docs/`: maintained architecture, compatibility and release documentation.
+
+The inherited `beat_saber_deluxe/` directory is now `orbeats/`; scripts, CI and
+packaging use the new path. Console paths, pack IDs and library formats did not
+change. Obsolete memory-injection experiments are archived locally, not exported.
 
 
 Imports use temporary working directories, not a permanent computer-side music
@@ -109,14 +120,14 @@ the app cannot manufacture the game's copyrighted assets.
 - No advertised eight-song limit. The current parser/registration resource bound
   is **64 entries**, not an unlimited library; large-library console performance
   has not been demonstrated.
-- Current installed playlist candidate: **v0.8077**; companion **0.7.22**.
-- Local plugin branding candidate: **v0.8078**, not installed. The custom pack is
+- Current installed plugin: **v0.8078**; source companion **0.7.25**.
+- Plugin branding is hardware-confirmed: the custom pack is
   named **OrBeats**, with the owned logo also used by its startup toast; IDs and
   songs stay unchanged. See [native extension research](docs/plugin-expansion-research.md)
   for menu/settings, anonymous ScoreSaber and selected-mod feasibility.
   Existing desktop0.1.11 bundles remain unchanged; web0.7.25 is source-only.
-  Source pipeline is **0.5389** (the independent running source service still
-  reports its earlier import-time0.5387 until an idle preserving reload).
+  Source pipeline is **0.5391**. Existing running processes and installed desktop
+  candidates are not automatically rebuilt or restarted by source changes.
   **Hardware recovery confirmed:** user reports0.8077 restores Custom Songs and
   Here Come the Cats plays correctly.0.8077 accepts both declared Object[] and
   covariant EnvironmentInfoSO[] with unchanged bounded entry checks. All **27**
@@ -135,15 +146,18 @@ the app cannot manufacture the game's copyrighted assets.
   offline conversion proof; the complete image is built against GLIBC2.35 and
   tested in a minimal Ubuntu22.04 userspace. Downloads keeps a collapsible active/
   last-job log above queue/history, with bounded scroll and reader-aware follow.
-  Complete license/source review, Windows execution and broader distribution/
-  installer checks remain pending. It is **not a public-ready release**.
+  Complete license/source review, real-console Windows installs and broader
+  distribution/installer checks remain pending. It is **not a public-ready release**.
+- Extras has a local default-off health-warning prototype and anonymous ScoreSaber
+  development probe; native leaderboard transport/UI are not yet integrated.
+  See [`orbeats_extras/README.md`](orbeats_extras/README.md).
 - No official release repository/feed is configured. The UI reports update
   checking as unavailable rather than claiming that you are up to date.
 
 [Protocol, CLI, recovery and implementation notes](docs/additive-companion.md)
-· [Plugin changelog](beat_saber_deluxe/CHANGELOG-PLUGIN.md)
-· [Pipeline changelog](beat_saber_deluxe/CHANGELOG-PIPELINE.md)
-· [Companion changelog](beat_saber_deluxe/webapp/CHANGELOG-WEBAPP.md)
+· [Plugin changelog](orbeats/CHANGELOG-PLUGIN.md)
+· [Pipeline changelog](orbeats/CHANGELOG-PIPELINE.md)
+· [Companion changelog](orbeats/webapp/CHANGELOG-WEBAPP.md)
 · [Performance findings and portability](docs/performance-and-portability.md)
 
 ## Development
@@ -152,7 +166,7 @@ Use the project-local OpenOrbis/GoldHEN tooling in `.devcontainer/` to build the
 plugin. Run the complete host suite with:
 
 ```sh
-bash beat_saber_deluxe/development/scripts/run_additive_host_tests.sh
+bash orbeats/development/scripts/run_additive_host_tests.sh
 ```
 
 Tests and uploads are not evidence of hardware playback. Never deploy while the

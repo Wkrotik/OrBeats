@@ -54,7 +54,7 @@ def main():
     output.mkdir(parents=True)
     notices = legal_inputs()
     manifest = build(
-        ROOT / "beat_saber_deluxe",
+        ROOT / "orbeats",
         output / "runtime",
         ROOT / "LICENSE",
         media=args.media,
@@ -78,11 +78,11 @@ def main():
         "--paths",
         str(ROOT / "desktop/backend"),
         "--paths",
-        str(ROOT / "beat_saber_deluxe/webapp"),
+        str(ROOT / "orbeats/webapp"),
         "--paths",
-        str(ROOT / "beat_saber_deluxe/tools"),
+        str(ROOT / "orbeats/tools"),
         "--paths",
-        str(ROOT / "beat_saber_deluxe/development/scripts"),
+        str(ROOT / "orbeats/development/scripts"),
         "--add-data",
         str(output / "runtime") + ":runtime",
     ]

@@ -46,19 +46,19 @@
 
 | Feature                                                                                     | Status                | Description                                                                                                                                                                                                                                 |
 | ------------------------------------------------------------------------------------------- | --------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| [Custom Song Replacement](beat_saber_deluxe/docs/features/custom-song-replacement.md)       | ✅ Working            | Replace DLC song audio and beatmaps with custom songs via GoldHEN file redirection                                                                                                                                                          |
-| [Song Metadata Modification](beat_saber_deluxe/docs/features/song-metadata-modification.md) | ✅ Working            | Display custom song names and artists in-game via IL2CPP MoveNext hook                                                                                                                                                                      |
+| [Custom Song Replacement](orbeats/docs/features/custom-song-replacement.md)       | ✅ Working            | Replace DLC song audio and beatmaps with custom songs via GoldHEN file redirection                                                                                                                                                          |
+| [Song Metadata Modification](orbeats/docs/features/song-metadata-modification.md) | ✅ Working            | Display custom song names and artists in-game via IL2CPP MoveNext hook                                                                                                                                                                      |
 | **Song Previews**                                                                           | ✅ Working (v0.5357+) | Song-menu previews play the CUSTOM song's own ~10s audio (mapper's chosen moment, busy-section fallback), patched into each music pack's preview AudioClips behind the `enable_song_previews` flag. Any pack, any song — fully data-driven. |
 | **Song Previews**                                                                           | ✅ Working (v0.5357+) | Song-menu previews play the CUSTOM song's own ~10s audio (mapper's chosen moment, busy-section fallback), patched into each music pack's preview AudioClips behind the `enable_song_previews` flag. Any pack, any song — fully data-driven. |
-| [Extra Game Modes](beat_saber_deluxe/docs/features/beatmap-mode-mapping.md)                 | ✅ Working (v0.5316+) | OneSaber/NoArrows/90Degree mode selector support via catalog-redirect + pack-bundle patch (Phase 1 pipeline beatmap generation + Phase 2 pack preview-set injection). Generated modes verified on-device (2026-08-11 boot test).            |
-| [Web App Interface](beat_saber_deluxe/webapp/)                                              | 🚧 Phase 1 (M9)       | Point-and-click UI over the pipeline CLI: setup wizard (game-dump guide + live validation), BeatSaver song picker, guided deploys with live log streaming, PS4 state dashboard. Thin layer — every deploy is the same pipeline subprocess.  |
+| [Extra Game Modes](orbeats/docs/features/beatmap-mode-mapping.md)                 | ✅ Working (v0.5316+) | OneSaber/NoArrows/90Degree mode selector support via catalog-redirect + pack-bundle patch (Phase 1 pipeline beatmap generation + Phase 2 pack preview-set injection). Generated modes verified on-device (2026-08-11 boot test).            |
+| [Web App Interface](orbeats/webapp/)                                              | 🚧 Phase 1 (M9)       | Point-and-click UI over the pipeline CLI: setup wizard (game-dump guide + live validation), BeatSaver song picker, guided deploys with live log streaming, PS4 state dashboard. Thin layer — every deploy is the same pipeline subprocess.  |
 | Note Colors                                                                                 | ⏳ Planned            | Custom left/right saber colors per song                                                                                                                                                                                                     |
 
 > **⚠️ Current limitations:**
 >
 > - **Single-artist packs only** — Song metadata modification works perfectly for single-artist packs (Rolling Stones, Billie Eilish, Lizzo). Multi-artist packs would incorrectly blank all artist names. Currently only single-artist packs are targeted.
 > - **Artist line is blank** — For single-artist packs, the artist line in the song list is intentionally blanked. The custom song name and artist are combined on the song name line (e.g., "Espresso / Sabrina Carpenter").
-> - **Deploy via self-contained `--deploy-full`** — The primary workflow is single-song-at-a-time. Run `python3 tools/full_custom_song_pipeline.py --download-beat-saver-song <MAP_ID> --target <slot> --deploy-full` one at a time, testing after each. For clean slate: `python3 /workspace/backup-beat-saber-deluxe-files.py backup --clean-ps4` first.
+> - **Deploy via self-contained `--deploy-full`** — The primary workflow is single-song-at-a-time. Run `python3 tools/full_custom_song_pipeline.py --download-beat-saver-song <MAP_ID> --target <slot> --deploy-full` one at a time, testing after each. For clean slate: `python3 /workspace/backup-orbeats-files.py backup --clean-ps4` first.
 
 ## Available Song Slots (Default Targets)
 
@@ -109,33 +109,33 @@ See [docs/developer-info.md](docs/developer-info.md) for build, test, and releas
 
 ## 12. Backup Utility
 
-The `backup-beat-saber-deluxe-files.py` script provides backup, clean, and restore functionality for Beat Saber Deluxe files on PS4.
+The `backup-orbeats-files.py` script provides backup, clean, and restore functionality for Beat Saber Deluxe files on PS4.
 
-- **Backup**: `./backup-beat-saber-deluxe-files.py backup` — Creates a datetime-stamped backup zip of all BS Deluxe files from PS4
-- **Clean PS4**: `./backup-beat-saber-deluxe-files.py backup --clean-ps4` — Backs up then clears all BS Deluxe files for fresh deployment
-- **Restore**: `./backup-beat-saber-deluxe-files.py restore <path>` — Restores files from a backup zip/directory to PS4
+- **Backup**: `./backup-orbeats-files.py backup` — Creates a datetime-stamped backup zip of all BS Deluxe files from PS4
+- **Clean PS4**: `./backup-orbeats-files.py backup --clean-ps4` — Backs up then clears all BS Deluxe files for fresh deployment
+- **Restore**: `./backup-orbeats-files.py restore <path>` — Restores files from a backup zip/directory to PS4
 - **Local mode**: Add `--local` flag for testing without PS4 connectivity
 
 Usage examples:
 
 ```bash
 # Backup current PS4 state
-./backup-beat-saber-deluxe-files.py backup
+./backup-orbeats-files.py backup
 
 # Backup and clean PS4 for fresh deployment
-./backup-beat-saber-deluxe-files.py backup --clean-ps4
+./backup-orbeats-files.py backup --clean-ps4
 
 # Restore from a backup
-./backup-beat-saber-deluxe-files.py restore /path/to/backup.zip
+./backup-orbeats-files.py restore /path/to/backup.zip
 
 # Clean PS4 first, then restore
-./backup-beat-saber-deluxe-files.py restore /path/to/backup.zip --clean-ps4
+./backup-orbeats-files.py restore /path/to/backup.zip --clean-ps4
 
 # List backup contents
-./backup-beat-saber-deluxe-files.py list /path/to/backup.zip
+./backup-orbeats-files.py list /path/to/backup.zip
 
 # Run in local mode (no PS4 required)
-./backup-beat-saber-deluxe-files.py backup --local
+./backup-orbeats-files.py backup --local
 ```
 
 Full documentation: [backup-documentation.md](./backup-documentation.md)
@@ -179,7 +179,7 @@ Once the container is ready, you'll have:
 
 ### 1.3 Configure PS4 connection
 
-Edit `beat_saber_deluxe/ps4_config.json` with your PS4's IP address:
+Edit `orbeats/ps4_config.json` with your PS4's IP address:
 
 ```json
 {
@@ -300,7 +300,7 @@ The plugin is a GoldHEN PRX (PS4-format shared library) that hooks file I/O to r
 ### 2.1 Quick build
 
 ```bash
-cd /workspace/beat_saber_deluxe
+cd /workspace/orbeats
 
 # Release build (no verbose logging)
 make
@@ -330,9 +330,9 @@ make
 
 ### 2.4 Build system details
 
-- **Makefile:** `/workspace/beat_saber_deluxe/Makefile`
-- **Source files:** `/workspace/beat_saber_deluxe/src/`
-- **Headers:** `/workspace/beat_saber_deluxe/include/`
+- **Makefile:** `/workspace/orbeats/Makefile`
+- **Source files:** `/workspace/orbeats/src/`
+- **Headers:** `/workspace/orbeats/include/`
 - **Toolchain:** `/opt/openorbis/OpenOrbis/PS4Toolchain`
 
 ---
@@ -345,12 +345,12 @@ Your PS4 must be:
 - Running GoldHEN (2.3 or 2.4b)
 - FTP server enabled (GoldHEN's built-in FTP on port 2121)
 - On the same network as your dev machine
-- **IP configured in** `beat_saber_deluxe/ps4_config.json`
+- **IP configured in** `orbeats/ps4_config.json`
 
 ### 3.1 Quick deploy — one song at a time (RECOMMENDED)
 
 ```bash
-cd /workspace/beat_saber_deluxe
+cd /workspace/orbeats
 
 # Build + deploy EVERYTHING for one song (bundle, music-pack patch, catalog,
 # plugin, features.json, scoped redirects, validation) in ONE command:
@@ -389,7 +389,7 @@ Deploy button press runs the exact `--deploy-full` command above as a
 subprocess — nothing is re-implemented in the browser.
 
 ```bash
-python3 beat_saber_deluxe/webapp/server.py
+python3 orbeats/webapp/server.py
 # opens http://127.0.0.1:8765 in your browser (--no-browser to skip)
 ```
 
@@ -420,7 +420,7 @@ python3 beat_saber_deluxe/webapp/server.py
   first) with detailed descriptions; the Apply button diffs against the live
   PS4 state and deploys only what changed, through the pipeline's
   `--features-only` path.
-- **Backup / Restore** — wraps `backup-beat-saber-deluxe-files.py` (the same
+- **Backup / Restore** — wraps `backup-orbeats-files.py` (the same
   script the CLI uses): one-click backup (optionally clean the PS4 after,
   behind a hard confirm), browse `ps4_backups/`, per-row restore, live job log.
 - **Batch** — deploy whole music packs point-and-click: all 34
@@ -448,18 +448,18 @@ validator page arrive in later phases.
 
 ```bash
 # Deploy only the plugin
-python3 /workspace/beat_saber_deluxe/tools/full_custom_song_pipeline.py --deploy-plugin
+python3 /workspace/orbeats/tools/full_custom_song_pipeline.py --deploy-plugin
 
 # Deploy plugin with debug logging
-python3 /workspace/beat_saber_deluxe/tools/full_custom_song_pipeline.py --deploy-plugin --debug-logging
+python3 /workspace/orbeats/tools/full_custom_song_pipeline.py --deploy-plugin --debug-logging
 
 # Deploy a single custom song bundle (built separately)
-python3 /workspace/beat_saber_deluxe/tools/full_custom_song_pipeline.py \
+python3 /workspace/orbeats/tools/full_custom_song_pipeline.py \
     --target startmeup \
     --deploy
 
 # Deploy the redirects config
-python3 /workspace/beat_saber_deluxe/tools/full_custom_song_pipeline.py \
+python3 /workspace/orbeats/tools/full_custom_song_pipeline.py \
     --target startmeup \
     --deploy-config
 ```
@@ -530,10 +530,10 @@ The plugin is reloaded by GoldHEN when the game executable is launched. A full P
 This is the fastest way to get a custom song onto your PS4. Run this single command from the devcontainer:
 
 ```bash
-cd /workspace/beat_saber_deluxe
+cd /workspace/orbeats
 
 # OPTIONAL: Clean PS4 to a truly blank slate first
-python3 /workspace/backup-beat-saber-deluxe-files.py backup --clean-ps4
+python3 /workspace/backup-orbeats-files.py backup --clean-ps4
 
 # Complete end-to-end deployment in ONE command (self-contained single-song):
 # - Downloads song from BeatSaver
@@ -765,7 +765,7 @@ The project includes a comprehensive pytest test suite covering the Python pipel
 ### Quick Start
 
 ```bash
-cd beat_saber_deluxe
+cd orbeats
 
 # Run all tests
 python3 run_tests.py
@@ -808,7 +808,7 @@ python3 run_tests.py --fast          # Skip slow/integration tests
 ### Running pytest Directly
 
 ```bash
-cd beat_saber_deluxe
+cd orbeats
 
 # All tests
 python3 -m pytest tests/ -v
@@ -840,7 +840,7 @@ The CI job:
 
 ### Writing New Tests
 
-Tests live in `beat_saber_deluxe/tests/`. Each test file targets one production module. Shared fixtures are in `conftest.py`.
+Tests live in `orbeats/tests/`. Each test file targets one production module. Shared fixtures are in `conftest.py`.
 
 ```python
 import os, sys, json, pytest

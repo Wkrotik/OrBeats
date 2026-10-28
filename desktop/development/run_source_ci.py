@@ -39,7 +39,7 @@ def main():
         }
         return subprocess.run(
             [sys.executable, "-m", "pytest", *tests, "-q"],
-            cwd=ROOT / "beat_saber_deluxe",
+            cwd=ROOT / "orbeats",
             env=env,
             check=False,
         ).returncode

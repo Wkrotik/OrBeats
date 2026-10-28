@@ -19,7 +19,7 @@ def main():
     args = parser.parse_args()
     root = Path(__file__).resolve().parents[1]
     manifest = build(
-        root / "beat_saber_deluxe", args.output, root / "LICENSE", media=args.media
+        root / "orbeats", args.output, root / "LICENSE", media=args.media
     )
     print(
         f"Verified {len(manifest)} curated resources; no native tools or frozen helper bundled yet."

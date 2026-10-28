@@ -44,4 +44,4 @@ config_path.write_text(json.dumps(config, indent=2) + '\n')
 PY
 "$TOOLS/dotnet/dotnet" --list-runtimes
 printf '\nReady: project-local Il2CppDumper 6.7.46 + .NET 9.0.15.\n'
-printf 'Use beat_saber_deluxe/development/scripts/run_il2cpp_dump.py --help.\n'
+printf 'Use orbeats/development/scripts/run_il2cpp_dump.py --help.\n'

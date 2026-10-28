@@ -87,10 +87,10 @@ copied into the project.
 ## Reproduce locally with owned inputs
 
 ```sh
-.venv/bin/python beat_saber_deluxe/development/scripts/probe_vorbis_audio.py \
+.venv/bin/python orbeats/development/scripts/probe_vorbis_audio.py \
   --experimental --pcm-candidate /path/to/verified-pcm-candidate \
   --audio /path/to/original/song.egg --output temp/new-vorbis-candidate
-bash beat_saber_deluxe/development/scripts/run_additive_host_tests.sh
+bash orbeats/development/scripts/run_additive_host_tests.sh
 ```
 
 Output must not exist or be inside either input directory. The script has no FTP,
@@ -140,8 +140,8 @@ decoded and checked before any output is published locally.
 Example explicit developer deployment (owned local inputs required):
 
 ```sh
-.venv/bin/python beat_saber_deluxe/development/scripts/deploy_vorbis_probe.py \
-  --experimental --deploy --config beat_saber_deluxe/ps4_config.json \
+.venv/bin/python orbeats/development/scripts/deploy_vorbis_probe.py \
+  --experimental --deploy --config orbeats/ps4_config.json \
   --pcm-candidate /path/to/verified-pcm-candidate --audio /path/to/source/song.egg \
   --source /path/to/source --candidate temp/new-vorbis-candidate \
   --report-dir temp/compressed-audio/console-test

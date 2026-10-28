@@ -40,4 +40,4 @@ make -C "$GH_SRC" libGoldHEN_Hook.a
 mkdir -p "$SDK/include/GoldHEN"
 cp "$GH_SRC"/include/* "$SDK/include/GoldHEN/"
 cp "$GH_SRC/build/crtprx.o" "$GH_SRC/libGoldHEN_Hook.a" "$SDK/lib/"
-printf '\nReady. Build locally with:\n  export OO_PS4_TOOLCHAIN=%q\n  make -C %q\n' "$SDK" "$ROOT/beat_saber_deluxe"
+printf '\nReady. Build locally with:\n  export OO_PS4_TOOLCHAIN=%q\n  make -C %q\n' "$SDK" "$ROOT/orbeats"

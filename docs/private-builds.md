@@ -2,7 +2,7 @@
 
 The private `Wkrotik/OrBeats` repository starts with a reviewed source-only snapshot,
 not inherited history. The original local checkout/history is untouched. The
-exporter is `beat_saber_deluxe/development/scripts/prepare_source_repository.py`;
+exporter is `orbeats/development/scripts/prepare_source_repository.py`;
 its output must be a fresh `.publication/` directory. Review and commit/push are
 separate operations. Never add private game templates, song ZIPs, catalog dumps,
 console profiles/backups, agent conversations, built binaries or caches.

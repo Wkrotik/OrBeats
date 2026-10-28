@@ -37,7 +37,7 @@ SHA256 and existing publication checks are unchanged.
 Build for the current host with an installed GCC/Clang-compatible compiler:
 
 ```sh
-.venv/bin/python beat_saber_deluxe/development/scripts/build_native_hash.py
+.venv/bin/python orbeats/development/scripts/build_native_hash.py
 ```
 
 Source setup and Linux CI also build it. Future portable packages must include

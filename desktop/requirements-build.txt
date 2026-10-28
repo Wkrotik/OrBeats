@@ -1,5 +1,5 @@
 # Project-local build environment only; runtime dependencies are installed from
-# beat_saber_deluxe/requirements-companion.txt. Not a complete release lockfile.
+# orbeats/requirements-companion.txt. Not a complete release lockfile.
 pyinstaller==6.22.3
 pyinstaller-hooks-contrib==2026.9
 patchelf==0.17.2.4; sys_platform == "linux"
