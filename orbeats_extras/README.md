@@ -4,7 +4,12 @@ Optional, separate GoldHEN plugin for **Beat Saber PS4 CUSA12878 / patch 2.04**.
 It adds anonymous ScoreSaber viewing and a health-warning convenience option.
 OrBeats custom-song playback does not depend on Extras.
 
-**0.0004 is implemented and tested locally, but not yet validated on PS4.**
+**0.0005 is a local startup-repair candidate; PS4 validation is pending.**
+On hardware, 0.0004's one-time module lookup failed, so no hooks installed.
+The new candidate addresses startup ordering by waiting up to ten seconds off
+the loader thread, retaining exact identity/code guards. Its diagnostics also
+identify enumeration failures instead of assuming every failure is load timing.
+It appends startup phases and results to its own log; existing logs are preserved.
 Do not treat the build or fake-platform tests as proof of console TLS, UI,
 controller scrolling or startup behavior. This is not a public release.
 

@@ -1,5 +1,21 @@
 # OrBeats Extras changes
 
+## 0.0005 — deferred guarded startup
+
+- Hardware 0.0004 logged `unique game module unavailable; no hooks installed`;
+  neither health nor leaderboard hooks ran. Wait off the loader thread for up to
+  ten seconds for the exact unique IL2CPP module, instead of checking only once.
+- No retry or relaxed matching for invalid/ambiguous modules, code signatures,
+  missing exports or conflicting hooks. Module enumeration errors are logged.
+- Cancel and join startup before unload; continue refusing live unload once any
+  game hook has been installed. No detached startup thread.
+- Repair permissions only on the opened own append-only log descriptor; retain
+  old diagnostics. Log worker entry, policy, module base and installation result.
+- Actual module_start/module_stop tested with deterministic fake SDK scheduling,
+  delayed module availability, timeout, malformed/duplicate modules, cancellation,
+  failed creation/join and diagnostic errors. UI/network tests remain separate.
+- Hardware validation of 0.0005 is still required; no map/library changes.
+
 ## 0.0004 — anonymous leaderboard integration
 
 - Connect verified HTTPS/decoder to one native worker, a latest-selection mailbox

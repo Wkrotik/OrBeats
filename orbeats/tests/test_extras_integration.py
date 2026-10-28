@@ -26,13 +26,27 @@ def binaries(tmp_path_factory):
     (imports / "orbis/libkernel.h").write_text('''#pragma once
 #include <stddef.h>
 #include <stdint.h>
+using OrbisKernelModule = uint32_t;
+using OrbisPthread = void*;
+struct OrbisKernelModuleSegmentInfo { void* address; uint32_t size; int32_t prot; };
+struct OrbisKernelModuleInfo { size_t size; char name[256]; OrbisKernelModuleSegmentInfo segmentInfo[4]; uint32_t segmentCount; uint8_t fingerprint[20]; };
 extern "C" {
 int sceKernelOpen(const char*,int,int);
 int64_t sceKernelRead(int,void*,size_t);
+int64_t sceKernelWrite(int,const void*,size_t);
 int sceKernelClose(int);
+int sceKernelFchmod(int,int);
+int sceKernelGetModuleList(OrbisKernelModule*,size_t,size_t*);
+int sceKernelGetModuleInfo(OrbisKernelModule,OrbisKernelModuleInfo*);
+int sceKernelDlsym(OrbisKernelModule,const char*,void**);
+int sceKernelUsleep(uint32_t);
+int scePthreadCreate(OrbisPthread*,const void*,void*(*)(void*),void*,const char*);
+int scePthreadJoin(OrbisPthread,void**);
 uint64_t sceKernelGetProcessTime();
 }
 ''')
+    (imports / "orbis/_types").mkdir()
+    (imports / "orbis/_types/errors.h").write_text('#pragma once\n#define ORBIS_KERNEL_ERROR_ENOENT ((int)0x80020002)\n')
     (imports / "GoldHEN/Detour.h").write_text('''#pragma once
 #include <stdint.h>
 struct Detour { void* StubPtr; };
@@ -43,7 +57,7 @@ inline void Detour_RestoreFunction(Detour*){}
 #define Detour_Stub(d,type,...) (((type)((d)->StubPtr))(__VA_ARGS__))
 ''')
     flags = ["-std=c++17", "-O1", "-g", "-Wall", "-Wextra", "-Werror", "-fsanitize=address,undefined", "-fno-omit-frame-pointer", "-pthread", "-I" + str(EXTRAS / "include"), "-I" + str(imports)]
-    for name, extra in [("ui", []), ("worker", [EXTRAS / "src/worker.cpp"]), ("lifecycle", [EXTRAS / "src/worker.cpp"])]:
+    for name, extra in [("ui", []), ("worker", [EXTRAS / "src/worker.cpp"]), ("lifecycle", [EXTRAS / "src/worker.cpp"]), ("startup", [])]:
         subprocess.run([cxx, *flags, str(ROOT / f"orbeats/tests/native/extras_{name}_test.cpp"), *map(str, extra), "-o", str(out / name)], check=True)
     return out
 
@@ -56,6 +70,11 @@ def test_worker_generation_join_and_bounded_cache(binaries, scenario):
 @pytest.mark.parametrize("target", ["ui", "lifecycle"])
 def test_managed_rows_publish_once_and_roots_cleanup(binaries, target):
     subprocess.run([str(binaries / target)], check=True, timeout=20, env={**os.environ, "ASAN_OPTIONS": "detect_leaks=1:halt_on_error=1", "UBSAN_OPTIONS": "halt_on_error=1"})
+
+
+@pytest.mark.parametrize("scenario", ["late", "immediate", "timeout", "duplicate", "list-error", "count-bound", "info-error", "name-invalid", "segments-zero", "segments-bound", "rx", "sleep-error", "create-error", "cancel", "join-error", "log-open", "chmod", "health-guard"])
+def test_actual_module_start_readiness_and_fail_closed_lifetime(binaries, scenario):
+    subprocess.run([str(binaries / "startup"), scenario], check=True, timeout=20, env={**os.environ, "ASAN_OPTIONS": "detect_leaks=1:halt_on_error=1", "UBSAN_OPTIONS": "halt_on_error=1"})
 
 
 def source_module():

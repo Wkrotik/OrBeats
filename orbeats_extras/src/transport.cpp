@@ -26,7 +26,7 @@ struct Session {
         pool=sceNetPoolCreate("OrBeatsExtrasHTTP",1024*1024,0);if(pool<0)return false;
         ssl=sceSslInit(1024*1024);if(ssl<0)return false;
         http=sceHttpInit(pool,ssl,1024*1024);if(http<0)return false;
-        templ=sceHttpCreateTemplate(http,"OrBeats-Extras/0.0003-readonly",2,0);if(templ<0)return false;
+        templ=sceHttpCreateTemplate(http,"OrBeats-Extras/0.0005-readonly",2,0);if(templ<0)return false;
         // Server signature + hostname + both validity dates + known CA + SNI.
         // Never install a certificate callback or disable any verification flags.
         return sceHttpsEnableOption(templ,0xbd)==0 &&
