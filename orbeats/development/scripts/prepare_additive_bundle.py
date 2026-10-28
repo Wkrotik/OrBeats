@@ -33,6 +33,18 @@ def digest(data):
     return hashlib.sha256(data).hexdigest()
 
 
+def complete_v3_keywords(data):
+    """Materialize the empty list required by PS4 ConvertBasicEvents.
+
+    Missing/empty containers deserialize with a null inner `d` list. The native
+    converter enumerates it without a null check (CUSA12878/2.04 RVA0x9e9b2e).
+    This is schema completion, not support for authored keyword routing.
+    """
+    if data.get('basicEventTypesWithKeywords', {}) not in ({}, {'d': []}):
+        raise ValueError('unsupported light keywords')
+    data['basicEventTypesWithKeywords'] = {'d': []}
+
+
 def local_file(root: Path, name: str) -> Path:
     if not isinstance(name, str) or not name or '\\' in name:
         raise ValueError('invalid relative song filename')
@@ -165,6 +177,8 @@ def load_song(folder):
                     from additive_v3_native import validate_preserved, lightshow_preserved
                     _, boxes = validate_preserved(data, audio_data, diff.get('_noteJumpMovementSpeed',10))
                     if native_light != lightshow_preserved(data): raise ValueError('native V3 lightshow mismatch')
+                    complete_v3_keywords(data)
+                    native_light = lightshow_preserved(data)
                 else: boxes = validate_lighting(native_light, maxbeat)
                 if boxes and environment not in NATIVE_ENVIRONMENTS:
                     raise ValueError('native event boxes require reviewed environment')
@@ -180,7 +194,7 @@ def load_song(folder):
                        'lightColorEventBoxGroups', 'lightRotationEventBoxGroups', 'lightTranslationEventBoxGroups'}
             if set(data) - allowed:
                 raise ValueError('unknown V3 fields')
-            supported = {'version','colorNotes','bombNotes','obstacles','basicBeatmapEvents','sliders','useNormalEventsAsCompatibleEvents',
+            supported = {'version','colorNotes','bombNotes','obstacles','basicBeatmapEvents','sliders','useNormalEventsAsCompatibleEvents','basicEventTypesWithKeywords',
                          'colorBoostBeatmapEvents','lightColorEventBoxGroups','lightRotationEventBoxGroups'}
             for key, value in data.items():
                 if key not in supported and value:
@@ -232,7 +246,7 @@ def load_song(folder):
                         'colorBoostBeatmapEvents', 'lightColorEventBoxGroups',
                         'lightRotationEventBoxGroups', 'lightTranslationEventBoxGroups'):
                 data.setdefault(key, [])
-            data.setdefault('basicEventTypesWithKeywords', {})
+            complete_v3_keywords(data)
             data.setdefault('useNormalEventsAsCompatibleEvents', False)
             maps[name] = data
     if not maps:

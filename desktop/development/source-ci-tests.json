@@ -41,6 +41,7 @@
     "tests/test_plugin_branding.py",
     "tests/test_private_source_repository.py",
     "tests/test_replacement_pack.py",
+    "tests/test_v3_keyword_defaults.py",
     "tests/test_webapp_beatsage.py",
     "tests/test_webapp_boot_wiring.py",
     "tests/test_webapp_deploy.py",

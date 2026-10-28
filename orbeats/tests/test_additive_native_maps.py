@@ -369,7 +369,7 @@ def test_v3_360_rotation_events_stay_native_and_beat_domain(tmp_path, legacy):
     converted = tmp_path / "native-rotation"
     v3.import_song(root, converted)
     song = prepare.load_song(converted)
-    assert song["maps"]["360Degree/ExpertPlus"] == raw
+    assert song["maps"]["360Degree/ExpertPlus"] == {**raw, "basicEventTypesWithKeywords": {"d": []}}
     assert song["audio_data"]["bpmData"][-1]["eb"] == (2 if legacy else 3)
     template = ROOT / "custom_songs/quick_test.bundle"
     if not template.exists():

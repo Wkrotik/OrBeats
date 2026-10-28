@@ -1,3 +1,16 @@
+## 0.5393 — complete native V3 lighting keyword lists
+
+- Materialize `basicEventTypesWithKeywords: {"d": []}` in ordinary and preserved
+  V3 charts. CUSA12878/2.04 ConvertBasicEvents enumerates this list without a
+  null check; emitting an empty object leaves `d` null and crashes on map load.
+- Keep all authored notes/events/timing and original audio; malformed/nonempty
+  keyword routing remains unsupported rather than being silently discarded.
+- Evidence: Animals/Maroon5 Hard kernel stack resolves to ConvertBasicEvents,
+  RVA0x9e9b2e, reading null `d` at offset0x1c. Regression covers missing, empty,
+  complete and malformed keyword containers with synthetic charts.
+- Existing installed bundles are not modified automatically. Rebuild/repair and
+  PS4 playback validation remain separate from the local converter fix.
+
 ## 0.5392 — original map identity for anonymous leaderboard viewing
 
 - Hash original Info.dat and its referenced chart bytes before conversion.
