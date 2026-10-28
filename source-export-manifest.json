@@ -175,7 +175,7 @@
   "beat_saber_deluxe/tests/test_patched_pack_bundle.py": "6efb77e6895496ce694001161e236d67bfc9ac2f59bcf955155d0b881469bc34",
   "beat_saber_deluxe/tests/test_pipeline.py": "5d0c1b82997ad1048bb406796c79160723a2c2c42b495b45013499b4c494f04c",
   "beat_saber_deluxe/tests/test_pipeline_bugfixes.py": "69ed2748f460a04cbdb6acba35f22bcf2af840b279955ef92e2f4a1fcf46ed29",
-  "beat_saber_deluxe/tests/test_platform_install_fixes.py": "859c14f731fe1937206e0e7700c0670f2cd2fd591868d9574f051049a4bc81a7",
+  "beat_saber_deluxe/tests/test_platform_install_fixes.py": "bcf2631b85b283af85494795e8c26e5f9347407da9add6638bc7b3f1a3ca5ed0",
   "beat_saber_deluxe/tests/test_private_source_repository.py": "34b252d0d291da21ab5e3b1f64fa93a0adaec9daa2779c8f4c548c470fdc1e03",
   "beat_saber_deluxe/tests/test_release_workflow.py": "d88ce0afbfb0c6b281a6908b8c934ce94b9d5638d8ac4eccfc6b482e74867c86",
   "beat_saber_deluxe/tests/test_replacement_pack.py": "23123e9442f0170a940e699d3aa7658c649423238089300500af1d16d4583039",

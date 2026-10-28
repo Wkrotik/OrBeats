@@ -75,7 +75,7 @@ def test_worker_utf8_output_is_visible_before_exit(tmp_path, monkeypatch):
 
 
 def test_frozen_tasks_explicitly_set_utf8_unbuffered_streams():
-    tree = ast.parse((ROOT / "desktop/backend/entrypoint.py").read_text())
+    tree = ast.parse((ROOT / "desktop/backend/entrypoint.py").read_text(encoding="utf-8"))
     task = next(n for n in tree.body if isinstance(n, ast.FunctionDef) and n.name == "task")
     loop = next(n for n in task.body if isinstance(n, ast.For))
     calls = []
@@ -89,17 +89,17 @@ def test_frozen_tasks_explicitly_set_utf8_unbuffered_streams():
 
 def test_owned_svg_and_ip_only_connection_form():
     static = ROOT / "beat_saber_deluxe/webapp/static"
-    svg = ET.fromstring((static / "orbeats.svg").read_text())
+    svg = ET.fromstring((static / "orbeats.svg").read_text(encoding="utf-8"))
     assert svg.tag == "{http://www.w3.org/2000/svg}svg"
     assert all(not n.tag.endswith("script") and not any("href" in k for k in n.attrib) for n in svg.iter())
-    html = (static / "companion.html").read_text()
+    html = (static / "companion.html").read_text(encoding="utf-8")
     form = html.split('<form id="connection"', 1)[1].split("</form>", 1)[0]
     assert form.count("<input") == 1 and 'id="ip"' in form
     assert not any(f'id="{name}"' in html for name in ["port", "user", "password"])
     assert html.count('src="/static/orbeats.svg"') == 2 and ">♪<" not in html
     assert 'id="template-settings"' in html and "Not an FTP directory" in html
     assert "<progress " not in html and 'role="progressbar"' in html
-    css = (static / "companion.css").read_text()
+    css = (static / "companion.css").read_text(encoding="utf-8")
     assert "@keyframes installation-activity" in css and "prefers-reduced-motion" in css
-    js = (static / "companion.js").read_text()
+    js = (static / "companion.js").read_text(encoding="utf-8")
     assert 'addEventListener("wheel"' not in js and "onwheel" not in js
