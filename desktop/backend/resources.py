@@ -46,6 +46,7 @@ FILES = (
     "tools/runtime_dispatch.py",
     "tools/build_pack_mode_bundles.py",
     "tools/additive_companion.py",
+    "tools/score_source.py",
     "tools/additive_library.py",
     "tools/additive_lighting.py",
     "tools/additive_modes.py",

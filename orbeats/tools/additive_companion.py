@@ -321,6 +321,8 @@ def install(config, map_id="", song_dir="", report_dir=None):
             song = descriptor(manifest, *blobs, m["preview_duration_seconds"])
             # Decode rounds floats exactly as the native reader; canonical equality.
             song = decode(encode([song]))[0]
+            import score_source
+            source_sha1 = score_source.original_hash(source, helper("import_v4_additive.py").references, prepare.local_file)
             # Compression has its own immutable ID; reimport must not create a
             # duplicate or replace an existing PCM entry for identical input.
             same = next((s for s in songs if s["id"] == song["id"]), None)
@@ -332,6 +334,7 @@ def install(config, map_id="", song_dir="", report_dir=None):
                 print(
                     "[additive] Song already listed; initializing library if needed, without duplication or repair.", flush=True
                 )
+                score_source.publish(ftp, __import__(__name__), same, source_sha1, run)
                 if old is None:
                     commit_library(ftp, songs, old, run, report_dir)
                 return {
@@ -384,6 +387,7 @@ def install(config, map_id="", song_dir="", report_dir=None):
                     staged = stage(ftp, path, raw, run)
                     closed(ftp)
                     ftp.rename(staged, path)
+            score_source.publish(ftp, __import__(__name__), song, source_sha1, run)
             closed(ftp)
             # Existing immutable descriptors are retained; manifest CAS protects concurrent edits.
             # Only new files need full content verification during an append.

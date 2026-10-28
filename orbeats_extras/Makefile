@@ -3,7 +3,7 @@ DEBUG ?= 0
 TOOLCHAIN := $(OO_PS4_TOOLCHAIN)
 INTDIR := obj$(if $(filter 1,$(DEBUG)),-debug,)
 TARGET := orbeats_extras$(if $(filter 1,$(DEBUG)),_debug,).prx
-CXXFLAGS := --target=x86_64-pc-freebsd12-elf -fPIC -funwind-tables -c -isysroot $(TOOLCHAIN) -isystem $(TOOLCHAIN)/include -isystem $(TOOLCHAIN)/include/c++/v1 -Iinclude -Wall -Wextra -Werror
+CXXFLAGS := --target=x86_64-pc-freebsd12-elf -fPIC -funwind-tables -c -isysroot $(TOOLCHAIN) -isystem $(TOOLCHAIN)/include -isystem $(TOOLCHAIN)/include/c++/v1 -Iinclude -DORBEATS_PS4 -Wall -Wextra -Werror
 ifeq ($(DEBUG),1)
 CXXFLAGS += -g -O0
 else
@@ -13,12 +13,16 @@ endif
 all: $(TARGET)
 $(INTDIR):
 	mkdir -p $@
-OBJECTS := $(INTDIR)/main.o $(INTDIR)/scoresaber.o $(INTDIR)/transport.o $(INTDIR)/cJSON.o
-$(INTDIR)/main.o: src/main.cpp include/health.h | $(INTDIR)
+OBJECTS := $(INTDIR)/main.o $(INTDIR)/scoresaber.o $(INTDIR)/transport.o $(INTDIR)/worker.o $(INTDIR)/leaderboard.o $(INTDIR)/cJSON.o
+$(INTDIR)/main.o: src/main.cpp include/health.h include/leaderboard.h | $(INTDIR)
 	clang++ $(CXXFLAGS) -o $@ $<
 $(INTDIR)/scoresaber.o: src/scoresaber.cpp include/scoresaber.h third_party/cjson/cJSON.h | $(INTDIR)
 	clang++ $(CXXFLAGS) -o $@ $<
 $(INTDIR)/transport.o: src/transport.cpp include/transport.h include/scoresaber.h include/ps4_http.h | $(INTDIR)
+	clang++ $(CXXFLAGS) -o $@ $<
+$(INTDIR)/worker.o: src/worker.cpp include/worker.h include/transport.h | $(INTDIR)
+	clang++ $(CXXFLAGS) -o $@ $<
+$(INTDIR)/leaderboard.o: src/leaderboard.cpp $(wildcard include/*.h) $(wildcard ../orbeats/include/*.h) | $(INTDIR)
 	clang++ $(CXXFLAGS) -o $@ $<
 $(INTDIR)/cJSON.o: third_party/cjson/cJSON.c third_party/cjson/cJSON.h | $(INTDIR)
 	clang $(CXXFLAGS) -DCJSON_NESTING_LIMIT=16 -fvisibility=hidden -o $@ $<

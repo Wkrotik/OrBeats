@@ -105,6 +105,7 @@ def main():
         "goldhen_config",
         "console_transaction",
         "additive_companion",
+        "score_source",
         "additive_library",
         "additive_lighting",
         "additive_modes",

@@ -283,7 +283,15 @@ def test_real_install_first_compressed_map_reimport_and_existing_pcm_preserved(
     assert result["count"] == 1
     songs = lib.decode(ftp.files[lib.BASE + "/library.bin"])
     if existing_pcm:
-        assert ftp.files == files
+        # Reimport preserves the PCM descriptor and all bytes, adding ONLY the
+        # optional original-hash sidecar for anonymous read-only leaderboards.
+        import score_source
+
+        identity_path = lib.BASE + "/" + songs[0]["id"] + "-score-source.bin"
+        assert set(ftp.files) - set(files) == {identity_path}
+        original = score_source.original_hash(source, app.helper("import_v4_additive.py").references, prepare.local_file)
+        assert ftp.files[identity_path] == score_source.encode(songs[0], original)
+        assert all(ftp.files[path] == data for path, data in files.items())
     else:
         import UnityPy
 

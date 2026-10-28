@@ -1,5 +1,26 @@
 # OrBeats Extras changes
 
+## 0.0004 — anonymous leaderboard integration
+
+- Connect verified HTTPS/decoder to one native worker, a latest-selection mailbox
+  and eight bounded TTL cache entries. Cancel/invalidate on chart/view changes;
+  no managed objects cross threads and no stale/partial board is published.
+- Replace the existing game's leaderboard lifecycle for this candidate. Build
+  genuine managed ScoreData/List rows on the UI thread, label names `[SS/PC]`,
+  hide PSN-only scopes and preserve base binder cleanup/original input processing.
+  No Sony subscriptions, account flow or score upload is added by this panel.
+- Support verified imported Standard charts, up to100 rows, with clear missing
+  identity/unsupported chart/empty board/HTTP error/rate-limit status. Stock/DLC
+  and other characteristics do not query guessed or mismatched identities.
+- Add optional original-content SHA1 exchange in pipeline0.5392/source companion
+  0.7.27, bound to the exact installed descriptor; safely add it on reimport.
+  No library-format or main-plugin change. Old imports need the new sidecar.
+- Add actual callback/worker/table/identity ASAN/UBSan tests and exact owned code
+  checks. Release/debug native builds are local evidence only. Default health
+  auto-dismiss remains unchanged from0.0003; no additional Extras menu/settings.
+- Not deployed or PS4-tested. TLS, rendering/controller scrolling, coexistence,
+  startup health behavior and a rebuilt desktop package remain release gates.
+
 ## 0.0003 — default health-warning suppression and native HTTPS transport
 
 - Hide the health warning by default when Extras is enabled, as requested. Keep

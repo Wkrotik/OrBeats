@@ -1,5 +1,11 @@
 # Plugin branding and selected native extensions — feasibility notes
 
+> Initial scope is now implemented locally in OrBeats Extras0.0004: anonymous
+> Standard-chart scores in the existing panel plus default health auto-dismiss.
+> It is not PS4-validated. The separate menu, richer settings and further ports
+> below remain research/future work. See [current scope and limits](../orbeats_extras/README.md).
+
+
 Status: research, not a mod-support announcement. Current target is owned PS4
 CUSA12878 patch2.04 / native IL2CPP. Research made no console changes. Subsequent user-authorized0.8078 upload
 completed with the title closed; appearance is awaiting the user test. No game

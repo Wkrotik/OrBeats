@@ -1,3 +1,15 @@
+## 0.5392 — original map identity for anonymous leaderboard viewing
+
+- Hash original Info.dat and its referenced chart bytes before conversion.
+  Publish an optional158-byte identity bound to the installed song ID, bundle
+  SHA256 and Standard difficulty mask before publishing the library manifest.
+- Closed-title staging/readback; refuse conflicting/concurrently appearing
+  identities. No change to library wire formats or normal playback.
+- Existing-song reimport may add only this optional sidecar while preserving
+  the original descriptor/PCM/media. OrBeats Extras0.0004 consumes it; previous
+  companion binaries do not generate it. Source companion version0.7.27.
+- Curated/frozen backend inventory includes the new pure-Python helper.
+
 ## 0.5391 — default environment, identity BPM markers and instant chains
 
 - Empty environment lists with exact integer index0 retain the authored root

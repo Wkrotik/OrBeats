@@ -6,6 +6,7 @@
 #include <stdio.h>
 #include <string.h>
 #include "health.h"
+#include "leaderboard.h"
 
 namespace {
 using namespace OrBeatsExtras;
@@ -65,11 +66,12 @@ static bool read_skip_health() {
 extern "C" int module_start(size_t argc,const void* args) {
     (void)argc;(void)args;
     if(installed)return 0;
-    log("OrBeats Extras 0.0003: health warning hidden by default; leaderboard not yet integrated");
+    log("OrBeats Extras 0.0004: anonymous ScoreSaber and health-only auto-dismiss");
     skip_health=read_skip_health();
-    if(!skip_health){log("health warning kept by setting or invalid configuration; no health hook");return 0;}
     if(!find_module()){log("unique game module unavailable; no hooks installed");return 0;}
     uintptr_t base=(uintptr_t)module.segmentInfo[0].address;
+    install_leaderboard(base,symbol,executable,log);
+    if(!skip_health){log("health warning kept by setting or invalid configuration; no health hook");return 0;}
     for(size_t i=0;i<sizeof(kCode)/sizeof(kCode[0]);++i){
         if(kCode[i].rva>UINTPTR_MAX-base){log("invalid code range");return 0;}
         const unsigned char* p=(const unsigned char*)(base+kCode[i].rva);
@@ -96,6 +98,6 @@ extern "C" int module_start(size_t argc,const void* args) {
 extern "C" int module_stop(size_t argc,const void* args) {
     (void)argc;(void)args;
     // No live unload: a game thread may still be in our callback/trampoline.
-    if(installed){log("live unload refused; close title before disabling Extras");return -1;}
+    if(installed || leaderboard_has_hooks()){log("live unload refused; close title before disabling Extras");return -1;}
     return 0;
 }
