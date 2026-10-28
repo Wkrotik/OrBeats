@@ -62,7 +62,7 @@ static bool read_opt_in() {
 extern "C" int module_start(size_t argc,const void* args) {
     (void)argc;(void)args;
     if(installed)return 0;
-    log("OrBeats Extras 0.0001: health prototype; leaderboard not yet integrated");
+    log("OrBeats Extras 0.0002: health prototype; leaderboard not yet integrated");
     opt_in=read_opt_in();
     if(!opt_in){log("health opt-in missing/invalid; no hooks installed");return 0;}
     if(!find_module()){log("unique game module unavailable; no hooks installed");return 0;}

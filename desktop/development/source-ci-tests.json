@@ -20,6 +20,7 @@
     "tests/test_exp263_redirect_case_healing.py",
     "tests/test_exp264_verify_size_scope.py",
     "tests/test_exp283d_preview_metadata_order.py",
+    "tests/test_extras_native_scores.py",
     "tests/test_hevag_audio_compatibility.py",
     "tests/test_hevag_encoder.py",
     "tests/test_il2cpp_dump_runner.py",
@@ -30,10 +31,12 @@
     "tests/test_integration.py",
     "tests/test_lapped_audio.py",
     "tests/test_mode_generators.py",
+    "tests/test_orbeats_extras.py",
     "tests/test_pack_mode_pipeline.py",
     "tests/test_patched_pack_bundle.py",
     "tests/test_pipeline.py",
     "tests/test_platform_install_fixes.py",
+    "tests/test_plugin_branding.py",
     "tests/test_private_source_repository.py",
     "tests/test_replacement_pack.py",
     "tests/test_webapp_beatsage.py",
@@ -42,9 +45,7 @@
     "tests/test_webapp_js_syntax.py",
     "tests/test_webapp_launch.py",
     "tests/test_webapp_ps4_adapter.py",
-    "tests/test_webapp_songs.py",
-    "tests/test_plugin_branding.py",
-    "tests/test_orbeats_extras.py"
+    "tests/test_webapp_songs.py"
   ],
   "excluded_modules": [
     "test_additive_bundle_preparation.py",

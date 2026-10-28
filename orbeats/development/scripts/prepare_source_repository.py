@@ -105,6 +105,8 @@ def eligible(relative):
         "memory_inject_plugin.cpp",
     }:
         return False
+    if str(p) == "orbeats_extras/third_party/cjson/LICENSE":
+        return True
     if p.name == "beat_saber_song_ids.json":
         return False  # replaced with a source-only empty catalog, never copied
     if p.suffix.lower() == ".txt":

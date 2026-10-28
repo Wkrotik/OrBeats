@@ -2,7 +2,7 @@
 
 Separate GoldHEN plugin for **CUSA12878 / patch 2.04**. It does not replace
 OrBeats, redirect song files, manage the library, upload scores or authenticate
-users. Version **0.0001** is local development, not a deployed/public release.
+users. Version **0.0002** is local development, not a deployed/public release.
 
 ## Implemented locally
 
@@ -24,14 +24,27 @@ users. Version **0.0001** is local development, not a deployed/public release.
   bounded JSON/names, cancellation and deadline. Uses certificate-validating HTTPS,
   no credentials, cookies, redirects, score upload or automatic retries.
 
-**Not implemented yet:** native console HTTPS/JSON/cache, source-map SHA1 exchange
+- A native C++ ScoreSaber decoder, linked into the PS4 build. It accepts bounded
+  12-row pages, assembles up to 100 rows, rejects inconsistent pagination/ranks,
+  and strips control/directional characters and TMPro markup from names without
+  splitting UTF-8 characters. Malformed responses clear the output rather than
+  leaving partial scores. Standard chart URLs require an original SHA1 and an
+  explicit difficulty. JSON is parsed by pinned cJSON 1.7.19 (MIT), with a
+  512 KiB response cap and nesting limit 16. Source hashes and the unchanged
+  upstream license are in `third_party/cjson`.
+
+**Not implemented yet:** native console HTTPS/cache, source-map SHA1 exchange
 with OrBeats, selected-chart lifecycle, leaderboard rendering and an Extras menu.
 The native plugin does not claim or display a working ScoreSaber leaderboard.
 The Python probe is not a substitute for the required console transport.
 
 ## Validation and limits
 
-Synthetic native health guards run with AddressSanitizer/UBSan. Code fingerprints
+Synthetic native health and score-decoding guards run with AddressSanitizer/UBSan.
+Native score tests include 50/100-row assembly, UTF-8 names, duplicate schema keys,
+invalid types, oversized/deep responses and failed-page output clearing. Captured
+public ScoreSaber pages 2 and 9 also pass the same production C++ decoder; this is
+not a PS4 network or rendering test. Code fingerprints
 are compared with a locally owned game binary when available; that test explicitly
 skips in the source-only repository. HTTP pagination/fault tests use fake pages.
 Release and debug builds require the same pinned OpenOrbis/GoldHEN setup as OrBeats:
