@@ -52,7 +52,7 @@ static void board_score(int score){
  for(unsigned i=0;i<4000;++i){pump();if(published && ((Object*)published)->rows.size()==1 && ((Object*)((Object*)published)->rows[0])->score==score)return;}assert(false);
 }
 int main(){
- ui_thread=std::this_thread::get_id();reset();ui=api();ui.parent=parent_class;
+ ui_thread=std::this_thread::get_id();reset();ui=api();write_log=diagnostic;ui.log=diagnostic;ui.parent=parent_class;
  ui.managed.field_get_offset=lifecycle_offset;ui.managed.field_get_value=lifecycle_read;ui.managed.field_set_value=lifecycle_write;
  ui.managed.string_length=text_length;ui.managed.string_chars=text_chars;ui.managed.class_get_method_from_name=lifecycle_method;ui.managed.runtime_invoke=lifecycle_invoke;
  hooks[4].StubPtr=(void*)original_input;ready=true;
@@ -83,5 +83,9 @@ int main(){
  destroy(&view,NULL);assert(!active && !roots && base_destroyed==1);
  deactivate(&view,true,true,NULL);assert(!roots && !active);
  ready=false;worker.stop();delete library;library=NULL;
+ assert(diagnostics.find("leaderboard SetData callback entered")!=std::string::npos);
+ assert(diagnostics.find("leaderboard activation callback entered")!=std::string::npos);
+ assert(diagnostics.find("ScoreSaber reply: result=0 rows=1 total=1")!=std::string::npos);
+ assert(diagnostics.find("ScoreSaber rows published to managed table")!=std::string::npos);
  assert(original_processes>0);reset();return 0;
 }

@@ -4,14 +4,21 @@ Optional, separate GoldHEN plugin for **Beat Saber PS4 CUSA12878 / patch 2.04**.
 It adds anonymous ScoreSaber viewing and a health-warning convenience option.
 OrBeats custom-song playback does not depend on Extras.
 
-**0.0005 is a local startup-repair candidate; PS4 validation is pending.**
-On hardware, 0.0004's one-time module lookup failed, so no hooks installed.
-The new candidate addresses startup ordering by waiting up to ten seconds off
-the loader thread, retaining exact identity/code guards. Its diagnostics also
-identify enumeration failures instead of assuming every failure is load timing.
-It appends startup phases and results to its own log; existing logs are preserved.
-Do not treat the build or fake-platform tests as proof of console TLS, UI,
-controller scrolling or startup behavior. This is not a public release.
+**0.0006 is a local health-hook repair and leaderboard-diagnostics candidate.**
+Hardware 0.0005 installed both hooks, but the health warning still required
+interaction and the leaderboard remained blank. The game inlines the old health
+resolver; this candidate hooks the actual health view activation instead. Its
+fingerprinted prefix includes a RIP-relative instruction, so Extras uses an
+explicitly relocated native trampoline rather than executing an unrelocated SDK
+copy. The original activation still runs and starts the ordinary health coroutine.
+
+Leaderboard diagnostics now distinguish activation/selection/input-pump callbacks,
+UI schema/method failures, identity/status messages, native replies and successful
+row publication. They do not log player names, original hashes or response bodies.
+No leaderboard runtime cause has been established yet. Do not treat successful
+installation, compilation or fake-platform tests as working PS4 behavior.
+The bounded deferred module lookup and readable append-only log remain in place.
+No songs, library or main-plugin files are changed by this candidate.
 
 ## Anonymous leaderboard
 

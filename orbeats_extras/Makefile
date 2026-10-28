@@ -14,7 +14,7 @@ all: $(TARGET)
 $(INTDIR):
 	mkdir -p $@
 OBJECTS := $(INTDIR)/main.o $(INTDIR)/scoresaber.o $(INTDIR)/transport.o $(INTDIR)/worker.o $(INTDIR)/leaderboard.o $(INTDIR)/cJSON.o
-$(INTDIR)/main.o: src/main.cpp include/health.h include/leaderboard.h | $(INTDIR)
+$(INTDIR)/main.o: src/main.cpp include/health.h include/health_activation.h include/leaderboard.h | $(INTDIR)
 	clang++ $(CXXFLAGS) -o $@ $<
 $(INTDIR)/scoresaber.o: src/scoresaber.cpp include/scoresaber.h third_party/cjson/cJSON.h | $(INTDIR)
 	clang++ $(CXXFLAGS) -o $@ $<

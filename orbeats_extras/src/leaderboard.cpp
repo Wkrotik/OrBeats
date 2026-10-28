@@ -18,6 +18,7 @@ static UiApi ui={};static ScoreWorker worker;static Detour hooks[5];
 static std::atomic<bool> ready(false),ever_hooked(false);static void(*write_log)(const char*)=NULL;
 static BsdAdditive::RuntimeLibrary* library=NULL;
 static void* active=NULL;static uint32_t active_root=0;static uint64_t selection=0;
+static bool tick_logged=false;
 static ScoreReply reply; // Main-thread only; never points into a worker buffer.
 static void log(const char* value){if(write_log)write_log(value);}
 static bool read_file(const char* path,unsigned char* bytes,size_t capacity,size_t& size) {
@@ -62,6 +63,7 @@ static void begin(void* self) {
     status_text(ui,self,"ScoreSaber: loading top 100 PC scores (read-only)");selection=worker.select(&key);
 }
 static void set_data(void* self,const BeatmapKey* key,const void*) {
+    log("leaderboard SetData callback entered");
     if(!ready)return;
     if(active==self)selection=worker.select(NULL); // invalidate even a rejected new key
     if(!key)return;ViewParts parts;if(!view_parts(ui,self,parts))return;
@@ -71,7 +73,7 @@ static void set_data(void* self,const BeatmapKey* key,const void*) {
     if(active==self)begin(self);
 }
 static void activate(void* self,bool first,bool added,bool enabling,const void*) {
-    (void)first;(void)added;(void)enabling;
+    (void)first;(void)added;(void)enabling;log("leaderboard activation callback entered");
     if(!ready)return;cancel_view();
     ViewParts parts;if(!view_parts(ui,self,parts)){log("incompatible leaderboard activation; no PSN fallback");return;}
     active_root=ui.managed.gchandle_new(self,true);if(!active_root)return;active=self;
@@ -80,6 +82,7 @@ static void activate(void* self,bool first,bool added,bool enabling,const void*)
 }
 static void deactivate(void* self,bool removed,bool disabling,const void*) {
     (void)removed;(void)disabling;
+    log("leaderboard deactivation callback entered");
     if(active==self){ViewParts p;if(view_parts(ui,self,p))invoke_ui(ui,p.loading,"Hide",0,NULL);cancel_view();}
 }
 static void destroy(void* self,const void*) {
@@ -106,18 +109,21 @@ static const char* failure(FetchResult value) {
     }
 }
 static void process(void* self,const void* method) {
+    if(!tick_logged){log("leaderboard UI input pump callback entered");tick_logged=true;}
     // First15 bytes are whole instructions without RIP/relative operands.
     Detour_Stub(&hooks[4],void(*)(void*,const void*),self,method);
     if(!ready || !active || !worker.take(selection,reply))return;
+    char message[160];snprintf(message,sizeof(message),"ScoreSaber reply: result=%u rows=%u total=%u",(unsigned)reply.result,reply.board.count,reply.board.total);log(message);
     if(reply.result==FetchResult::Ok) {
         if(!reply.board.count){status_text(ui,active,"ScoreSaber: no scores for this chart");return;}
         if(!show_scores(ui,active,reply.board) || !table_visible(ui,active,true))status_text(ui,active,"OrBeats Extras: managed table update failed");
+        else log("ScoreSaber rows published to managed table");
     }else if(reply.result!=FetchResult::Cancelled)status_text(ui,active,failure(reply.result));
 }
 }
 bool leaderboard_has_hooks(){return ever_hooked;}
 bool install_leaderboard(uintptr_t base,void*(*resolve)(const char*),bool(*executable)(const void*,size_t),void(*logger)(const char*)) {
-    write_log=logger;if(ever_hooked || !resolve || !executable)return false;
+    write_log=logger;ui.log=logger;if(ever_hooked || !resolve || !executable)return false;
     for(size_t i=0;i<sizeof(kLeaderboardCode)/sizeof(kLeaderboardCode[0]);++i){
         const CodeSpec& code=kLeaderboardCode[i];if(code.rva>UINTPTR_MAX-base)return false;
         const unsigned char* p=(const unsigned char*)(base+code.rva);

@@ -8,28 +8,37 @@ struct UiApi {
     BsdAdditive::Api managed;
     void* (*declaring_type)(void*);
     void* (*parent)(void*);
+    void (*log)(const char*);
 };
+inline void ui_log(const UiApi& u,const char* message){if(u.log)u.log(message);}
 struct ViewParts { void *table,*loading,*scope,*list,*key_field; };
 inline bool view_parts(const UiApi& u,void* self,ViewParts& p) {
     const auto& a=u.managed;
-    if(!self || !BsdAdditive::named(a,a.object_get_class(self),"PlatformLeaderboardViewController"))return false;
+    if(!self || !BsdAdditive::named(a,a.object_get_class(self),"PlatformLeaderboardViewController")){ui_log(u,"UI refused: unexpected leaderboard class");return false;}
     void* klass=a.object_get_class(self);
     const char* names[]={"_leaderboardTableView","_loadingControl","_scopeSegmentedControl","_scores","_beatmapKey","_getScoresAsyncRequest","_getOnlineServicesAvailabilityCancelationTokenSource"};
     const size_t offsets[]={0x78,0x88,0x80,0xe0,0xf0,0xd0,0xd8};void* f[7];
-    for(unsigned i=0;i<7;++i)if(!(f[i]=BsdAdditive::field(a,klass,names[i],offsets[i])))return false;
-    if(BsdAdditive::read_ref(a,self,f[5]) || BsdAdditive::read_ref(a,self,f[6]))return false; // never take over an in-flight Sony request
+    for(unsigned i=0;i<7;++i)if(!(f[i]=BsdAdditive::field(a,klass,names[i],offsets[i]))){
+        char message[160];snprintf(message,sizeof(message),"UI field rejected: %s expected offset0x%zx",names[i],offsets[i]);ui_log(u,message);return false;
+    }
+    if(BsdAdditive::read_ref(a,self,f[5]) || BsdAdditive::read_ref(a,self,f[6])){ui_log(u,"UI refused: Sony request already in flight");return false;} // never take over an in-flight Sony request
     p={BsdAdditive::read_ref(a,self,f[0]),BsdAdditive::read_ref(a,self,f[1]),BsdAdditive::read_ref(a,self,f[2]),BsdAdditive::read_ref(a,self,f[3]),f[4]};
-    return p.table && p.loading && p.scope && p.list &&
+    bool valid=p.table && p.loading && p.scope && p.list &&
         BsdAdditive::named(a,a.object_get_class(p.table),"LeaderboardTableView") &&
         BsdAdditive::named(a,a.object_get_class(p.loading),"LoadingControl");
+    if(!valid)ui_log(u,"UI refused: missing initialized table/loading/scope/list or wrong component class");
+    return valid;
 }
 inline bool invoke_ui(const UiApi& u,void* object,const char* name,int count,void** args,void** result=NULL) {
     const auto& a=u.managed;if(!object)return false;
     const void* method=a.class_get_method_from_name(a.object_get_class(object),name,count);
-    if(!method)return false;bool threw=false;void* value=BsdAdditive::invoke(a,method,object,args,&threw);
-    if(result)*result=value;return !threw;
+    if(!method){char message[160];snprintf(message,sizeof(message),"UI method missing: %s/%d",name,count);ui_log(u,message);return false;}bool threw=false;void* value=BsdAdditive::invoke(a,method,object,args,&threw);
+    if(result)*result=value;
+    if(threw){char message[160];snprintf(message,sizeof(message),"UI invocation threw: %s/%d",name,count);ui_log(u,message);}
+    return !threw;
 }
 inline bool status_text(const UiApi& u,void* self,const char* message) {
+    ui_log(u,message);
     ViewParts p;if(!view_parts(u,self,p))return false;
     const auto& a=u.managed;BsdAdditive::Roots roots(a);void* text=a.string_new(message);
     if(!roots.keep(text))return false;bool refresh=false;void* args[]={text,&refresh};

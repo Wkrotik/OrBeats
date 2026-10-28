@@ -80,10 +80,12 @@ static void* invoke(const void* method,void* self,void** args,void** exception){
  default:assert(false);
  }return NULL;
 }
+static std::string diagnostics;
+static void diagnostic(const char* message){diagnostics+=message;diagnostics+="\n";}
 static UiApi api(){UiApi u={};auto& a=u.managed;a.object_get_class=klass;a.class_get_name=name;a.class_get_namespace=ns;a.class_get_field_from_name=field;a.field_get_offset=offset;a.field_get_value=read;a.class_get_method_from_name=method;a.object_new=object_new;a.runtime_invoke=invoke;a.class_get_rank=rank;a.class_get_element_class=elem;a.gchandle_new=keep;a.gchandle_free=release;a.string_new=text_new;u.declaring_type=declaring;return u;}
 static void reset(){assert(!roots);allocated.clear();published=NULL;alloc_calls=root_calls=add_calls=0;fail_root=fail_alloc=throw_add=0;missing_method=bad_offset=sony_active=false;view.k=&viewK;loading.text.clear();scope.active=table.active=true;}
 int main(){
- UiApi u=api();ScoreBoard board={};board.total=board.count=100;
+ UiApi u=api();u.log=diagnostic;ScoreBoard board={};board.total=board.count=100;
  for(unsigned i=0;i<100;++i){board.rows[i].score=10000-(int)i;board.rows[i].rank=(int)i+1;board.rows[i].full_combo=true;strcpy(board.rows[i].name,"Player");}
  reset();assert(hide_scopes(u,&view));assert(!scope.active);
  assert(table_visible(u,&view,false) && !table.active);
@@ -101,7 +103,12 @@ int main(){
  reset();bad_offset=true;assert(!show_scores(u,&view,board) && !published && !roots);
  reset();sony_active=true;assert(!show_scores(u,&view,board) && !published && !roots);
  reset();missing_method=true;assert(!show_scores(u,&view,board) && !published && !roots);
+ assert(!status_text(u,&view,"missing-method test"));
  reset();view.k=&otherK;assert(!show_scores(u,&view,board) && !published && !roots);
  reset();u.declaring_type=NULL;assert(!show_scores(u,&view,board) && !published && !roots);
+ assert(diagnostics.find("UI field rejected:")!=std::string::npos);
+ assert(diagnostics.find("Sony request already in flight")!=std::string::npos);
+ assert(diagnostics.find("UI method missing:")!=std::string::npos);
+ assert(diagnostics.find("unexpected leaderboard class")!=std::string::npos);
  reset();return 0;
 }

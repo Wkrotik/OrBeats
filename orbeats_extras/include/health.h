@@ -4,7 +4,7 @@
 #include <stdint.h>
 #include <string.h>
 namespace OrBeatsExtras {
-static const char kVersion[]="0.0005";
+static const char kVersion[]="0.0006";
 // Missing file hides the warning. An explicit SHOW token restores normal startup.
 static const char kOptIn[]="ORBEATS_EXTRAS_HEALTH_V1\n";
 static const char kShowHealth[]="ORBEATS_EXTRAS_SHOW_HEALTH_V1\n";
@@ -41,18 +41,15 @@ inline bool exact_class(const Api& a,void* object,const char* name) {
     const char* n=a.class_name(klass);const char* ns=a.class_namespace(klass);
     return n && ns && !strcmp(n,name) && !ns[0];
 }
-// Called synchronously AFTER the original resolver. No retained managed pointers.
-inline bool prepare_health(const Api& a,bool opt_in,void* coordinator,void* selected) {
+// Called BEFORE the actual health view activation, after the game selects it.
+// The startup coordinator inlines its resolver; never hook that unused helper.
+inline bool prepare_health(const Api& a,bool opt_in,void* selected) {
     if(!opt_in || !a.object_class || !a.class_name || !a.class_namespace ||
        !a.class_field || !a.field_offset ||
-       !exact_class(a,coordinator,"HealthWarningFlowCoordinator") ||
        !exact_class(a,selected,"HealthWarningViewController"))return false;
-    void* flow=a.object_class(coordinator);void* view=a.object_class(selected);
-    if(!field(a,flow,"_healthWarningViewController",0xd8) ||
-       !field(a,view,"_duration",0x88) || !field(a,view,"_requiresInteraction",0xb8) ||
+    void* view=a.object_class(selected);
+    if(!field(a,view,"_duration",0x88) || !field(a,view,"_requiresInteraction",0xb8) ||
        !field(a,view,"_dismissCoroutine",0xc0))return false;
-    void* health=NULL;memcpy(&health,(unsigned char*)coordinator+0xd8,sizeof(health));
-    if(health!=selected)return false;
     void* coroutine=NULL;memcpy(&coroutine,(unsigned char*)selected+0xc0,sizeof(coroutine));
     float seconds=0;memcpy(&seconds,(unsigned char*)selected+0x88,sizeof(seconds));
     unsigned char interaction=*((unsigned char*)selected+0xb8);

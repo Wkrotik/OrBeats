@@ -138,19 +138,19 @@ int main(){
  assert(!enabled((const unsigned char*)"",0));
  assert(!enabled((const unsigned char*)kShowHealth,sizeof(kShowHealth)-1));
  assert(!enabled((const unsigned char*)"invalid",7));
- reset();assert(prepare_health(a,true,&flow,&health));
+ reset();assert(prepare_health(a,true,&health));
  assert(health.bytes[0xb8]==0);float duration;memcpy(&duration,health.bytes+0x88,4);assert(duration==0.25f);
- reset();Object before=health;assert(!prepare_health(a,false,&flow,&health));assert(!memcmp(&before,&health,sizeof(health)));
- assert(!prepare_health(a,true,&flow,&other));assert(!memcmp(&before,&health,sizeof(health)));
- reset();bad_field=1;assert(!prepare_health(a,true,&flow,&health));
- reset();bad_namespace=1;assert(!prepare_health(a,true,&flow,&health));
- reset();bad_class=1;assert(!prepare_health(a,true,&flow,&health));
- reset();void* p=&other;memcpy(flow.bytes+0xd8,&p,8);assert(!prepare_health(a,true,&flow,&health));
- reset();memcpy(health.bytes+0xc0,&p,8);assert(!prepare_health(a,true,&flow,&health));
- reset();float negative=-1;memcpy(health.bytes+0x88,&negative,4);assert(!prepare_health(a,true,&flow,&health));
- reset();uint32_t nan=0x7fc00000;memcpy(health.bytes+0x88,&nan,4);assert(!prepare_health(a,true,&flow,&health));
- assert(!prepare_health(a,true,NULL,&health));assert(!prepare_health(a,true,&flow,NULL));
- reset();Api empty={};assert(!prepare_health(empty,true,&flow,&health));
+ reset();Object before=health;assert(!prepare_health(a,false,&health));assert(!memcmp(&before,&health,sizeof(health)));
+ assert(!prepare_health(a,true,&other));assert(!memcmp(&before,&health,sizeof(health)));
+ reset();bad_field=1;assert(!prepare_health(a,true,&health));
+ reset();bad_namespace=1;assert(!prepare_health(a,true,&health));
+ reset();bad_class=1;assert(!prepare_health(a,true,&health));
+ reset();void* p=&other;health.bytes[0xb8]=2;assert(!prepare_health(a,true,&health));
+ reset();memcpy(health.bytes+0xc0,&p,8);assert(!prepare_health(a,true,&health));
+ reset();float negative=-1;memcpy(health.bytes+0x88,&negative,4);assert(!prepare_health(a,true,&health));
+ reset();uint32_t nan=0x7fc00000;memcpy(health.bytes+0x88,&nan,4);assert(!prepare_health(a,true,&health));
+ assert(!prepare_health(a,true,NULL));assert(!prepare_health(a,true,NULL));
+ reset();Api empty={};assert(!prepare_health(empty,true,&health));
 }
 """
     source = tmp_path / "health.cpp"

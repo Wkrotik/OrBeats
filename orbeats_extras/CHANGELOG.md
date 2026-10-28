@@ -1,5 +1,22 @@
 # OrBeats Extras changes
 
+## 0.0006 — health activation repair and callback diagnostics
+
+- Hardware0.0005 installs both hooks but user still acknowledges the warning and
+  sees a blank leaderboard. Owned native disassembly shows startup inlines the
+  resolver: hook the health view activation, not the unused resolver helper.
+- Preserve the original activation, class/field/state guards and native0.25s
+  dismissal. Do not call agreement, coordinator-completion or tracking handlers.
+- Explicitly relocate the verified activation prefix: preserve its RIP-relative
+  byte comparison, RAX, flags and continuation without a truncated displacement.
+  Keep the SDK original-byte restore stub intact and refuse live unload.
+- Log selection/activation/input-pump and managed schema/method faults, statuses,
+  native reply outcome and row publication. No player names/hashes/body logging.
+- Execute the production trampoline on synthetic native code under host memory
+  sanitizers; retain real callback/UI/worker/transport and exact-profile tests.
+- Local candidate only: health behavior and the unresolved leaderboard path still
+  require PS4 validation. No plugin deployment, map or library changes.
+
 ## 0.0005 — deferred guarded startup
 
 - Hardware 0.0004 logged `unique game module unavailable; no hooks installed`;

@@ -7,11 +7,13 @@
 #include <string.h>
 #include <atomic>
 #include "health.h"
+#include "health_activation.h"
 #include "leaderboard.h"
 
 namespace {
 using namespace OrBeatsExtras;
 static Detour hook;
+static void* health_original=NULL;
 static bool installed=false,skip_health=false;
 static std::atomic<bool> stopping(false);
 static OrbisPthread startup_thread=NULL;
@@ -71,10 +73,11 @@ static ModuleState find_module() {
     if(!executable(module.segmentInfo[0].address,1))return ModuleState::Refused;
     return ModuleState::Found;
 }
-static void* resolve_hook(void* self,const void* method) {
-    void* selected=Detour_Stub(&hook,void*(*)(void*,const void*),self,method);
-    if(prepare_health(api,skip_health,self,selected))log("health-only native auto-dismiss armed");
-    return selected;
+static void health_activate(void* self,bool first,bool added,bool enabling,const void* method) {
+    log("health activation callback entered");
+    bool armed=prepare_health(api,skip_health,self);
+    log(armed?"health-only native auto-dismiss armed":"health state/schema refused; preserving warning");
+    ((void(*)(void*,bool,bool,bool,const void*))health_original)(self,first,added,enabling,method);
 }
 static bool read_skip_health() {
     unsigned char data[sizeof(kShowHealth)+1];size_t total=0;
@@ -111,12 +114,29 @@ static void install_hooks() {
     if(!api.object_class || !api.class_name || !api.class_namespace || !api.class_field || !api.field_offset){
         log("required IL2CPP exports unavailable; health disabled");return;
     }
-    // The verified first15 bytes are whole instructions with no RIP/relative operands.
-    Detour_Construct(&hook,DetourMode_x64);
-    if(!Detour_DetourFunction(&hook,base+kCode[0].rva,(void*)resolve_hook)){
-        log("health detour install failed");return;
+    unsigned char relocated[kHealthTrampolineBytes];uintptr_t flag=0;
+    const uintptr_t target=base+kCode[1].rva;
+    if(!health_activation_trampoline((const unsigned char*)target,target,relocated,sizeof(relocated),flag)){
+        log("health activation prefix relocation refused");return;
     }
-    installed=true;log("health-only resolver hook installed; no agreement or tracking hooks");
+    bool readable=false;
+    for(uint32_t i=0;i<module.segmentCount;++i){
+        const auto& part=module.segmentInfo[i];uintptr_t begin=(uintptr_t)part.address;
+        if((part.prot&1) && flag>=begin && flag-begin<part.size)readable=true;
+    }
+    if(!readable){log("health activation flag outside readable game image");return;}
+    if(sceKernelMmap(NULL,sizeof(relocated),7,0x1002,-1,0,&health_original)<0 || !health_original){
+        health_original=NULL;log("health activation trampoline allocation failed");return;
+    }
+    memcpy(health_original,relocated,sizeof(relocated));
+    // SDK's copied stub cannot relocate the RIP-relative CMP. Keep that stub
+    // intact for restore semantics, but invoke our explicitly relocated copy.
+    Detour_Construct(&hook,DetourMode_x64);
+    if(!Detour_DetourFunction(&hook,target,(void*)health_activate)){
+        sceKernelMunmap(health_original,sizeof(relocated));health_original=NULL;
+        log("health activation detour install failed");return;
+    }
+    installed=true;log("health-only activation hook installed; no agreement or tracking hooks");
 }
 static void* initialize(void*) {
     // GoldHEN starts plugins before the game's IL2CPP image is necessarily
@@ -140,7 +160,7 @@ static void* initialize(void*) {
 extern "C" int module_start(size_t argc,const void* args) {
     (void)argc;(void)args;
     if(startup_started || installed || leaderboard_has_hooks())return 0;
-    log("OrBeats Extras 0.0005: deferred guarded startup");
+    log("OrBeats Extras 0.0006: health activation and callback diagnostics");
     stopping.store(false);
     if(scePthreadCreate(&startup_thread,NULL,initialize,NULL,"OrBeatsInit")!=0){
         log("startup worker creation failed; no hooks installed");return 0;
