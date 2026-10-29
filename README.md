@@ -58,6 +58,7 @@ The library supports **up to 64 custom songs**. Chroma, Noodle Extensions and cu
 - [Installation and everyday use](docs/getting-started.md)
 - [Map compatibility](docs/native-map-expansion.md)
 - [Building and contributing](docs/development.md)
+- [Report a bug, request a feature or share a compatibility test](https://github.com/Wkrotik/OrBeats/issues/new/choose)
 - [CLI, file formats and recovery](docs/additive-companion.md)
 - [Desktop packaging](desktop/README.md)
 - [Plugin changelog](orbeats/CHANGELOG-PLUGIN.md) · [Companion changelog](orbeats/webapp/CHANGELOG-WEBAPP.md)

@@ -340,7 +340,28 @@ try {
   await evaluate("window.testDeleteError='';window.testSongs=window.testSongs.slice(1);loadLibrary()");
   await until("!state.libraryLoading&&state.songs.length===1");
   assert.equal(await evaluate('state.selectedSongs.size'), 1);
-  await evaluate("document.querySelector('[data-tab=settings]').click()");;
+  await evaluate("document.querySelector('[data-tab=settings]').click()");
+  async function checkSettingsLayout(mobile) {
+    const boxes = await evaluate(`(()=>{
+      const box = element => {const r=element.getBoundingClientRect();return {left:r.left,right:r.right,top:r.top,bottom:r.bottom,width:r.width,height:r.height}};
+      return {connection:box(document.getElementById('connection')),updates:box(document.getElementById('release-settings')),plugins:box(document.getElementById('plugin-settings')),viewport:innerWidth,overflow:document.documentElement.scrollWidth>innerWidth};
+    })()`);
+    assert(Math.abs(boxes.connection.left-boxes.updates.left)<1);
+    assert(Math.abs(boxes.connection.width-boxes.updates.width)<1);
+    assert(Math.abs(boxes.updates.top-boxes.connection.bottom-20)<1, 'Updates immediately below connection, not beneath the plugin column');
+    assert(boxes.connection.height<500, 'Connection card must remain content-sized');
+    assert.equal(boxes.overflow,false);
+    if (mobile) assert(boxes.plugins.top>=boxes.updates.bottom, 'Mobile columns stack without overlap');
+    else {
+      assert(boxes.plugins.left>boxes.connection.right);
+      assert(Math.abs(boxes.plugins.top-boxes.connection.top)<1);
+    }
+    for (const box of [boxes.connection,boxes.updates,boxes.plugins]) assert(box.left>=0&&box.right<=boxes.viewport);
+    await evaluate("document.querySelector('main').scrollTop=0;scrollTo(0,0)");
+    const screenshot=await send('Page.captureScreenshot',{format:'png',captureBeyondViewport:false});
+    await writeFile(output+'/settings-'+(mobile?'mobile':'desktop')+'.png',Buffer.from(screenshot.data,'base64'));
+  }
+  await checkSettingsLayout(false);
   await evaluate("document.getElementById('check-plugin-version').click()");
   await until("document.getElementById('plugin-version').textContent.includes('Installed: 0.8068')");
   assert.equal(await evaluate("document.getElementById('plugin-version').textContent.includes('8-song profile')"),true);
@@ -353,6 +374,9 @@ try {
   await evaluate("document.getElementById('deploy-extras').click()");
   await until("document.getElementById('confirm-action').open");
   await evaluate("document.querySelector('#confirm-action [value=cancel]').click()");
+  // The close event is queued: wait for the real confirmation guard to clear
+  // before asking to reopen, rather than racing the browser's dialog lifecycle.
+  await until("!state.confirming&&!document.getElementById('confirm-action').open");
   assert.deepEqual(await evaluate('window.testPluginWrites'),[]);
   await evaluate("document.getElementById('deploy-extras').click()");
   await until("document.getElementById('confirm-action').open");
@@ -435,13 +459,15 @@ try {
   await checkDownloadsModal();
   await evaluate("showDetails(0)");
   await checkDetailsBackdrop();
+  await evaluate("document.querySelector('[data-tab=settings]').click();scrollTo(0,0)");
+  await checkSettingsLayout(true);
   await evaluate("document.querySelector('[data-tab=library]').click();scrollTo(0,0)");
   assert.equal(await evaluate('document.documentElement.scrollWidth<=innerWidth'), true);
   await evaluate("notify('Removal stopped: one map needs attention. Review Downloads and retry when ready.')");
   const libraryMobile = await send('Page.captureScreenshot', {format:'png',captureBeyondViewport:false});
   await writeFile(output + '/library-mobile.png', Buffer.from(libraryMobile.data,'base64'));
   assert.deepEqual(errors, []);
-  console.log(JSON.stringify({ ok: true, viewport: '1440x1100 + 390x844', checks: ['minimal header/brand', 'escaped metadata', 'cover click preview start/stop', 'library cover retry without search cache', 'new and legacy map information without library playback controls', 'visible paused-queue removal guard', 'compression-test removal and selected-only serial bulk removal', 'bulk failure stops and selection refresh', 'opt-in whole-card/keyboard library selection', 'metadata compatibility hints, vote counts and relative dates', 'quiet sidebar queue, failed-map Retry and popup', 'active/last log before80history entries, bounded desktop/mobile scroll, follow/pause/jump with no focus or page-scroll theft', 'solid dismissible bottom toast without reflow/focus theft', 'Downloads/details outside-click dismissal, padding/drag/cancel guards desktop/mobile', 'in-page confirmation/accept/cancel/Escape', 'primary button hover contrast', 'read-only binary plugin version and registration check', 'Extras/version and explicit confirmed bundled/release installation (mock writes only)', 'official updates/offline state', 'sidebar stable under repeated wheel scrolling', 'settings', 'no horizontal overflow', 'no JS exceptions'], contrast, consoleWrites: false, api: 'offline fixtures', screenshots: output }, null, 2));
+  console.log(JSON.stringify({ ok: true, viewport: '1440x1100 + 390x844', checks: ['minimal header/brand', 'escaped metadata', 'cover click preview start/stop', 'library cover retry without search cache', 'new and legacy map information without library playback controls', 'visible paused-queue removal guard', 'compression-test removal and selected-only serial bulk removal', 'bulk failure stops and selection refresh', 'opt-in whole-card/keyboard library selection', 'metadata compatibility hints, vote counts and relative dates', 'quiet sidebar queue, failed-map Retry and popup', 'active/last log before80history entries, bounded desktop/mobile scroll, follow/pause/jump with no focus or page-scroll theft', 'solid dismissible bottom toast without reflow/focus theft', 'Downloads/details outside-click dismissal, padding/drag/cancel guards desktop/mobile', 'in-page confirmation/accept/cancel/Escape', 'primary button hover contrast', 'read-only binary plugin version and registration check', 'Extras/version and explicit confirmed bundled/release installation (mock writes only)', 'official updates/offline state', 'sidebar stable under repeated wheel scrolling', 'compact connection + Updates columns on desktop and mobile', 'settings', 'no horizontal overflow', 'no JS exceptions'], contrast, consoleWrites: false, api: 'offline fixtures', screenshots: output }, null, 2));
 } finally {
   socket.close(); await fetch(cdp + '/json/close/' + page.id);
 }

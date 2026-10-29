@@ -1,3 +1,11 @@
+## 0.7.29 — compact connection and update settings
+
+- Stack Updates directly below PlayStation connection in the left settings
+  column, with plugin setup/Extras/advanced seed/theme in the right column.
+- Keep settings columns aligned to the top rather than stretching the connection
+  card; retain a single-column mobile layout and all existing button safeguards.
+- Local UI change only: no desktop release, console writes or plugin changes.
+
 ## 0.7.26 — transparent product artwork
 
 ## 0.7.28

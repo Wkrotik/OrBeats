@@ -2,6 +2,27 @@
 
 [← OrBeats](../README.md)
 
+## Reports and contributions
+
+Use the [issue chooser](https://github.com/Wkrotik/OrBeats/issues/new/choose):
+
+- **Bug report:** versions, reproduction, expected/actual behavior and sanitized
+  evidence. Installation failures include the failed step and observed recovery.
+- **Feature request:** the problem, proposed behavior and success criteria.
+- **Compatibility / test report:** successful or failed setups and measurements,
+  distinguishing installation/readback from browsing, previews and actual gameplay.
+
+The released 64-song cap is an implementation bound, not a measured PS4 maximum.
+Do not disable safety guards or exceed your installed build's supported limits
+just to file a test report. Mark untested steps and unknown versions honestly.
+All issues are public: redact personal data and secrets; do not upload game files,
+songs, saves, dumps or backups. Discuss suspected vulnerabilities privately with
+the maintainer rather than exposing exploit details in a public issue.
+
+Pull requests have a short validation/compatibility checklist. State what was
+and was not tested, preserve installation/recovery guards and upstream licensing,
+and keep private inputs out of the patch. Documentation-only PRs need no version bump.
+
 ## Source layout
 
 | Directory | Purpose |

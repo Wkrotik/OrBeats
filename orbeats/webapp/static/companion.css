@@ -409,9 +409,15 @@ p {
 }
 .settings-grid {
 	display: grid;
+	align-items: start;
 	grid-template-columns: 1.15fr 1fr;
 	gap: 25px;
 	margin-top: 30px;
+}
+/* Independent stacks keep connection + updates compact instead of stretching
+   the connection form to the height of every plugin/settings card. */
+.settings-column {
+	min-width: 0;
 }
 .panel {
 	padding: 25px;

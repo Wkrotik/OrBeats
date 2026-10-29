@@ -1,0 +1,8 @@
+blank_issues_enabled: false
+contact_links:
+  - name: Installation and everyday use
+    url: https://github.com/Wkrotik/OrBeats/blob/main/docs/getting-started.md
+    about: Check prerequisites, setup steps and update instructions before reporting a problem.
+  - name: Supported maps and known limits
+    url: https://github.com/Wkrotik/OrBeats/blob/main/docs/native-map-expansion.md
+    about: Check map compatibility and documented limits before requesting support.

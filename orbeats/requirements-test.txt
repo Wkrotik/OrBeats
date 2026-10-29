@@ -2,6 +2,8 @@
 pytest>=9.0
 pytest-cov>=5.0
 coverage>=7.0
+# Test-only parsing of GitHub issue forms; not a companion runtime dependency.
+PyYAML>=6.0,<7
 # Pinned (Exp 271b): unpinned ruff drifted CI onto a brand-new 0.17.0 with
 # stricter import-sorting while local dev ran 0.16.0 — "passed locally,
 # failed remotely". Pin both to the same line; bump deliberately.

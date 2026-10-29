@@ -1,0 +1,75 @@
+name: Bug report
+description: Report an OrBeats error, crash, installation failure or UI problem.
+title: "[Bug]: "
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Search existing issues and check the [installation guide](https://github.com/Wkrotik/OrBeats/blob/main/docs/getting-started.md) first.
+        Issues are PUBLIC. Redact IP addresses, usernames, personal paths, account IDs, tokens and other private data from logs and screenshots. Do not upload game files, songs, saves, console dumps or complete backups.
+        Suspected security vulnerabilities should be discussed privately with the maintainer, not posted with exploit details here.
+  - type: dropdown
+    id: component
+    attributes:
+      label: Affected area
+      options:
+        - Installation / update / removal / recovery
+        - Song import / conversion / library
+        - Main plugin / in-game behavior
+        - Extras plugin / leaderboards
+        - Desktop app / UI / connection
+        - Other / not sure
+    validations:
+      required: true
+  - type: input
+    id: versions
+    attributes:
+      label: OrBeats versions and installation source
+      description: Give the app, main plugin and Extras versions if known; distinguish bundled and installed versions. Include the release tag or source commit.
+      placeholder: "App 0.1.13; main 0.8079; Extras 0.0009; GitHub release EXE"
+    validations:
+      required: true
+  - type: dropdown
+    id: platform
+    attributes:
+      label: Companion platform
+      options:
+        - Windows x64
+        - Linux x64
+        - Running from source
+        - Not applicable / other
+    validations:
+      required: true
+  - type: textarea
+    id: environment
+    attributes:
+      label: Environment
+      description: OS version/distro; PS4 model, firmware, GoldHEN version and Beat Saber title ID/patch when relevant. The currently supported game is CUSA12878 patch 2.04. Unknown values are fine; no console IP is needed.
+  - type: textarea
+    id: reproduce
+    attributes:
+      label: What happened and how to reproduce it
+      description: List the steps, expected result and actual result. For map-specific problems, give a public BeatSaver key/link and difficulty, not song files.
+      placeholder: |
+        1. ...
+        Expected: ...
+        Actual: ...
+    validations:
+      required: true
+  - type: textarea
+    id: recovery
+    attributes:
+      label: Installation / recovery details, if relevant
+      description: Which step failed? Was Beat Saber fully closed and GoldHEN FTP enabled? Was this a first install or an existing library (approximately how many songs)? What did the app report about rollback/recovery, and what was preserved or changed? Report only what you observed; do not repeat a destructive action just for this issue.
+  - type: textarea
+    id: evidence
+    attributes:
+      label: Sanitized error messages, logs or screenshots
+      description: Include the exact error and nearby relevant lines. Review/redact before attaching; do not attach complete backups, game data or credentials.
+  - type: checkboxes
+    id: privacy
+    attributes:
+      label: Before submitting
+      options:
+        - label: I reviewed this report and attachments for private data and excluded copyrighted game/song files.
+          required: true

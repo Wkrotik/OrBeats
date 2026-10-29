@@ -68,7 +68,7 @@ def test_wkrotik_credit_preserves_upstream_and_matches_notifications():
     assert 'Chris Primeish' not in code
     assert 'Chris Primeish' in (ROOT.parent / "README.md").read_text()
     assert 'PLUGIN_VERSION "v0.8079"' in code
-    assert (ROOT / "webapp/VERSION").read_text().strip() == "0.7.28"
+    assert (ROOT / "webapp/VERSION").read_text().strip() == "0.7.29"
 
 
 def test_reference_media_override_is_local_to_generated_level():

@@ -1,0 +1,58 @@
+name: Compatibility / test report
+description: Share successful or unsuccessful setup, map or library-capacity testing.
+title: "[Compatibility]: "
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Successful results are useful too. Report only tests you actually ran; an upload is not proof of successful gameplay.
+        This form does not ask you to bypass safety checks, exceed supported limits, install an experimental build or change your setup. If a test exposed a bug, link its bug report instead of duplicating troubleshooting here.
+        Reports are PUBLIC: redact IP addresses, account names, personal paths, secrets and other private data. Do not attach game files, songs, saves, dumps or backups.
+  - type: dropdown
+    id: outcome
+    attributes:
+      label: Result
+      options:
+        - Passed the tests listed below
+        - Partially passed
+        - Failed
+    validations:
+      required: true
+  - type: input
+    id: versions
+    attributes:
+      label: Exact builds tested
+      description: App, installed main/Extras versions and release tag or commit. If testing a development build, identify it explicitly.
+    validations:
+      required: true
+  - type: textarea
+    id: environment
+    attributes:
+      label: Hardware and software setup
+      description: OS version/distro and packaging format; PS4 model/firmware, GoldHEN version and Beat Saber title ID/patch for console tests. Say which fields are unknown or not applicable. No console IP is needed.
+    validations:
+      required: true
+  - type: textarea
+    id: coverage
+    attributes:
+      label: Tests performed and observed results
+      description: Distinguish installation/readback, game startup, library browsing, previews, gameplay and Extras. For each tested step, state what actually happened; mark untested steps explicitly. For map tests, use public BeatSaver keys/difficulties rather than files.
+    validations:
+      required: true
+  - type: textarea
+    id: capacity
+    attributes:
+      label: Library size and measurements, if relevant
+      description: Number of custom songs, chart mix, startup time, memory reading/source (if measured), and the point of any failure. The released 64-song cap is an implementation bound, not a measured PS4 maximum. Do not disable guards or exceed your installed build's supported limit to fill this field.
+  - type: textarea
+    id: evidence
+    attributes:
+      label: Sanitized evidence and related issues
+      description: Optional screenshots, short log excerpts or public bug-report links. Note whether you repeated the test and what remains uncertain. Remove private data before attaching.
+  - type: checkboxes
+    id: privacy
+    attributes:
+      label: Before submitting
+      options:
+        - label: I reported observed results only and reviewed this report and attachments for private data and game/song files.
+          required: true

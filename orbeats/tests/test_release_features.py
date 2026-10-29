@@ -337,3 +337,39 @@ def test_offline_ffmpeg_attestation_matches_pinned_vendor_bytes():
         data = (ROOT / "desktop/legal" / ("ffmpeg-8.0.1-" + key + ".txt")).read_bytes()
         assert hashlib.sha256(data).hexdigest() == lock[key + "_sha256"]
         assert b"PRIVATE KEY" not in data
+
+
+def test_settings_updates_share_compact_connection_column_without_form_side_effects():
+    from html.parser import HTMLParser
+
+    class SettingsParser(HTMLParser):
+        def __init__(self):
+            super().__init__()
+            self.stack = []
+            self.nodes = {}
+
+        def handle_starttag(self, tag, attrs):
+            attrs = dict(attrs)
+            node = {"tag": tag, "attrs": attrs, "parents": tuple(self.stack)}
+            if "id" in attrs:
+                assert attrs["id"] not in self.nodes
+                self.nodes[attrs["id"]] = node
+            if tag not in {"area", "base", "br", "col", "embed", "hr", "img", "input", "link", "meta", "param", "source", "track", "wbr"}:
+                self.stack.append((tag, attrs.get("id")))
+
+        def handle_endtag(self, tag):
+            for i in range(len(self.stack) - 1, -1, -1):
+                if self.stack[i][0] == tag:
+                    del self.stack[i:]
+                    break
+
+    parser = SettingsParser()
+    parser.feed((ROOT / "orbeats/webapp/static/companion.html").read_text())
+    for element in ("connection", "release-settings", "check-updates", "release-main", "release-extras"):
+        assert ("div", "connection-settings") in parser.nodes[element]["parents"]
+    for element in ("check-plugin-version", "deploy-plugin", "check-extras-version", "deploy-extras", "theme-settings"):
+        assert ("div", "plugin-settings") in parser.nodes[element]["parents"]
+    for element in ("check-updates", "copy-release-link", "release-main", "release-extras"):
+        node = parser.nodes[element]
+        assert node["attrs"]["type"] == "button"
+        assert not any(tag == "form" for tag, _ in node["parents"])

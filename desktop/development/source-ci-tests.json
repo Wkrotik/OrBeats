@@ -49,7 +49,8 @@
     "tests/test_webapp_launch.py",
     "tests/test_webapp_ps4_adapter.py",
     "tests/test_webapp_songs.py",
-    "tests/test_release_features.py"
+    "tests/test_release_features.py",
+    "tests/test_github_templates.py"
   ],
   "excluded_modules": [
     "test_additive_bundle_preparation.py",

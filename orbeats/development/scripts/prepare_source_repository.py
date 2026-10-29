@@ -47,6 +47,15 @@ ROOT_FILES = (
     "backup-orbeats-files.py",
     "make_fself_fixed.py",
 )
+# Exact paths only: do not expand this into a recursive .github/ allowlist.
+GITHUB_SOURCE_FILES = {
+    ".github/workflows/private-build.yml",
+    ".github/ISSUE_TEMPLATE/bug_report.yml",
+    ".github/ISSUE_TEMPLATE/feature_request.yml",
+    ".github/ISSUE_TEMPLATE/compatibility_report.yml",
+    ".github/ISSUE_TEMPLATE/config.yml",
+    ".github/pull_request_template.md",
+}
 EXCLUDED_PARTS = {
     "__pycache__",
     ".pytest_cache",
@@ -90,7 +99,7 @@ def eligible(relative):
     if p.parts[0] == ".devcontainer":
         return p.name in {"setup_additive_host.sh", "setup_additive_toolchain.sh", "setup_additive_analysis.sh"}
     if p.parts[0] == ".github":
-        return p.name in {"private-build.yml"}
+        return p.as_posix() in GITHUB_SOURCE_FILES
     if str(p) in {"docs/overnight-audit.md", "docs/installation-failure-audit.md"}:
         return False
     if p.name in {"ps4_config.json", "webapp_state.json", "queue.json", "runtime-state.json"} or p.name.startswith(

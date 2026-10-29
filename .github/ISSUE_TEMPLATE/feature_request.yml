@@ -1,0 +1,46 @@
+name: Feature request
+description: Suggest a focused improvement to the companion or plugins.
+title: "[Feature]: "
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Search existing issues first. For something broken, use Bug report instead.
+        This is a public request, not a promise of implementation or a release date. Do not include private data, game files or songs.
+  - type: dropdown
+    id: area
+    attributes:
+      label: Area
+      options:
+        - Companion app / library management
+        - Main plugin / map support
+        - Extras plugin
+        - Installation / recovery / compatibility
+        - Documentation / developer tooling
+        - Other
+    validations:
+      required: true
+  - type: textarea
+    id: problem
+    attributes:
+      label: What problem would this solve?
+      description: Describe the task or limitation and who benefits, rather than only naming a technology or implementation.
+    validations:
+      required: true
+  - type: textarea
+    id: proposal
+    attributes:
+      label: Proposed behavior
+      description: Describe the user-visible result and what would count as success. Keep unrelated requests in separate issues.
+    validations:
+      required: true
+  - type: textarea
+    id: alternatives
+    attributes:
+      label: Alternatives and compatibility considerations
+      description: Include existing workarounds and any impact on stock songs/DLC, custom libraries, recovery, supported game builds or older installations. Leave unknowns explicit.
+  - type: textarea
+    id: references
+    attributes:
+      label: References or testing you can help with
+      description: Optional public links or mockups; mention whether you can test. Do not upload proprietary game inputs or song archives.
