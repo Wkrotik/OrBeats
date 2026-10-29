@@ -47,6 +47,8 @@ def test_export_default_denies_personal_inputs_history_and_binaries(path):
 @pytest.mark.parametrize(
     "path",
     [
+        "desktop/legal/ffmpeg-8.0.1-signature.txt",
+        "desktop/legal/ffmpeg-8.0.1-key.txt",
         "orbeats_extras/src/main.cpp",
         "orbeats_extras/include/health.h",
         "orbeats_extras/development/scoresaber.py",

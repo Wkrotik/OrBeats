@@ -109,6 +109,8 @@ def eligible(relative):
         return True
     if p.name == "beat_saber_song_ids.json":
         return False  # replaced with a source-only empty catalog, never copied
+    if str(p) in {"desktop/legal/ffmpeg-8.0.1-signature.txt", "desktop/legal/ffmpeg-8.0.1-key.txt"}:
+        return True  # Exact public vendor attestation, hash-gated by source lock.
     if p.suffix.lower() == ".txt":
         return p.name.startswith("requirements") or p.name in {"fsb5-LICENSE.txt"}
     return p.suffix.lower() in EXTENSIONS or p.name in {"VERSION", "Makefile", "CMakeLists.txt"}
