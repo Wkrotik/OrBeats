@@ -136,6 +136,7 @@ jobs:
           name: windows-ci-report
           path: |
             temp/ci-reports/*.txt
+            temp/windows-frozen/dependency-notices/environment.json
             temp/windows-media/*-build.log
           retention-days: 7
   private-status:

@@ -10,7 +10,7 @@ import subprocess
 import sys
 from pathlib import Path
 
-from build_legal import legal_inputs
+from build_legal import dependency_notices, legal_inputs
 
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / "desktop/backend"))
@@ -53,6 +53,7 @@ def main():
         raise ValueError("Choose a fresh project-local scratch output")
     output.mkdir(parents=True)
     notices = legal_inputs()
+    environment_notices = dependency_notices(output / "dependency-notices")
     manifest = build(
         ROOT / "orbeats",
         output / "runtime",
@@ -86,6 +87,7 @@ def main():
         "--add-data",
         str(output / "runtime") + ":runtime",
     ]
+    command += ["--add-data", str(environment_notices) + ":third-party-notices/python"]
     for notice in notices:
         command += ["--add-data", str(notice) + ":third-party-notices"]
     modules = [

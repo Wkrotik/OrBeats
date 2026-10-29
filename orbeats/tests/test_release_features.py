@@ -285,3 +285,46 @@ def test_release_stager_derives_manifest_and_marks_missing_platform(monkeypatch,
         assert hashlib.sha256((output / name).read_bytes()).hexdigest() in (output / "SHA256SUMS").read_text()
     with pytest.raises(ValueError, match="fresh"):
         module.stage(output, main_artifact(tmp_path), artifact(tmp_path))
+
+
+def test_dependency_notices_are_verbatim_and_never_copy_pip_credentials(monkeypatch, tmp_path):
+    import importlib.util
+    from types import SimpleNamespace
+
+    spec = importlib.util.spec_from_file_location("release_legal", ROOT / "desktop/build_legal.py")
+    module = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(module)
+    source = tmp_path / "site"
+    (source / "sample-1.0.dist-info/licenses").mkdir(parents=True)
+    (source / "sample-1.0.dist-info/licenses/LICENSE").write_bytes(b"Verbatim owner notice\r\n")
+    (source / "sample-1.0.dist-info/direct_url.json").write_text("private build metadata must not ship")
+    files = ["sample-1.0.dist-info/licenses/LICENSE", "sample-1.0.dist-info/direct_url.json"]
+    dist = SimpleNamespace(
+        metadata={"Name": "sample", "License-Expression": "MIT"},
+        version="1.0",
+        files=files,
+        locate_file=lambda p: source / p,
+    )
+    monkeypatch.setattr(module.importlib.metadata, "distributions", lambda: [dist])
+    out = module.dependency_notices(tmp_path / "notices")
+    record = json.loads((out / "environment.json").read_text())
+    assert record["scope"] == "installed-build-environment-superset"
+    assert record["complete_native_or_source_closure"] is False
+    assert (out / "sample-1.0/sample-1.0.dist-info/licenses/LICENSE").read_bytes() == b"Verbatim owner notice\r\n"
+    assert not list(out.rglob("direct_url.json"))
+    with pytest.raises(FileExistsError):
+        module.dependency_notices(out)
+
+
+@pytest.mark.parametrize("relative", ["../LICENSE", "/LICENSE"])
+def test_dependency_notices_refuse_escaping_paths(monkeypatch, tmp_path, relative):
+    import importlib.util
+    from types import SimpleNamespace
+
+    spec = importlib.util.spec_from_file_location("release_legal", ROOT / "desktop/build_legal.py")
+    module = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(module)
+    dist = SimpleNamespace(metadata={"Name": "sample"}, version="1.0", files=[relative])
+    monkeypatch.setattr(module.importlib.metadata, "distributions", lambda: [dist])
+    with pytest.raises(ValueError, match="Escaping"):
+        module.dependency_notices(tmp_path / "notices")
