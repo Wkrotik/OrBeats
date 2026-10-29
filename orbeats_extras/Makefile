@@ -13,8 +13,8 @@ endif
 all: $(TARGET)
 $(INTDIR):
 	mkdir -p $@
-OBJECTS := $(INTDIR)/main.o $(INTDIR)/scoresaber.o $(INTDIR)/transport.o $(INTDIR)/worker.o $(INTDIR)/leaderboard.o $(INTDIR)/cJSON.o
-$(INTDIR)/main.o: src/main.cpp include/health.h include/health_activation.h include/leaderboard.h | $(INTDIR)
+OBJECTS := $(INTDIR)/main.o $(INTDIR)/scoresaber.o $(INTDIR)/transport.o $(INTDIR)/worker.o $(INTDIR)/leaderboard.o $(INTDIR)/promo.o $(INTDIR)/cJSON.o
+$(INTDIR)/main.o: src/main.cpp include/health.h include/health_activation.h include/leaderboard.h include/promo.h | $(INTDIR)
 	clang++ $(CXXFLAGS) -o $@ $<
 $(INTDIR)/scoresaber.o: src/scoresaber.cpp include/scoresaber.h third_party/cjson/cJSON.h | $(INTDIR)
 	clang++ $(CXXFLAGS) -o $@ $<
@@ -23,6 +23,8 @@ $(INTDIR)/transport.o: src/transport.cpp include/transport.h include/scoresaber.
 $(INTDIR)/worker.o: src/worker.cpp include/worker.h include/transport.h include/scoresaber.h | $(INTDIR)
 	clang++ $(CXXFLAGS) -o $@ $<
 $(INTDIR)/leaderboard.o: src/leaderboard.cpp $(wildcard include/*.h) $(wildcard ../orbeats/include/*.h) | $(INTDIR)
+	clang++ $(CXXFLAGS) -o $@ $<
+$(INTDIR)/promo.o: src/promo.cpp include/promo.h include/promo_profile.h include/health.h | $(INTDIR)
 	clang++ $(CXXFLAGS) -o $@ $<
 $(INTDIR)/cJSON.o: third_party/cjson/cJSON.c third_party/cjson/cJSON.h | $(INTDIR)
 	clang $(CXXFLAGS) -DCJSON_NESTING_LIMIT=16 -fvisibility=hidden -o $@ $<

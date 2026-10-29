@@ -1,5 +1,36 @@
 # OrBeats Extras changes
 
+## 0.0015 — retain promotion hiding; withdraw experimental saber offset
+
+- Return to the user-confirmed0.0010 feature set: promotion hiding, health
+  auto-dismiss and read-only top-ten ScoreSaber display. Remove all saber-offset
+  hooks, resource/template queries, menu controls and setting-file access from
+  the build. Versions0.0011–0.0014 never produced visible controls in testing.
+- Keep the exact promo implementation/profile and independent health/leaderboard
+  behavior. Do not delete any existing console setting, log, save or song data.
+- Version advances to0.0015 to distinguish the withdrawal build from test builds;
+  this does not claim a new successful offset implementation.
+
+## 0.0010 — hide the main-menu music-pack promotion
+
+- Hide the identified music-pack promotion banner and its button by default
+  when Extras is enabled. Preserve original main-menu activation/listeners and
+  async loading; no stock/DLC catalog, ownership, store or playlist changes.
+- Resolve only the two serialized promo references, verify their managed types
+  and field offsets, root temporary objects, and deactivate their GameObjects
+  after original activation. Refuse menu-root aliases or unavailable methods.
+- Guard exact 2.04 activation/async/banner code fingerprints. The verified
+  activation prefix contains complete nonrelative instructions, so the SDK
+  original-call stub requires no custom relocation. Profile/API failures do not
+  prevent independent health/leaderboard initialization. Refuse live unload if
+  the promo hook alone is installed.
+- Native sanitizer regressions cover original-call ordering, repeat activation,
+  shared GameObjects, Button subclasses, schema/method/exception/root failures,
+  cleanup and protected ordinary menu objects. Owned-code tests verify all four
+  fingerprints and execute a synthetic SDK-style activation stub.
+- User confirmed the promotion is hidden on the tested PS4 with0.0010. No layout
+  reflow or replacement tile is promised. Build itself does not deploy or publish.
+
 ## 0.0009 — top ten scores and unprefixed names
 
 - User confirms0.0008 displays ScoreSaber rows on PS4; health auto-dismiss is

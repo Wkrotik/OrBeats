@@ -12,7 +12,8 @@
 static std::string scenario,logs;
 static unsigned lists=0,sleeps=0,creates=0,joins=0,installs=0,chmods=0,closes=0;
 static void*(*pending)(void*)=nullptr;
-static bool hooked=false,show_warning=true,join_error=false;
+static bool hooked=false,promo_hooked_fake=false,show_warning=true,join_error=false;
+static unsigned promo_installs=0;
 static unsigned char image[16];
 static size_t read_offset=0;
 extern "C" int sceKernelOpen(const char* path,int flags,int){
@@ -52,9 +53,14 @@ static void run_pending(){assert(pending);auto fn=pending;pending=nullptr;fn(nul
 extern "C" int scePthreadJoin(OrbisPthread id,void**){assert(id==(OrbisPthread)1);++joins;if(join_error)return -1;if(pending)run_pending();return 0;}
 namespace OrBeatsExtras {
 bool install_leaderboard(uintptr_t base,void*(*)(const char*),bool(*executable)(const void*,size_t),void(*logger)(const char*)){
-    assert(base==(uintptr_t)image && executable(image,sizeof(image)));++installs;logger("fake leaderboard success");hooked=true;return true;
+    assert(base==(uintptr_t)image && executable(image,sizeof(image)));++installs;logger("fake leaderboard success");hooked=scenario!="promo-only";return hooked;
 }
 bool leaderboard_has_hooks(){return hooked;}
+bool promo_has_hooks(){return promo_hooked_fake;}
+bool install_promo(uintptr_t base,void*(*)(const char*),bool(*executable)(const void*,size_t),void(*logger)(const char*)){
+    assert(base==(uintptr_t)image && executable(image,sizeof(image)));++promo_installs;
+    promo_hooked_fake=scenario!="promo-refused";logger("fake promo initialized");return promo_hooked_fake;
+}
 }
 #include "../../../orbeats_extras/src/main.cpp"
 static unsigned char health_view[0xc8];static bool wrong_health_class=false;
@@ -107,8 +113,11 @@ int main(int argc,char** argv){
     }else assert(lists==1 && !sleeps && installs==1);
     if(scenario=="health-guard")assert(!installed && logs.find("code signature mismatch")!=std::string::npos);
     if(scenario=="log-open")assert(logs.empty() && !chmods);
-    else if(scenario=="chmod")assert(logs.find("permission repair failed")!=std::string::npos && logs.find("0.0009")!=std::string::npos && chmods && closes);
-    else assert(chmods && logs.find("0.0009")!=std::string::npos);
-    assert(module_stop(0,nullptr)==(hooked?-1:0));assert(joins==1 && !startup_started);
+    else if(scenario=="chmod")assert(logs.find("permission repair failed")!=std::string::npos && logs.find("0.0015")!=std::string::npos && chmods && closes);
+    else assert(chmods && logs.find("0.0015")!=std::string::npos);
+    assert(promo_installs==installs);
+    if(scenario=="promo-only")assert(promo_hooked_fake && !hooked);
+    if(scenario=="promo-refused")assert(!promo_hooked_fake && hooked);
+    assert(module_stop(0,nullptr)==((hooked || promo_hooked_fake)?-1:0));assert(joins==1 && !startup_started);
     return 0;
 }

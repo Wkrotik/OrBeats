@@ -9,6 +9,7 @@
 #include "health.h"
 #include "health_activation.h"
 #include "leaderboard.h"
+#include "promo.h"
 
 namespace {
 using namespace OrBeatsExtras;
@@ -95,6 +96,9 @@ static void install_hooks() {
     snprintf(message,sizeof(message),"game module ready: handle=%d base=0x%llx segments=%u",(int)handle,(unsigned long long)base,module.segmentCount);
     log(message);
     if(stopping.load())return;
+    bool promo=install_promo(base,symbol,executable,log);
+    log(promo?"promo initialization completed":"promo initialization refused; see preceding diagnostics");
+    if(stopping.load())return;
     bool leaderboard=install_leaderboard(base,symbol,executable,log);
     log(leaderboard?"leaderboard initialization completed":"leaderboard initialization refused; see preceding diagnostics");
     if(stopping.load())return;
@@ -159,8 +163,8 @@ static void* initialize(void*) {
 }
 extern "C" int module_start(size_t argc,const void* args) {
     (void)argc;(void)args;
-    if(startup_started || installed || leaderboard_has_hooks())return 0;
-    log("OrBeats Extras 0.0009: top ten anonymous ScoreSaber scores");
+    if(startup_started || installed || leaderboard_has_hooks() || promo_has_hooks())return 0;
+    log("OrBeats Extras 0.0015: hide main-menu promotion; top ten anonymous ScoreSaber scores");
     stopping.store(false);
     if(scePthreadCreate(&startup_thread,NULL,initialize,NULL,"OrBeatsInit")!=0){
         log("startup worker creation failed; no hooks installed");return 0;
@@ -177,6 +181,6 @@ extern "C" int module_stop(size_t argc,const void* args) {
         if(scePthreadJoin(startup_thread,NULL)!=0){log("startup join failed; unload refused");return -1;}
         startup_started=false;startup_thread=NULL;
     }
-    if(installed || leaderboard_has_hooks()){log("live unload refused; close title before disabling Extras");return -1;}
+    if(installed || leaderboard_has_hooks() || promo_has_hooks()){log("live unload refused; close title before disabling Extras");return -1;}
     return 0;
 }

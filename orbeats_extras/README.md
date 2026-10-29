@@ -1,7 +1,8 @@
 # OrBeats Extras
 
 Optional, separate GoldHEN plugin for **Beat Saber PS4 CUSA12878 / patch 2.04**.
-It adds anonymous ScoreSaber viewing and a health-warning convenience option.
+It adds anonymous ScoreSaber viewing, a health-warning convenience option, and
+main-menu music-pack promotion hiding.
 OrBeats custom-song playback does not depend on Extras.
 
 Health auto-dismiss and anonymous ScoreSaber score display are hardware-confirmed
@@ -14,6 +15,13 @@ defaults. There are no application retry loops. A synchronous platform call
 cannot be immediately cancelled, so the overall deadline is cooperative rather
 than a guaranteed hard wall-clock limit. Diagnostics exclude map hashes, player
 names, URLs and response bodies.
+
+## Supported feature scope
+
+Extras0.0015 retains promotion hiding, health auto-dismiss and the top-ten
+leaderboard. The experimental saber-offset work from0.0011–0.0014 is withdrawn:
+there are no controller-pose hooks, settings controls or offset-file reads/writes.
+Existing console files are left alone.
 
 ## Anonymous leaderboard
 
@@ -54,6 +62,23 @@ limits for one minute and other failures for 15 seconds. Reselect after the
 relevant interval to retry; there are no automatic retry loops. Individual SDK
 calls have timeouts, but cancellation cannot instantly interrupt a blocked call.
 
+## Main-menu music-pack promotion
+
+Extras **0.0010** hides the music-pack promotional tile (banner and button) by
+default when enabled. It uses the main menu's explicit serialized references,
+not a screen-coordinate match or a global object search. Ordinary menu buttons,
+custom playlists, stock/DLC songs, ownership and the store are not modified.
+Original menu activation and asynchronous promotion loading are retained; the
+identified banner and button GameObjects are deactivated after each activation.
+The verified loading/setup code only changes children of the hidden banner.
+
+There is no separate setting for this feature. Disabling Extras with the title
+closed restores ordinary behavior on the next title launch. Its exact-code and
+managed-schema checks are independent of health and leaderboard checks.
+
+The user confirmed promotion hiding on the tested PS4 with0.0010. No layout
+reflow or replacement tile is promised.
+
 ## Health warning
 
 The health warning is **auto-dismissed by default when Extras is enabled**, via
@@ -78,8 +103,8 @@ initial scope.
 ## Safety and installation boundary
 
 - Requires exact owned game-code fingerprints and managed class/field profiles.
-  Mismatched code or an existing conflicting hook refuses installation. Health
-  and leaderboard profile checks are independent; inspect the log for refusals.
+  Mismatched code or an existing conflicting hook refuses installation. Health,
+  promotion and leaderboard profile checks are independent; inspect the log for refusals.
 - The leaderboard replacement never registers the original Sony callbacks or
   starts its PSN requests. It retains the base view's binder cleanup. This is not
   a blanket disabling of PSN elsewhere in the game.

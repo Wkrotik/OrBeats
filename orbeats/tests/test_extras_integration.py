@@ -54,12 +54,16 @@ uint64_t sceKernelGetProcessTime();
 struct Detour { void* StubPtr; };
 enum DetourMode { DetourMode_x64 };
 inline void Detour_Construct(Detour* d,DetourMode){d->StubPtr=nullptr;}
+#ifdef ORBEATS_TEST_DETOUR_IMPL
+void* Detour_DetourFunction(Detour*,uint64_t,void*);
+#else
 inline void* Detour_DetourFunction(Detour*,uint64_t,void*){return nullptr;}
+#endif
 inline void Detour_RestoreFunction(Detour*){}
 #define Detour_Stub(d,type,...) (((type)((d)->StubPtr))(__VA_ARGS__))
 ''')
     flags = ["-std=c++17", "-O1", "-g", "-Wall", "-Wextra", "-Werror", "-fsanitize=address,undefined", "-fno-omit-frame-pointer", "-pthread", "-I" + str(EXTRAS / "include"), "-I" + str(imports)]
-    for name, extra in [("health_activation", []), ("ui", []), ("worker", [EXTRAS / "src/worker.cpp"]), ("lifecycle", [EXTRAS / "src/worker.cpp"]), ("startup", [])]:
+    for name, extra in [("health_activation", []), ("ui", []), ("worker", [EXTRAS / "src/worker.cpp"]), ("lifecycle", [EXTRAS / "src/worker.cpp"]), ("startup", []), ("promo", [])]:
         subprocess.run([cxx, *flags, str(ROOT / f"orbeats/tests/native/extras_{name}_test.cpp"), *map(str, extra), "-o", str(out / name)], check=True)
     return out
 
@@ -74,9 +78,21 @@ def test_managed_rows_publish_once_and_roots_cleanup(binaries, target):
     subprocess.run([str(binaries / target)], check=True, timeout=20, env={**os.environ, "ASAN_OPTIONS": "detect_leaks=1:halt_on_error=1", "UBSAN_OPTIONS": "halt_on_error=1"})
 
 
-@pytest.mark.parametrize("scenario", ["late", "immediate", "timeout", "duplicate", "list-error", "count-bound", "info-error", "name-invalid", "segments-zero", "segments-bound", "rx", "sleep-error", "create-error", "cancel", "join-error", "log-open", "chmod", "health-guard", "health-callback", "health-callback-disabled", "health-callback-class", "health-callback-coroutine"])
+@pytest.mark.parametrize("scenario", ["late", "immediate", "timeout", "duplicate", "list-error", "count-bound", "info-error", "name-invalid", "segments-zero", "segments-bound", "rx", "sleep-error", "create-error", "cancel", "join-error", "log-open", "chmod", "health-guard", "health-callback", "health-callback-disabled", "health-callback-class", "health-callback-coroutine", "promo-only", "promo-refused"])
 def test_actual_module_start_readiness_and_fail_closed_lifetime(binaries, scenario):
     subprocess.run([str(binaries / "startup"), scenario], check=True, timeout=20, env={**os.environ, "ASAN_OPTIONS": "detect_leaks=1:halt_on_error=1", "UBSAN_OPTIONS": "halt_on_error=1"})
+
+
+@pytest.mark.parametrize("scenario", ["normal", "repeat", "shared", "wrong-view", "wrong-banner", "derived-button", "cyclic-button", "wrong-button", "null-banner", "null-button", "field-missing", "field-offset", "menu-alias", "bad-gameobject", "getter-missing", "getter-throws", "setter-missing", "setter-throws", "null-class", "null-name", "root-1", "root-2", "root-3", "root-4", "root-5", "root-6", "profile-range", "profile-overflow"])
+def test_promo_callback_preserves_stock_menu_and_fails_narrowly(binaries, scenario):
+    subprocess.run([str(binaries / "promo"), scenario], check=True, timeout=20, env={**os.environ, "ASAN_OPTIONS": "detect_leaks=1:halt_on_error=1", "UBSAN_OPTIONS": "halt_on_error=1"})
+
+
+def test_owned_promo_install_profile_and_nonrelative_stub(binaries):
+    files = list((ROOT / "ps4_dump").glob("*/Media/Modules/Il2cppUserAssemblies.prx"))
+    if not files:
+        pytest.skip("Owned game binary is deliberately not distributed")
+    subprocess.run([str(binaries / "promo"), "owned-profile", str(files[0])], check=True, timeout=30)
 
 
 def source_module():
@@ -196,3 +212,13 @@ def test_source_exchange_is_packaged_and_library_is_published_last():
     text = (ROOT / "orbeats/tools/additive_companion.py").read_text()
     assert text.index("score_source.publish(ftp", text.index("metadata = source_metadata")) < text.index("commit_library(ftp, candidate")
     assert "source_sha1 = score_source.original_hash(source" in text
+
+
+def test_withdrawn_offset_is_not_built_or_initialized():
+    assert not (EXTRAS / "src/saber_offset.cpp").exists()
+    assert not list((EXTRAS / "include").glob("saber_offset*.h"))
+    assert "saber_offset" not in (EXTRAS / "Makefile").read_text()
+    main = (EXTRAS / "src/main.cpp").read_text()
+    assert "saber_offset" not in main
+    assert "install_promo(" in main
+    assert "promo_has_hooks()" in main
