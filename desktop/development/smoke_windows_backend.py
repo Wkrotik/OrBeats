@@ -20,31 +20,37 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parents[2]
 
 
-def check_codecs(executable, env, root):
-    """Synthetic frozen-media checks; callable in host tests without Windows."""
+def codec_fixture(root, rate):
+    """Generate a synthetic original; phase markers survive native Windows exits."""
+    print(
+        f"codec fixture {rate}: importing numpy/soundfile", file=sys.stderr, flush=True
+    )
     import numpy as np
     import soundfile as sf
 
+    print(f"codec fixture {rate}: generating samples", file=sys.stderr, flush=True)
+    times = np.arange(12 * rate + 1) / rate
+    fixture = root / f"original-{rate}.ogg"
+    samples = np.stack(
+        [0.25 * np.sin(2 * np.pi * 440 * times), 0.2 * np.sin(2 * np.pi * 660 * times)],
+        axis=1,
+    )
+    print(f"codec fixture {rate}: writing Vorbis", file=sys.stderr, flush=True)
+    sf.write(
+        fixture, samples, rate, format="OGG", subtype="VORBIS", compression_level=0.5
+    )
+    print(f"codec fixture {rate}: complete", file=sys.stderr, flush=True)
+    return fixture
+
+
+def check_codecs(executable, env, root):
+    """Synthetic frozen-media checks; callable in host tests without Windows."""
     # Exercise the frozen codec path, including48kHz preserved-audio
     # verification, with no host Python/FFmpeg in the child search path.
     codec_rates = []
     for rate in (44100, 48000):
-        times = np.arange(12 * rate + 1) / rate
-        fixture = root / f"original-{rate}.ogg"
-        sf.write(
-            fixture,
-            np.stack(
-                [
-                    0.25 * np.sin(2 * np.pi * 440 * times),
-                    0.2 * np.sin(2 * np.pi * 660 * times),
-                ],
-                axis=1,
-            ),
-            rate,
-            format="OGG",
-            subtype="VORBIS",
-            compression_level=0.5,
-        )
+        fixture = codec_fixture(root, rate)
+        print(f"frozen codec {rate}: starting helper", file=sys.stderr, flush=True)
         checked = subprocess.run(
             [str(executable), "--desktop-check-codecs", str(fixture)],
             env=env,
@@ -220,5 +226,17 @@ def smoke(executable):
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument("--helper", type=Path, required=True)
-    print(json.dumps(smoke(parser.parse_args().helper), indent=2))
+    import faulthandler
+
+    faulthandler.enable()
+    parser.add_argument("--helper", type=Path)
+    parser.add_argument("--fixtures-only", action="store_true")
+    args = parser.parse_args()
+    if args.fixtures_only:
+        with tempfile.TemporaryDirectory(prefix="orbeats-codec-fixtures-") as tmp:
+            for rate in (44100, 48000):
+                codec_fixture(Path(tmp), rate)
+    elif args.helper:
+        print(json.dumps(smoke(args.helper), indent=2))
+    else:
+        parser.error("choose --helper or --fixtures-only")
