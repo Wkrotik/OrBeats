@@ -27,7 +27,7 @@
   "desktop/development/baseline_ownership.c": "f1eaf0e8e309b0cd70b0fccab2b9bd039b632574ca08e41351154eb169ea77c7",
   "desktop/development/build_codecs_linux.py": "041c38ffcb39279e7e3ebafc65f62b2255ee6f4a0cc4bc9fbb8b29b3c3bf87cd",
   "desktop/development/build_media_linux.py": "1df4722dadb8d041d0566371626d378e6cb554137bcdcc7e4e47afd1df8007ad",
-  "desktop/development/build_media_windows.sh": "ed2ae1313b7ec540a50c93da72392582a4b7997bcbbfd8ec83e5dc0724340421",
+  "desktop/development/build_media_windows.sh": "38a548b167e350f2ac2c7dc50a38c2e1b35382221503b28e4a5fa2b0240b2423",
   "desktop/development/codecs-linux-lock.json": "f1028d51a724770e52405d49bc9e420a28f6929406b76878e7d8909cfbe1f5f7",
   "desktop/development/generate_branding.py": "3bc1277defb059ffe1f9d1e55ec504f6f0cd4ea09a6744e84ce2158f2c6d245f",
   "desktop/development/linux-baseline-lock.json": "49993437d56c4fac335b6c32850449e2c5a6020a7fdcaf761ec88057da2fccc8",

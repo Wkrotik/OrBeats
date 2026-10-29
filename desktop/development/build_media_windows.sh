@@ -10,17 +10,24 @@ mkdir -p "$OUT/downloads" "$OUT/gnupg" "$OUT/payload/bin" "$OUT/payload/lib" "$O
 chmod 700 "$OUT/gnupg"
 export ROOT OUT
 python - <<'PY'
-import json,os,pathlib,hashlib,urllib.request,tarfile
+import json,os,pathlib,hashlib,urllib.request,tarfile,time
 root=pathlib.Path(os.environ['ROOT']);out=pathlib.Path(os.environ['OUT'])
 ff=json.loads((root/'desktop/development/media-linux-lock.json').read_text())['ffmpeg']
 codecs=json.loads((root/'desktop/development/codecs-linux-lock.json').read_text())['sources']
+def fetch(url, limit):
+ for attempt in range(3):
+  try:
+   with urllib.request.urlopen(url,timeout=90) as response:return response.read(limit)
+  except OSError:
+   if attempt==2:raise
+   time.sleep(2 ** attempt)
 for key in ['source','signature','key']:
- data=urllib.request.urlopen(ff[key],timeout=90).read(20000001)
+ data=fetch(ff[key],20000001)
  if len(data)>20000000 or hashlib.sha256(data).hexdigest()!=ff[key+'_sha256']:raise ValueError('FFmpeg pinned source mismatch:'+key)
  (out/'downloads'/key).write_bytes(data)
 archives=[(out/'downloads/source','ffmpeg-'+ff['version'])]
 for row in codecs:
- data=urllib.request.urlopen(row['url'],timeout=90).read(10000001)
+ data=fetch(row['url'],10000001)
  if len(data)>10000000 or hashlib.sha256(data).hexdigest()!=row['sha256']:raise ValueError('Xiph pinned source mismatch')
  file=out/'downloads'/(row['name']+'.tar.xz');file.write_bytes(data);archives.append((file,row['name']+'-'+row['version']))
 for file,stem in archives:
