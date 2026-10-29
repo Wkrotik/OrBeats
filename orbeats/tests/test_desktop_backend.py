@@ -704,3 +704,32 @@ def test_windows_media_smoke_checks_both_frozen_rates(tmp_path, monkeypatch, fau
     else:
         assert module.check_codecs(Path("frozen-helper"), env, tmp_path) == [44100, 48000]
         assert calls == [44100, 48000]
+
+
+@pytest.mark.parametrize("rate", [44100, 48000])
+def test_windows_codec_fixture_bounds_native_writes(tmp_path, monkeypatch, rate):
+    import numpy as np
+    import soundfile as sf
+
+    spec = importlib.util.spec_from_file_location(
+        "windows_fixture_generator", ROOT / "desktop/development/smoke_windows_backend.py"
+    )
+    module = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(module)
+    original = sf.SoundFile.write
+    blocks = []
+
+    def bounded_write(stream, data):
+        assert 0 < len(data) <= 4096
+        blocks.append(len(data))
+        return original(stream, data)
+
+    monkeypatch.setattr(sf.SoundFile, "write", bounded_write)
+    fixture = module.codec_fixture(tmp_path, rate)
+    decoded, actual_rate = sf.read(fixture, always_2d=True)
+    assert actual_rate == rate and decoded.shape == (12 * rate + 1, 2)
+    assert sum(blocks) == len(decoded) and blocks[-1] == len(decoded) % 4096
+    times = np.arange(len(decoded)) / rate
+    expected = np.stack([0.25 * np.sin(2 * np.pi * 440 * times),
+                         0.2 * np.sin(2 * np.pi * 660 * times)], axis=1)
+    assert np.mean((decoded - expected) ** 2) < 0.0001

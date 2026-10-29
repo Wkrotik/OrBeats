@@ -36,9 +36,20 @@ def codec_fixture(root, rate):
         axis=1,
     )
     print(f"codec fixture {rate}: writing Vorbis", file=sys.stderr, flush=True)
-    sf.write(
-        fixture, samples, rate, format="OGG", subtype="VORBIS", compression_level=0.5
-    )
+    # A single twelve-second Vorbis write exhausts the Windows wheel encoder's
+    # native stack. Bound fixture generation without shortening the audio or
+    # avoiding any frozen decoder/resampler checks.
+    with sf.SoundFile(
+        fixture,
+        mode="w",
+        samplerate=rate,
+        channels=2,
+        format="OGG",
+        subtype="VORBIS",
+        compression_level=0.5,
+    ) as stream:
+        for offset in range(0, len(samples), 4096):
+            stream.write(samples[offset : offset + 4096])
     print(f"codec fixture {rate}: complete", file=sys.stderr, flush=True)
     return fixture
 
