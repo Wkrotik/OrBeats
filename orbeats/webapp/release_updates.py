@@ -15,7 +15,7 @@ from pathlib import Path
 from urllib.parse import urlsplit
 
 REPO = "Wkrotik/OrBeats"
-APP_VERSION = "0.1.13"
+APP_VERSION = "0.1.15"
 API = f"https://api.github.com/repos/{REPO}/releases/latest"
 PAGE = f"https://github.com/{REPO}/releases/latest"
 NAMES = {"main": "orbeats.prx", "extras": "orbeats_extras.prx"}

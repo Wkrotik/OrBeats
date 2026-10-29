@@ -1,3 +1,16 @@
+## 0.5394 — preserve additional basic environment lighting channels
+
+- Accept reviewed basic lighting event types16..19 in ordinary V3 and native V4
+  payloads (including V3-to-V4 conversion), rather than incorrectly limiting
+  every environment to types0..13. Preserve authored type/value/brightness/time.
+- Share an exact-integer allowlist; legacy spawn rotations14/15, unreviewed20/21,
+  special events40..43, BPM100 and NJS1000 remain excluded from this lighting path.
+  Check unused metadata rows too; no change to legacy V2 or explicit rotations.
+- Reproducer: public BeatSaver365ca ExpertPlus uses Gaga lighting types16..19.
+  Regression fixtures are synthetic; no source songs/game inputs are committed.
+- Import/bundle readback is offline evidence, not a PS4 playback result. Existing
+  installations and released desktop binaries are not modified automatically.
+
 ## 0.5393 — complete native V3 lighting keyword lists
 
 - Materialize `basicEventTypesWithKeywords: {"d": []}` in ordinary and preserved

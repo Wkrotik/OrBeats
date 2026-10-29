@@ -105,7 +105,21 @@ def check(root, source):
     if rate is None:
         raise ValueError("Unsupported Vorbis fixture rate")
     fsb, frames, crc = vorbis_audio.build_fsb(value, sample_rate=rate)
-    vorbis_audio.verify_fsb(fsb, frames, sample_rate=rate)
+    expected_pcm = None
+    if rate == 48000:
+        # Also exercise the packaged FFmpeg path used when comparing the48kHz
+        # preserved packets with the importer's44.1kHz normalization. Merely
+        # decoding FSB through libsndfile misses a missing raw-PCM muxer.
+        import subprocess
+
+        tool = Path(root) / "media/bin" / ("ffmpeg.exe" if sys.platform == "win32" else "ffmpeg")
+        decoded = subprocess.run(
+            [str(tool), "-nostdin", "-v", "error", "-i", "pipe:0", "-vn",
+             "-ac", "2", "-ar", "44100", "-c:a", "pcm_s16le", "-f", "s16le", "pipe:1"],
+            input=value, capture_output=True, check=True, timeout=120,
+        )
+        expected_pcm = decoded.stdout
+    vorbis_audio.verify_fsb(fsb, frames, expected_pcm, sample_rate=rate)
     # Linux diagnostic also rejects accidentally loaded host Xiph dependencies.
     if sys.platform == "win32":
         # Search restricted to DLL directory+System32, then independently inspect

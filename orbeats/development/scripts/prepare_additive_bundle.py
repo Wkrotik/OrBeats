@@ -214,7 +214,7 @@ def load_song(folder):
                         raise ValueError('invalid color-note ' + key)
             maxbeat = samples / 44100 * bpm / 60
             validate_arcs(data.get('sliders', []), maxbeat)
-            from additive_lighting import boosts, has_boxes, validate_boxes
+            from additive_lighting import boosts, has_boxes, is_basic_light_event_type, validate_boxes
             boosts(data.get('colorBoostBeatmapEvents', []), maxbeat)
             validate_boxes(data, maxbeat)
             if has_boxes(data) and environment not in NATIVE_ENVIRONMENTS:
@@ -238,7 +238,7 @@ def load_song(folder):
                         # Keep a bounded extent; do NOT widen note coordinates or accept mod geometry.
                         if e['x']+e['w']>8:raise ValueError('wall exceeds bounded vanilla extent')
                     else:
-                        if type(e['et']) is not int or not 0<=e['et']<=13 or type(e['i']) is not int:raise ValueError('invalid basic event')
+                        if not is_basic_light_event_type(e['et']) or type(e['i']) is not int:raise ValueError('invalid basic event')
                         finite(e['f'],'basic event float',-100000,100000)
             # Complete the minimal V3 schema; never fill it with stock notes.
             for key in ('bombNotes', 'obstacles', 'sliders', 'burstSliders', 'bpmEvents',

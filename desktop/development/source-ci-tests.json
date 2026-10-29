@@ -1,6 +1,7 @@
 {
   "scope": "Explicit source-only CI subset; not the complete owned-input local suite",
   "tests": [
+    "tests/test_additive_basic_light_types.py",
     "tests/test_additive_media_preparation.py",
     "tests/test_additive_menu_media.py",
     "tests/test_additive_menu_order.py",

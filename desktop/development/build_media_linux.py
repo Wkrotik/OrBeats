@@ -7,12 +7,14 @@ This is a development tool payload, not a complete desktop release/license gate.
 
 import argparse
 import hashlib
+import io
 import json
 import os
 import platform
 import shutil
 import subprocess
 import tarfile
+import wave
 from pathlib import Path
 from urllib.request import urlopen
 
@@ -37,9 +39,30 @@ FLAGS = [
     "--enable-demuxer=ogg,flac,mp3,aac,wav,mov",
     "--enable-parser=vorbis,opus,flac,mpegaudio,aac",
     "--enable-encoder=pcm_s16le",
-    "--enable-muxer=wav,s16le",
+    "--enable-muxer=wav,pcm_s16le",
     "--enable-filter=aresample,atrim,asetpts,anull,aformat,volume",
 ]
+
+
+def verify_pcm_pipe(ffmpeg):
+    """Exercise the raw-format path, not just -version/configure success.
+
+    FFmpeg's configure component is pcm_s16le; the CLI format is s16le.
+    A misspelled component can be ignored by configure without a failed build.
+    """
+    source = io.BytesIO()
+    with wave.open(source, "wb") as stream:
+        stream.setnchannels(2)
+        stream.setsampwidth(2)
+        stream.setframerate(48000)
+        stream.writeframes(bytes(4800 * 4))
+    result = subprocess.run(
+        [str(ffmpeg), "-nostdin", "-v", "error", "-i", "pipe:0", "-vn",
+         "-ac", "2", "-ar", "44100", "-c:a", "pcm_s16le", "-f", "s16le", "pipe:1"],
+        input=source.getvalue(), capture_output=True, check=True, timeout=30,
+    )
+    if result.stdout != bytes(4410 * 4):
+        raise ValueError("FFmpeg raw PCM pipe/resampling smoke failed")
 
 
 def sha(path):
@@ -146,6 +169,7 @@ def main():
         if "INTERP" in header or "DYNAMIC" in header:
             raise ValueError("Expected fully static tool: " + name)
         subprocess.run([str(target), "-version"], check=True, stdout=subprocess.DEVNULL)
+    verify_pcm_pipe(prefix / "bin/ffmpeg")
     legal = prefix / "legal"
     legal.mkdir()
     for name in ("COPYING.LGPLv2.1", "LICENSE.md"):

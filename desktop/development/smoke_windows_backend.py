@@ -20,6 +20,51 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parents[2]
 
 
+def check_codecs(executable, env, root):
+    """Synthetic frozen-media checks; callable in host tests without Windows."""
+    import numpy as np
+    import soundfile as sf
+
+    # Exercise the frozen codec path, including48kHz preserved-audio
+    # verification, with no host Python/FFmpeg in the child search path.
+    codec_rates = []
+    for rate in (44100, 48000):
+        times = np.arange(12 * rate + 1) / rate
+        fixture = root / f"original-{rate}.ogg"
+        sf.write(
+            fixture,
+            np.stack(
+                [
+                    0.25 * np.sin(2 * np.pi * 440 * times),
+                    0.2 * np.sin(2 * np.pi * 660 * times),
+                ],
+                axis=1,
+            ),
+            rate,
+            format="OGG",
+            subtype="VORBIS",
+            compression_level=0.5,
+        )
+        checked = subprocess.run(
+            [str(executable), "--desktop-check-codecs", str(fixture)],
+            env=env,
+            check=False,
+            capture_output=True,
+            text=True,
+            timeout=90,
+        )
+        if checked.returncode:
+            raise ValueError(
+                f"Frozen {rate}Hz codec check failed: " + checked.stderr[-4000:]
+            )
+        codec = json.loads(checked.stdout)
+        assert codec["bundled_codecs_only"] and codec["host_discovery_disabled"]
+        assert codec["independent_decode"] and codec["console_writes"] is False
+        assert codec["rate"] == rate and codec["frames"] == 12 * rate + 1
+        codec_rates.append(rate)
+    return codec_rates
+
+
 def smoke(executable):
     if sys.platform != "win32":
         raise ValueError("Native Windows execution required")
@@ -35,6 +80,7 @@ def smoke(executable):
     (ROOT / "temp").mkdir(exist_ok=True)
     with tempfile.TemporaryDirectory(prefix="windows-smoke-", dir=ROOT / "temp") as tmp:
         root = Path(tmp)
+        codec_rates = check_codecs(executable, env, root)
         source = root / "source"
         source.mkdir()
         Image.new("RGB", (64, 64), (50, 80, 120)).save(source / "cover.png")
@@ -162,6 +208,7 @@ def smoke(executable):
     return {
         "native_windows": True,
         "frozen_import": True,
+        "frozen_codec_rates": codec_rates,
         "host_python_or_ffmpeg_on_path": False,
         "private_bootstrap": True,
         "graceful_stop": True,

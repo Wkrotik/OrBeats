@@ -21,6 +21,15 @@ REVIEWED_ENVIRONMENT = "WeaveEnvironment"
 # Owned PS4 2.04 catalog scene assets; no custom/downloading environment support.
 NATIVE_ENVIRONMENTS = frozenset(('BTSEnvironment', 'BigMirrorEnvironment', 'BillieEnvironment', 'BritneyEnvironment', 'ColliderEnvironment', 'CrabRaveEnvironment', 'DaftPunkEnvironment', 'DefaultEnvironment', 'Dragons2Environment', 'DragonsEnvironment', 'EDMEnvironment', 'FitBeatEnvironment', 'GagaEnvironment', 'GreenDayEnvironment', 'GreenDayGrenadeEnvironment', 'HalloweenEnvironment', 'HipHopEnvironment', 'InterscopeEnvironment', 'KDAEnvironment', 'KaleidoscopeEnvironment', 'LatticeEnvironment', 'LinkinPark2Environment', 'LinkinParkEnvironment', 'LizzoEnvironment', 'MetallicaEnvironment', 'Monstercat2Environment', 'MonstercatEnvironment', 'NiceEnvironment', 'OriginsEnvironment', 'Panic2Environment', 'PanicEnvironment', 'PyroEnvironment', 'QueenEnvironment', 'RockMixtapeEnvironment', 'RocketEnvironment', 'SkrillexEnvironment', 'TheRollingStonesEnvironment', 'TheSecondEnvironment', 'TheWeekndEnvironment', 'TimbalandEnvironment', 'TriangleEnvironment', 'WeaveEnvironment'))
 EASE_TYPES = frozenset((*range(-1, 31), 100, 101, 102))
+# CUSA12878/2.04 BasicBeatmapEventType: additional environment lighting
+# channels 16..19 are ordinary basic events (e.g. Gaga). Deliberately exclude
+# legacy spawn rotations 14/15, unreviewed 20/21, specials 40..43, BPM 100 and
+# NJS 1000. Enum membership alone does not establish lighting support.
+BASIC_LIGHT_EVENT_TYPES = frozenset((*range(14), *range(16, 20)))
+
+
+def is_basic_light_event_type(value):
+    return type(value) is int and value in BASIC_LIGHT_EVENT_TYPES
 
 
 def scalar(value, label, low, high, integer=False):

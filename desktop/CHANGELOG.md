@@ -1,3 +1,17 @@
+## 0.1.15 — import compatibility patch
+
+- Restore horizontal page controls below the results (companion0.7.31).
+- Include pipeline0.5394's Borderline lighting-event validation fix.
+- Correct FFmpeg's configure muxer name to pcm_s16le (CLI format s16le), fixing
+  the48kHz preserved-audio verification failure. Gate media builds on actual
+  PCM pipe/resampling output, and exercise48kHz in frozen-codec regressions.
+- Native Windows release checks now exercise frozen44.1/48kHz codec verification
+  without host tools. Interactive Windows testing remains unperformed.
+- Owner confirmed Borderline imports, installed maps and in-app previews work
+  with the corrected Linux candidate. Keep original horizontal pagination.
+- Consolidate supporting source/notices/provenance into one labelled archive;
+  retain the required update manifest and optional verification checksums.
+
 ## 0.1.12 — canonical transparent branding and source layout
 
 - Use the supplied root icon.svg in the companion and startup UI; regenerate

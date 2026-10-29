@@ -111,6 +111,11 @@ def test_native_import_and_complete_bundle_preserve_payloads(tmp_path):
     info["environmentNames"] = ["EDMEnvironment"]
     (root / "Info.dat").write_text(json.dumps(info))
     data, show = advanced(), lights()
+    # Synthetic equivalents of Gaga's additional basic lighting channels must
+    # survive real UnityFS/gzip readback, not merely pass a numeric range check.
+    for event_type in (16, 17, 18, 19):
+        show["basicEvents"].append(dict(b=0.5, i=len(show["basicEventsData"])))
+        show["basicEventsData"].append(dict(t=event_type, i=4, f=1))
     (root / "ExpertPlus.dat").write_text(json.dumps(data))
     (root / "Lightshow.dat").write_text(json.dumps(show))
     normalized, converted = tmp_path / "v4", tmp_path / "v3"

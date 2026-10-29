@@ -155,7 +155,7 @@ else if(path==='/api/orbis/extras'){if(options.method==='POST'){window.testPlugi
 else if(path==='/api/orbis/updates')value=window.testUpdateOffline?{state:'unavailable',message:'Update check unavailable. This does not mean up to date.'}:{state:'checked',message:'Official GitHub release checked.',versions:{app:{current:'0.1.13',latest:'0.1.14',update_available:true},main:{current:'0.8079',latest:'0.8079',update_available:false},extras:{current:'0.0009',latest:'0.0010',update_available:true}}};
 else if(path.startsWith('/api/orbis/updates/')&&options.method==='POST'){window.testPluginWrites.push(path.split('/').at(-1));value={ok:true,message:'Release installed (offline fixture)'}}
 else if(path==='/api/ping')value={webapp_version:'0.7.15',pipeline_version:'0.5383',plugin_version:'v0.8071'};
-else if(path.startsWith('/api/orbis/search?'))value={docs:[map]};
+else if(path.startsWith('/api/orbis/search?'))value={docs:window.testSearchPages?.[new URL(path,location.href).searchParams.get('page')]||[map]};
 else if(path.startsWith('/api/jobs/lines?')){const p=window.testProgress,q=new URL(path,location.href).searchParams;value={...p,lines:p.lines.slice(q.get('job_id')===p.job?.id?Number(q.get('after')):0)}}
 else if(path==='/api/install-queue'){if(options.method==='POST'){const b=JSON.parse(options.body);window.testQueue.pending.push({id:'entry-'+b.map_id,map_id:b.map_id,title:b.title,status:'queued'});value={ok:true}}else value=window.testQueue}
 else if(path==='/api/install-queue/clear'){window.testQueue.pending=[];window.testQueue.paused=true;value=window.testQueue}
@@ -179,6 +179,33 @@ try {
   await send('Page.addScriptToEvaluateOnNewDocument', { source: hooks });
   await send('Emulation.setDeviceMetricsOverride', { width: 1440, height: 1100, deviceScaleFactor: 1, mobile: false });
   await send('Page.bringToFront'); await send('Page.navigate', { url: app });
+  await until("document.querySelectorAll('#results .card').length===1");
+  // All20 songs remain in the grid; horizontal pagination stays below it at any column count.
+  await evaluate(`window.savedPagination=document.getElementById('pagination');window.testSearchPages=[Array.from({length:20},(_,i)=>({...state.maps[0],id:(4096+i).toString(16),metadata:{...state.maps[0].metadata,songName:'Result '+(i+1)}})),Array.from({length:3},(_,i)=>({...state.maps[0],id:(8192+i).toString(16)}))];search()`);
+  await until("document.querySelectorAll('#results .card').length===20");
+  assert.deepEqual(await evaluate("[...document.querySelectorAll('#results .card h3')].map(e=>e.textContent)"),Array.from({length:20},(_,i)=>'Result '+(i+1)));
+  assert.equal(await evaluate("document.getElementById('results').nextElementSibling===window.savedPagination&&!document.querySelector('#results #pagination')"),true);
+  assert.equal(await evaluate("document.getElementById('previous').disabled&&!document.getElementById('next').disabled"),true);
+  assert.equal(await evaluate("(()=>{const p=document.getElementById('pagination').getBoundingClientRect(),r=document.getElementById('results').getBoundingClientRect(),a=document.getElementById('previous').getBoundingClientRect(),b=document.getElementById('next').getBoundingClientRect();return r.width>0&&p.top>=r.bottom&&Math.abs(a.top-b.top)<1&&a.right<b.left})()"),true);
+  await evaluate("document.getElementById('next').click()");
+  await until("document.getElementById('page-number').textContent==='Page 2'&&document.querySelectorAll('#results .card').length===3");
+  assert.equal(await evaluate("!document.getElementById('previous').disabled&&document.getElementById('next').disabled&&document.getElementById('pagination')===window.savedPagination"),true);
+  // A partial page still keeps pagination separate and horizontal.
+  assert.equal(await evaluate("(()=>{const p=document.getElementById('pagination').getBoundingClientRect(),r=document.getElementById('results').getBoundingClientRect(),a=document.getElementById('previous').getBoundingClientRect(),b=document.getElementById('next').getBoundingClientRect();return r.width>0&&p.top>=r.bottom&&Math.abs(a.top-b.top)<1&&a.right<b.left})()"),true);
+  await evaluate("document.getElementById('previous').click()");
+  await until("document.getElementById('page-number').textContent==='Page 1'&&document.querySelectorAll('#results .card').length===20");
+  // Fullscreen: five song columns, no sixth pagination tile/extra grid row.
+  await send('Emulation.setDeviceMetricsOverride', {width:1920,height:1080,deviceScaleFactor:1,mobile:false});
+  assert.equal(await evaluate("getComputedStyle(document.getElementById('results')).gridTemplateColumns.split(' ').length"),5);
+  assert.equal(await evaluate("document.getElementById('results').children.length===20&&document.getElementById('results').nextElementSibling===window.savedPagination"),true);
+  await evaluate("document.querySelector('main').scrollTop=document.querySelector('main').scrollHeight");
+  const paginationShot=await send('Page.captureScreenshot',{format:'png',captureBeyondViewport:false});
+  await writeFile(output+'/pagination-horizontal-fullscreen.png',Buffer.from(paginationShot.data,'base64'));
+  await send('Emulation.setDeviceMetricsOverride', {width:1440,height:1100,deviceScaleFactor:1,mobile:false});
+  await evaluate("window.testSearchPages=[[]];search()");
+  await until("document.querySelector('#results .empty')?.textContent.includes('No maps found')");
+  assert.equal(await evaluate("document.getElementById('results').nextElementSibling===window.savedPagination&&document.getElementById('previous').disabled&&document.getElementById('next').disabled"),true);
+  await evaluate("delete window.testSearchPages;search();document.querySelector('main').scrollTop=0");
   await until("document.querySelectorAll('#results .card').length===1");
   assert.equal(await evaluate('document.title'), 'OrBeats');
   assert.equal(await evaluate("document.getElementById('sort').value"), 'Relevance');
@@ -467,6 +494,10 @@ try {
   const libraryMobile = await send('Page.captureScreenshot', {format:'png',captureBeyondViewport:false});
   await writeFile(output + '/library-mobile.png', Buffer.from(libraryMobile.data,'base64'));
   assert.deepEqual(errors, []);
+  await evaluate("setTab('discover')");
+  assert.equal(await evaluate("document.getElementById('discover').hidden"),false);
+  assert.equal(await evaluate("document.getElementById('results').nextElementSibling===document.getElementById('pagination')"),true);
+  assert.equal(await evaluate("(()=>{const p=document.getElementById('pagination').getBoundingClientRect(),r=document.getElementById('results').getBoundingClientRect(),a=document.getElementById('previous').getBoundingClientRect(),b=document.getElementById('next').getBoundingClientRect();return r.width>0&&p.top>=r.bottom&&Math.abs(a.top-b.top)<1&&a.right<b.left})()"),true);
   console.log(JSON.stringify({ ok: true, viewport: '1440x1100 + 390x844', checks: ['minimal header/brand', 'escaped metadata', 'cover click preview start/stop', 'library cover retry without search cache', 'new and legacy map information without library playback controls', 'visible paused-queue removal guard', 'compression-test removal and selected-only serial bulk removal', 'bulk failure stops and selection refresh', 'opt-in whole-card/keyboard library selection', 'metadata compatibility hints, vote counts and relative dates', 'quiet sidebar queue, failed-map Retry and popup', 'active/last log before80history entries, bounded desktop/mobile scroll, follow/pause/jump with no focus or page-scroll theft', 'solid dismissible bottom toast without reflow/focus theft', 'Downloads/details outside-click dismissal, padding/drag/cancel guards desktop/mobile', 'in-page confirmation/accept/cancel/Escape', 'primary button hover contrast', 'read-only binary plugin version and registration check', 'Extras/version and explicit confirmed bundled/release installation (mock writes only)', 'official updates/offline state', 'sidebar stable under repeated wheel scrolling', 'compact connection + Updates columns on desktop and mobile', 'settings', 'no horizontal overflow', 'no JS exceptions'], contrast, consoleWrites: false, api: 'offline fixtures', screenshots: output }, null, 2));
 } finally {
   socket.close(); await fetch(cdp + '/json/close/' + page.id);

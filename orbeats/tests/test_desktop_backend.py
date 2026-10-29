@@ -383,7 +383,8 @@ def test_refuse_unsafe_codec_profiles(packaged, full_codec_payload, tmp_path, fa
     assert not (tmp_path / "bad").exists()
 
 
-def test_frozen_bundled_codec_roundtrip_without_host_discovery(tmp_path):
+@pytest.mark.parametrize("rate", [44100, 48000])
+def test_frozen_bundled_codec_roundtrip_without_host_discovery(tmp_path, rate):
     executable = os.environ.get("ORBEATS_TEST_FROZEN_BACKEND")
     if not executable:
         pytest.skip("Provide optional frozen helper")
@@ -392,12 +393,12 @@ def test_frozen_bundled_codec_roundtrip_without_host_discovery(tmp_path):
         pytest.skip("Frozen helper has no full codec profile")
     np = pytest.importorskip("numpy")
     sf = pytest.importorskip("soundfile")
-    t = np.arange(12 * 44100 + 1) / 44100
+    t = np.arange(12 * rate + 1) / rate
     source = tmp_path / "original.ogg"
     sf.write(
         source,
         np.stack([0.25 * np.sin(2 * np.pi * 440 * t), 0.2 * np.sin(2 * np.pi * 660 * t)], axis=1),
-        44100,
+        rate,
         format="OGG",
         subtype="VORBIS",
         compression_level=0.5,
@@ -414,7 +415,7 @@ def test_frozen_bundled_codec_roundtrip_without_host_discovery(tmp_path):
     assert result.returncode == 0, result.stderr
     row = json.loads(result.stdout)
     assert row["bundled_codecs_only"] and row["host_discovery_disabled"] and row["independent_decode"]
-    assert row["frames"] == 529201 and row["rate"] == 44100 and row["console_writes"] is False
+    assert row["frames"] == 12 * rate + 1 and row["rate"] == rate and row["console_writes"] is False
 
 
 def pe_fixture(dll=False):
@@ -639,3 +640,67 @@ def test_appimage_compressor_is_verified_before_assembly(tmp_path, monkeypatch):
     with pytest.raises(ValueError, match="tool integrity failure"):
         module.assemble(tmp_path / "appdir", tmp_path / "backend", tmp_path / "output", plugin)
     assert not (tmp_path / "output").exists()
+
+
+def test_media_recipe_requires_raw_pcm_muxer_and_checks_actual_output(monkeypatch):
+    from types import SimpleNamespace
+
+    spec = importlib.util.spec_from_file_location("media_recipe", ROOT / "desktop/development/build_media_linux.py")
+    recipe = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(recipe)
+    assert "--enable-muxer=wav,pcm_s16le" in recipe.FLAGS
+    assert "--enable-muxer=wav,s16le" not in recipe.FLAGS
+    def run(argv, **kwargs):
+        assert argv[-3:] == ["-f", "s16le", "pipe:1"]
+        assert kwargs["check"] and kwargs["input"].startswith(b"RIFF")
+        return SimpleNamespace(stdout=bytes(4410 * 4))
+    monkeypatch.setattr(recipe.subprocess, "run", run)
+    recipe.verify_pcm_pipe(Path("ffmpeg"))
+    monkeypatch.setattr(recipe.subprocess, "run", lambda *a, **kw: SimpleNamespace(stdout=b""))
+    with pytest.raises(ValueError, match="raw PCM"):
+        recipe.verify_pcm_pipe(Path("ffmpeg"))
+
+
+@pytest.mark.parametrize("fault", [None, "exit", "host", "frames"])
+def test_windows_media_smoke_checks_both_frozen_rates(tmp_path, monkeypatch, fault):
+    from types import SimpleNamespace
+
+    import soundfile as sf
+
+    spec = importlib.util.spec_from_file_location(
+        "windows_media_smoke", ROOT / "desktop/development/smoke_windows_backend.py"
+    )
+    module = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(module)
+    env = {"PATH": "only-system-tools", "ORBEATS_RUNTIME_ROOT": "owned-runtime"}
+    calls = []
+
+    def run(argv, **kwargs):
+        assert argv[:2] == ["frozen-helper", "--desktop-check-codecs"]
+        assert kwargs["env"] is env and kwargs["timeout"] == 90
+        info = sf.info(argv[2])
+        assert info.format == "OGG" and info.subtype == "VORBIS"
+        rate = info.samplerate
+        calls.append(rate)
+        assert info.frames == 12 * rate + 1
+        result = {
+            "bundled_codecs_only": fault != "host",
+            "host_discovery_disabled": True,
+            "independent_decode": True,
+            "console_writes": False,
+            "rate": rate,
+            "frames": info.frames + (1 if fault == "frames" else 0),
+        }
+        return SimpleNamespace(
+            returncode=1 if fault == "exit" else 0,
+            stdout=json.dumps(result), stderr="codec failed",
+        )
+
+    monkeypatch.setattr(module.subprocess, "run", run)
+    if fault:
+        with pytest.raises(ValueError if fault == "exit" else AssertionError):
+            module.check_codecs(Path("frozen-helper"), env, tmp_path)
+        assert calls == [44100]
+    else:
+        assert module.check_codecs(Path("frozen-helper"), env, tmp_path) == [44100, 48000]
+        assert calls == [44100, 48000]

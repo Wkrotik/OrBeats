@@ -273,7 +273,7 @@ def test_release_stager_derives_manifest_and_marks_missing_platform(monkeypatch,
     (tmp_path / "temp").mkdir()
     config = tmp_path / "desktop/src-tauri/tauri.conf.json"
     config.parent.mkdir(parents=True)
-    config.write_text(json.dumps({"version": "0.1.13"}))
+    config.write_text(json.dumps({"version": updates.APP_VERSION}))
     monkeypatch.setattr(module, "ROOT", tmp_path)
     output = tmp_path / "temp/assets"
     result = module.stage(output, main_artifact(tmp_path), artifact(tmp_path))

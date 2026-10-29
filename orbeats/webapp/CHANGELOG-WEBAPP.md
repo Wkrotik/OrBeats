@@ -1,3 +1,19 @@
+## 0.7.31 — restore pagination below search results
+
+- Revert the experimental in-grid page-selector card. Restore the original
+  horizontal Previous / page / Next controls below the song grid at every width,
+  including fullscreen five-column layouts. No result slots are navigation cards.
+- Keep pipeline0.5394's Borderline import fix in the local desktop test build.
+
+## 0.7.30 — pagination as the last discovery card
+
+- Put Previous, page number and Next vertically inside a final song-sized grid
+  card. Preserve control nodes/handlers while searches replace song results.
+- Keep all returned songs in order; equal grid rows retain card height when the
+  navigation card sits alone on the last row. Preserve mobile layout and disabled
+  first/last-page controls; navigation is not a map/install target.
+- Local desktop test build includes pipeline0.5394's Borderline lighting fix.
+
 ## 0.7.29 — compact connection and update settings
 
 - Stack Updates directly below PlayStation connection in the left settings

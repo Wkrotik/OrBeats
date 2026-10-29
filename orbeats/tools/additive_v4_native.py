@@ -9,7 +9,7 @@ from __future__ import annotations
 import copy
 import math
 
-from additive_lighting import EASE_TYPES
+from additive_lighting import BASIC_LIGHT_EVENT_TYPES, EASE_TYPES, is_basic_light_event_type
 
 
 def number(v, name, lo=0, hi=1000000, integer=False):
@@ -187,7 +187,7 @@ def chart(data, maxbeat, base_njs=10):
 def lighting(data, maxbeat):
     ease = (-1, 102, True)
     fields = {
-        "basicEventsData": {"t": (0, 13, True), "i": (-100000, 100000, True), "f": (-100000, 100000, False)},
+        "basicEventsData": {"t": (0, max(BASIC_LIGHT_EVENT_TYPES), True), "i": (-100000, 100000, True), "f": (-100000, 100000, False)},
         "colorBoostEventsData": {"b": (0, 1, True)},
         "indexFilters": {
             "f": (0, 2, True),
@@ -254,6 +254,8 @@ def lighting(data, maxbeat):
     for key, schema in fields.items():
         for row in rows(data.get(key, []), key):
             scalar_record(row, schema, key)
+            if key == "basicEventsData" and not is_basic_light_event_type(row.get("t", 0)):
+                raise ValueError("invalid native V4 basicEventsData.t")
         total += len(data.get(key, []))
     for key, table in [
         ("basicEvents", "basicEventsData"),

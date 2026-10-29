@@ -58,6 +58,14 @@ unset CFLAGS CPPFLAGS LDFLAGS LIBRARY_PATH PKG_CONFIG_PATH PKG_CONFIG_LIBDIR
 export CC=gcc CXX=g++
 (cd "$OUT/ffmpeg-8.0.1"; ./configure --target-os=mingw32 --arch=x86_64 --cc=gcc --cxx=g++ "${FLAGS[@]}"; make -j4) > "$OUT/ffmpeg-build.log" 2>&1
 cp "$OUT/ffmpeg-8.0.1/ffmpeg.exe" "$OUT/ffmpeg-8.0.1/ffprobe.exe" "$OUT/payload/bin/"
+# Reject ignored/missing raw muxer support before sealing any payload.
+python - <<'PYSMOKE'
+import importlib.util,os,pathlib
+root=pathlib.Path(os.environ['ROOT']);out=pathlib.Path(os.environ['OUT'])
+spec=importlib.util.spec_from_file_location('media_recipe',root/'desktop/development/build_media_linux.py')
+module=importlib.util.module_from_spec(spec);spec.loader.exec_module(module)
+module.verify_pcm_pipe(out/'payload/bin/ffmpeg.exe')
+PYSMOKE
 for STEM in libogg-1.3.6 libvorbis-1.3.7; do
  (
   cd "$OUT/$STEM"

@@ -174,7 +174,9 @@ def main():
             raise ValueError("Use --desktop-check-codecs ORIGINAL_VORBIS_OGG")
         root = Path(os.environ["ORBEATS_RUNTIME_ROOT"]).resolve()
         verify(root)
-        sys.path[:0] = [str(root / "tools")]
+        # Match production task setup, including the reviewed bundled FFmpeg
+        # on PATH for the48kHz verification subprocess. No host tool fallback.
+        runtime_path(root)
         from media_codecs import check
 
         check(root, Path(sys.argv[2]))
