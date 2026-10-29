@@ -328,3 +328,12 @@ def test_dependency_notices_refuse_escaping_paths(monkeypatch, tmp_path, relativ
     monkeypatch.setattr(module.importlib.metadata, "distributions", lambda: [dist])
     with pytest.raises(ValueError, match="Escaping"):
         module.dependency_notices(tmp_path / "notices")
+
+
+def test_offline_ffmpeg_attestation_matches_pinned_vendor_bytes():
+    import hashlib
+    lock = json.loads((ROOT / "desktop/development/media-linux-lock.json").read_text())["ffmpeg"]
+    for key in ("signature", "key"):
+        data = (ROOT / "desktop/legal" / ("ffmpeg-8.0.1-" + key + ".txt")).read_bytes()
+        assert hashlib.sha256(data).hexdigest() == lock[key + "_sha256"]
+        assert b"PRIVATE KEY" not in data

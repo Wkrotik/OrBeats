@@ -27,7 +27,7 @@ def fetch(url, limit):
  if len(result.stdout)>limit:raise ValueError('Oversized source')
  return result.stdout
 for key in ['source','signature','key']:
- data=fetch(ff[key],20000001)
+ data=(root/'desktop/legal'/('ffmpeg-8.0.1-'+key+'.txt')).read_bytes() if key in {'signature','key'} else fetch(ff[key],20000001)
  if len(data)>20000000 or hashlib.sha256(data).hexdigest()!=ff[key+'_sha256']:raise ValueError('FFmpeg pinned source mismatch:'+key)
  (out/'downloads'/key).write_bytes(data)
 archives=[(out/'downloads/source','ffmpeg-'+ff['version'])]
