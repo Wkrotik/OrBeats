@@ -8,19 +8,24 @@ OUT="$(realpath -m "${1:?fresh project-local temp output required}")"
 [[ "$OUT" == "$ROOT"/temp/* && ! -e "$OUT" ]] || { echo 'Choose fresh project-local temp output' >&2; exit 2; }
 mkdir -p "$OUT/downloads" "$OUT/gnupg" "$OUT/payload/bin" "$OUT/payload/lib" "$OUT/payload/legal"
 chmod 700 "$OUT/gnupg"
-export ROOT OUT
+# Native Windows curl uses the Windows TLS stack, avoiding MSYS Python's
+# repeatedly-reset OpenSSL handshakes. Integrity/signature gates below remain.
+NATIVE_CURL="$(cygpath -u "${WINDIR:?Windows directory required}")/System32/curl.exe"
+[[ -f "$NATIVE_CURL" ]] || { echo 'Native Windows curl is required' >&2; exit 2; }
+export ROOT OUT NATIVE_CURL
 python - <<'PY'
-import json,os,pathlib,hashlib,urllib.request,tarfile,time
+import json,os,pathlib,hashlib,tarfile,subprocess
 root=pathlib.Path(os.environ['ROOT']);out=pathlib.Path(os.environ['OUT'])
 ff=json.loads((root/'desktop/development/media-linux-lock.json').read_text())['ffmpeg']
 codecs=json.loads((root/'desktop/development/codecs-linux-lock.json').read_text())['sources']
 def fetch(url, limit):
- for attempt in range(3):
-  try:
-   with urllib.request.urlopen(url,timeout=90) as response:return response.read(limit)
-  except OSError:
-   if attempt==2:raise
-   time.sleep(2 ** attempt)
+ if not url.startswith('https://'):raise ValueError('Source must use HTTPS')
+ result=subprocess.run([os.environ['NATIVE_CURL'],'--fail','--location',
+  '--proto','=https','--proto-redir','=https','--retry','3','--retry-all-errors',
+  '--connect-timeout','30','--max-time','180','--max-filesize',str(limit),
+  '--silent','--show-error',url],check=True,stdout=subprocess.PIPE)
+ if len(result.stdout)>limit:raise ValueError('Oversized source')
+ return result.stdout
 for key in ['source','signature','key']:
  data=fetch(ff[key],20000001)
  if len(data)>20000000 or hashlib.sha256(data).hexdigest()!=ff[key+'_sha256']:raise ValueError('FFmpeg pinned source mismatch:'+key)
