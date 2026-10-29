@@ -1,133 +1,91 @@
-# Release readiness — desktop 0.1.13
+# OrBeats 0.1.13 — release scope and evidence
 
-**Targets:** Windows x64 NSIS installer (`.exe`, not a ZIP), Linux x64
-AppImage, `orbeats.prx` 0.8079 and `orbeats_extras.prx` 0.0009. No macOS/ARM
-support is claimed. Pipeline 0.5393; webapp 0.7.28.
+**Release targets:** Windows x64 NSIS installer (`.exe`, no installer ZIP), Linux
+x64 AppImage, `orbeats.prx` **0.8079**, and optional `orbeats_extras.prx`
+**0.0009**. Webapp **0.7.28**; pipeline **0.5393**. No macOS, ARM, other game
+region/patch, or arbitrary managed-mod support is claimed.
 
-The owner has authorized source commit/push, release publication and making the
-repository public **after** the release is ready. That permission is not itself
-proof that these technical/distribution gates passed. The repository must remain
-private while publication is incomplete. Only the audited source-only checkout
-is pushed; no game inputs, dumps, songs, console backups or personal profiles.
+This is an early unsigned desktop release. Build/test evidence below is not a
+claim of universal hardware support, independent security certification, or a
+legal opinion. Known manual test gaps remain explicit rather than being marked
+passed. Downloadable notices and source material accompany the binaries.
 
-## Current preparation
+## Included changes
 
-- Extras installation is a separate closed-title/readback/local-rollback
-  transaction. It preserves the main plugin, library and existing health settings.
-- Official stable GitHub release checks distinguish unavailable from up to date.
-  Explicit plugin downloads require the release manifest's size, SHA-256 and
-  embedded version before reaching the existing guarded installer. App upgrades
-  remain manual. Checks compare bundled plugin versions, not unchecked PS4 state.
-- Removed the redundant sidebar text/theme button (theme remains in Settings).
-  Desktop content scrolls independently of the sidebar. The startup view is hidden
-  before the authenticated main view appears; closing hides both views while the
-  backend drains active mutations. Windows child jobs use CREATE_NO_WINDOW.
-- Offline browser fixtures cover confirmations, Extras/version display, release
-  and unavailable states, sidebar wheel scrolling and existing desktop/mobile UI.
-- New final AppImage: 179,902,968 bytes, SHA-256
-  `52c60618f35d5746d67c6d4c7d8cf0f393f74fd98fcb7c76202bf90592c67cca`.
-  All 467 ELF files pass GLIBC <= 2.35 and no-private-GLIBC checks. Actual image
-  launch/WM-close in an isolated Ubuntu 22.04 runtime proves one visible app view,
-  no resurfaced close window, graceful backend drain and a fresh paused queue.
-- GitHub SSH fetch/push works. The configured API token authenticates the owner
-  but returns 404 for this private repository (also through GitHub MCP). Release
-  creation/asset download/visibility administration need authorized repository API
-  access. Do not make the repository public early to work around this.
-- `desktop/packaging/stage_release.py` curates exact assets/checksums/feed manifest
-  into a fresh local folder. Missing Windows/Linux output is explicitly incomplete.
-  This tool never publishes, copies a whole working directory or claims legal or
-  installer lifecycle approval.
+- Extras installation is a separate closed-title, full-readback, local-rollback
+  transaction. It preserves the main plugin, song library and health settings.
+- Official GitHub stable-release checks distinguish unavailable from up to date.
+  Explicit plugin installation verifies size, SHA-256 and embedded version before
+  entering the existing guarded installer. Desktop upgrades remain manual.
+  Bundled-version checks do not pretend to inspect an offline console.
+- Removed redundant sidebar text and theme button; theme remains in Settings.
+  Desktop content scrolls separately from the sidebar. Only the authenticated
+  main view is presented after startup; closing hides both webviews while the
+  backend drains active work. Windows child jobs use `CREATE_NO_WINDOW`.
+- Vendor source downloads retain pinned hashes and FFmpeg signature verification.
+  The exact public signing key/signature are preserved offline, avoiding a flaky
+  live metadata endpoint. No private key or unsigned fallback is used.
 
-## Confirmed hardware scope
+## Validation completed
 
-Custom songs and Animals Hard/lighting repair were confirmed on the user's PS4.
-Extras health-warning dismissal and anonymous read-only ScoreSaber retrieval were
-confirmed; the later top-ten/unprefixed-name change still needs a user check.
-This does not establish every authored colour/Practice/stock feature combination.
-See `map-hardware-test-matrix.md`. Other game regions/patches, arbitrary managed
-mods and custom environments remain unsupported.
+- Full host suite: **1,865 passed / 124 skipped**, one inherited Starlette warning.
+  Sanitized source checkout: **1,019 passed / 111 skipped** with the frozen-helper
+  integration enabled. Hosted source CI has no owned game inputs and therefore
+  has additional explicit skips. Seven native Rust release tests pass.
+- Offline browser fixtures cover Extras and release states, confirmation/cancel,
+  unavailable/offline honesty, wheel-scroll sidebar geometry and desktop/mobile
+  regressions. Fake-FTP tests cover scoped installation, rollback and preservation.
+- The final notice-bearing Linux AppImage is **179,968,504 bytes**, SHA-256
+  `04f90047595cde753db2a78b568ac0942196a033fadb0bdbcbf822196fd6f32c`.
+  Its 467 ELFs pass the GLIBC <= 2.35/no-private-GLIBC audit. Actual-image launch
+  and WM-close in an isolated Ubuntu 22.04 userspace show one visible app window,
+  no resurfaced closing window, graceful backend drain and a paused fresh queue.
+  Offline synthetic import in that runtime, with empty PATH and no host Python
+  or FFmpeg, verifies resource hashes, five difficulties and 529,200 samples.
+- Windows uses a target-native hosted build: pinned source-built FFmpeg/Ogg/Vorbis,
+  frozen-helper conversion/bootstrap/drain checks, MSVC tests, live-output tests,
+  and NSIS generation. The release provenance identifies the exact successful run
+  and asset hashes; an older run is never substituted as evidence for a new binary.
 
-## Linux packaging milestones actually completed
+## Distribution material
 
-- Native UI with owned private authenticated backend, fresh profile, graceful
-  close/drain and paused restart; no public network server or remote Tauri powers.
-- Pinned static FFmpeg8.0.1/ffprobe + source-built Ogg1.3.6/Vorbis1.3.7, licenses,
-  source locks/build recipes; upstream codec checks and independent FSB decode.
-  Explicit owned codec loading refuses partial/tampered inventories and failed
-  loads, rather than falling back to foreign host codecs.
-- Primary AppImage, optionaldeb configs parsed by actual locked Tauri types;
-  pinned CLI/linuxdeploy/output tools, project-local only.
-- Sealed backend restored after linuxdeploy's ELF rewriting, full readback and
-  manifest checks preserved. No private game data, profile or songs copied.
-- **New0.1.6 candidate rebuilt inside Ubuntu22.04 / GLIBC2.35**: Rust1.90.0,
-  CPython3.12.16, shell/helper/media/codec builds, all467AppDir ELFs meet the numeric
-  ABI bound with no `GLIBC_PRIVATE`. Omit the generated GLIBC libmvec companion;
-  the runtime's matching libc supplies it. Do not bundle laptop libc.
-- Optimized release-profile native shell and actual final image open/close in a separate minimal Ubuntu22.04 userspace
-  with normal graphics/fonts/CA but no host `/usr`, GTK/WebKit, Python, FFmpeg or
-  build tools; normal DNS/hosts config is read-only-mounted, live discovery renders.
-  Same image also passes modern Arch-host window/close test.
-  Extracted-image offline conversion verifies hashes and five-difficulty12s audio
-  inside the separate runtime with empty PATH. No PS4 writes or webqueue changes.
+The release includes `SHA256SUMS`, the app's `release-manifest.json`, and a
+`release-provenance.json` identifying the actual build/test scope. Source/notices
+archives are developer/compliance material, **not** ZIP wrappers around the
+Windows download:
 
-See [Linux baseline recipe/evidence](../desktop/packaging/LINUX-BASELINE.md) and
-[AppImage assembly](../desktop/packaging/APPIMAGE.md). Earlier Arch0.1.5 artifact
-requiredGLIBC2.44; it is a reference, not the current release candidate.
+- Verbatim Python/wheel/native/Rust/SDK/runtime copyright and license notices;
+  build-environment inventories are explicitly supersets, not a fabricated SBOM.
+- Exact registry crate archives and available exact-version Python source
+  distributions; Ubuntu source descriptors, upstream archives and distro patches.
+- Source-built media locks/recipes, native Soundfile codec sources and Windows
+  vcpkg patches, and the AppImage runtime source with its pinned FUSE recipe.
+- A source-only OpenOrbis subset: no upstream sample Sony runtime modules,
+  installers, game files, songs, dumps, personal profiles or console backups.
 
-## Remaining blocking gates
+LGPL components retain their terms. Rebuild/relink and shared-library replacement
+instructions accompany the source material; resource-hash validation is not a
+prohibition on modifying/rebuilding a local distribution. The application's GPL
+source is available at the release tag. No whole working directory or private Git
+history is published.
 
-1. **Windows end-to-end installation and lifecycle.** Earlier private Actions
-   builds passed native source-built media, frozen synthetic import/bootstrap/
-   drain, seven MSVC tests and NSIS generation. The real-map live-output regression
-   and its encoding/buffering fix are retained. A new 0.1.13 target-native build is
-   required; older CI is not proof for these closing/Extras changes.
-   Interactive installer/upgrade/uninstall, WebView2-first-run and state/recovery
-   preservation remain gates; CI generation is not blanket installer approval.
-2. **Complete license/source closure.** The baseline helper audit inventories
-   18Python metadata sets, not a complete SBOM/legal approval. fsb5-1.0's missing
-   notice is now recovered from an exact-source upstream commit, bundled with
-   provenance, and validated against all five installed source files at build time.
-   Review Python/stdlib, compiler and wheel runtimes,
-   Rust crates, standalone Python, GTK/GStreamer/WebKit and AppImage tooling.
-   Provide notices/corresponding source and satisfy static FFmpeg/glibc and other
-   relink/source obligations. No fabricated license text or metadata-only approval.
-3. **Linux runtime matrix.** Current tests use extract-and-run, privateXvfb and
-   the host kernel. Check defaultFUSE launch, actual clean supported distro/VM,
-   realX11/Wayland/graphics/audio/preview and older kernel/driver compatibility.
-   State normal OS graphics/font dependencies honestly, not "every Linux distro".
-4. **Release/installer quality.** Optimized Linux build now passes; test fresh install,
-   update/uninstall preserving settings/queue/recovery, discovery/audio, offline
-   imports and controlled fakeFTP install/remove/readback, close during publication,
-   interrupted recovery and restart paused. Source/frozen tests already cover many
-   cases but do not replace testing each final platform artifact. Decide signing/
-   trust documentation, provide checksums/provenance and independent artifact scan.
-5. **Public documentation and access.** Keep supported-game/feature limits,
-   closed-title/local recovery requirements, unsigned Windows trust expectations
-   and checksums explicit. The owner's publication approval is already granted;
-   do not ask for it again. Resolve the private-repository API permission blocker,
-   verify all final assets, then publish and only afterward change visibility.
+## Known testing limits
 
-## Current local evidence (never upload output directories wholesale)
+- Windows interactive install/upgrade/uninstall, WebView2-first-run and actual GUI
+  close behavior still require testing on a physical Windows machine. Native CI
+  and source regression checks do not establish those manual results. The Windows
+  installer is unsigned; no signing reputation or notarization is claimed.
+- Linux tests use extract-and-run, Xvfb and the host kernel. Default FUSE launch,
+  real Wayland/X11/graphics/audio, older kernels and a broader clean-distro matrix
+  remain manual checks. Normal OS graphics, font and driver dependencies apply;
+  "all Linux distributions" is not promised.
+- Main custom-song operation and the Animals Hard/lighting fix were confirmed on
+  the user's PS4. Extras health dismissal and anonymous read-only ScoreSaber
+  retrieval were confirmed. The later top-ten/unprefixed-name change still needs
+  a user check. No console was needed or modified during desktop release work.
+- See `map-hardware-test-matrix.md` for gameplay/colour/Practice limits. Unsupported
+  game variants or uncertain installations must fail closed, not be forced.
 
-- `temp/linux-baseline/`: setup/package/build logs,467ELF audit, Rust tests,
-  final actual-image window/close and offline-conversion summaries.
-- `temp/linux-baseline-work/source/temp/appimage-baseline-release-sealed-01/`:
-  final0.1.6 AppImage, SHA256SUMS and assembly report. The directory also contains
-  build tools/AppDir/reports; it is **not** a public asset folder.
-- `temp/appimage-baseline-release-network-smoke/`,
-  `temp/appimage-baseline-release-modern-smoke/`,
-  `temp/appimage-baseline-release-offline-proof/`: final image test evidence.
-- Previous codec closure details: `temp/desktop-release-prep/`,
-  `temp/desktop-codecs-build-02/`, `temp/desktop-codecs-native-smoke/`.
-
-Static audits explicitly keep legal/clean-machine approval false. Baseline userspace
-success is meaningful progress, not authorization or readiness to publish.
-
-Latest complete local host validation: **1859 passed / 124 skipped**, with one
-inherited Starlette warning, using the final frozen helper. Seven Rust release
-tests and 32 focused release/Extras regressions pass. The same final AppImage
-also passes native launch/close on the modern host, plus an offline frozen
-five-difficulty/12-second synthetic import in the isolated Ubuntu runtime with
-empty PATH and no host Python/FFmpeg (529200 samples). No console write occurs. Actual-image synthetic prior-state restart retains
-settings/paused pending/history/older runtime/local recovery. This adds a real
-artifact-level preservation check, not a full installer-upgrade/uninstall claim.
+Repository publication follows verification of the curated assets, source/history
+privacy review and release contents. Release preparation never requires making a
+private repository public just to bypass an API permission problem.

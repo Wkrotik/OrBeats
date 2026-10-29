@@ -1,7 +1,12 @@
-# Dual-platform installer candidates
+# Dual-platform packaging recipes
 
-User-approved scope: **Windows x64 and Linux x64**. These files prepare candidates,
-not a public release. No automatic publisher, updater or external CI run is added.
+Scope: **Windows x64 and Linux x64**. These tools produce auditable candidate
+artifacts; publication is a separate explicit step. For the current **0.1.13**
+release scope, evidence and manual testing gaps, see
+[the release checklist](../../docs/public-release-checklist.md). Historical
+candidate versions below remain recipe/evidence references, not the release's
+current asset identity. Plugin update checks are explicit; desktop upgrades are
+manual. There is no automatic publisher in these packaging tools.
 
 | Target | Initial installer | Proposed supported baseline | Still needs proof |
 |---|---|---|---|

@@ -1,10 +1,20 @@
-# OrBeats desktop — Tauri 2 work in progress
+# OrBeats desktop — Tauri 2
 
-**Working Linux native-window/frozen-backend prototype, not a finished installer.**
-The Tauri window now compiles and runs the real UI on a private virtual display.
-No PS4 operations,
-settings migration from the live companion, publication or release were performed
-by desktop tests. The ordinary web companion remains independent.
+Current version: **0.1.13**, Windows x64 NSIS `.exe` and Linux x64 AppImage.
+The desktop bundles the main and optional Extras plugins and uses its own frozen
+backend/media, not a host Python installation. See the current
+[release notes](../docs/releases/0.1.13.md) and
+[validation evidence / known limits](../docs/public-release-checklist.md).
+
+The application is an early unsigned desktop release. Native Windows CI and
+isolated Linux checks are complete; physical Windows installer/GUI and broader
+Linux FUSE/Wayland/graphics/audio validation are **not** claimed. The WebView2
+bootstrapper needs internet if the Microsoft runtime is absent.
+
+The development notes below include historical 0.1.x checkpoints. Statements
+about an older prototype being incomplete describe that checkpoint, not an
+additional current failure. Desktop tests do not access a PS4 or alter the live
+companion profile.
 
 ## Implemented
 

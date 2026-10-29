@@ -1,4 +1,9 @@
-# Linux baseline optimized candidate0.1.6 — not a public release
+# Linux baseline build recipe
+
+Current desktop **0.1.13** uses the same Ubuntu 22.04 / GLIBC 2.35 baseline.
+See [current release evidence and limits](../../docs/public-release-checklist.md).
+The 0.1.6 measurements below document the original baseline experiment, not the
+current release file's hash or a universal Linux compatibility promise.
 
 The Linux primary artifact is AppImage; deb is optional. Windows x64 remains
 required. This slice replaces the laptop-only GLIBC2.44 build with an actual
