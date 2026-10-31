@@ -24,6 +24,8 @@
     "tests/test_extras_integration.py",
     "tests/test_extras_native_scores.py",
     "tests/test_extras_transport.py",
+    "tests/test_fresh_library.py",
+    "tests/test_github_templates.py",
     "tests/test_hevag_audio_compatibility.py",
     "tests/test_hevag_encoder.py",
     "tests/test_il2cpp_dump_runner.py",
@@ -41,6 +43,7 @@
     "tests/test_platform_install_fixes.py",
     "tests/test_plugin_branding.py",
     "tests/test_private_source_repository.py",
+    "tests/test_release_features.py",
     "tests/test_replacement_pack.py",
     "tests/test_v3_keyword_defaults.py",
     "tests/test_webapp_beatsage.py",
@@ -49,9 +52,7 @@
     "tests/test_webapp_js_syntax.py",
     "tests/test_webapp_launch.py",
     "tests/test_webapp_ps4_adapter.py",
-    "tests/test_webapp_songs.py",
-    "tests/test_release_features.py",
-    "tests/test_github_templates.py"
+    "tests/test_webapp_songs.py"
   ],
   "excluded_modules": [
     "test_additive_bundle_preparation.py",

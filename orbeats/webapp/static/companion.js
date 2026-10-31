@@ -692,8 +692,17 @@ async function initialize() {
 		notify("Conversion seed saved. No files were uploaded.");
 	});
 	$("test-connection").onclick = safely(async () => {
-		await api("/api/orbis/library");
-		notify("Connected. The installed library is readable.");
+		const button = $("test-connection");
+		button.disabled = true;
+		try {
+			const result = await api("/api/orbis/connection/test", {
+				method: "POST",
+				body: JSON.stringify({ip: $("ip").value.trim()}),
+			});
+			notify(`FTP connected to ${result.ip}:2121. Save connection to use this address. Library setup was not checked.`);
+		} finally {
+			button.disabled = false;
+		}
 	});
 	async function checkPluginVersion() {
         const target = $("plugin-version");

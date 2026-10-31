@@ -98,6 +98,9 @@ def smoke(executable):
     with tempfile.TemporaryDirectory(prefix="windows-smoke-", dir=ROOT / "temp") as tmp:
         root = Path(tmp)
         codec_rates = check_codecs(executable, env, root)
+        from smoke_fresh_library import check as check_fresh_library
+
+        fresh_library = check_fresh_library(executable, env, root)
         source = root / "source"
         source.mkdir()
         Image.new("RGB", (64, 64), (50, 80, 120)).save(source / "cover.png")
@@ -226,6 +229,7 @@ def smoke(executable):
         "native_windows": True,
         "frozen_import": True,
         "frozen_codec_rates": codec_rates,
+        "fresh_library": fresh_library,
         "host_python_or_ffmpeg_on_path": False,
         "private_bootstrap": True,
         "graceful_stop": True,

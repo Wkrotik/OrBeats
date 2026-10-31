@@ -149,7 +149,8 @@ const fixture = {
 };
 const song = { id: 'bsd_additive_000000000000000000000001', title: 'Installed fixture', author: 'Artist', duration: 209, bpm: 132, bytes: 1000, mask: 8, stats: [[0, 0, 0, 0, 0], [0, 0, 0, 0, 0], [0, 0, 0, 0, 0], [1024, 16, 94, 14, 0], [0, 0, 0, 0, 0]] };
 const hooks = `(()=>{const original=window.fetch.bind(window),map=${JSON.stringify(fixture)},song=${JSON.stringify(song)};window.testOriginalSongs=[{...song,info:map},{...song,id:song.id.replace(/1$/,'2'),title:'Compression [Vorbis test]'}];window.testSongs=structuredClone(window.testOriginalSongs);window.testPluginWrites=[];window.testUpdateOffline=false;window.testDeletes=[];window.testDeleteError='';window.testDeleteDelay=false;window.testQueue={pending:[],active:null,history:[],paused:true,message:''};window.testProgress={job:null,running:false,index:0,lines:[]};window.confirm=()=>{throw Error('Native browser confirmation used')};window.fetch=async(url,options={})=>{const path=String(url);let value;
-if(path==='/api/orbis/settings')value={ip:'192.168.1.67',port:2121,user:'anonymous',template:'',updates:{state:'not_checked',message:'Official GitHub release has not been checked.'}};
+if(path==='/api/orbis/settings'){if(options.method==='POST'){const body=JSON.parse(options.body);(window.testSavedRequests??=[]).push(body);window.testSavedAddress=body.ip;value={ok:true}}else value={ip:window.testSavedAddress||'192.168.1.67',port:2121,user:'anonymous',template:'',updates:{state:'not_checked',message:'Official GitHub release has not been checked.'}}}
+else if(path==='/api/orbis/connection/test'){const body=JSON.parse(options.body);(window.testAddressRequests??=[]).push(body);if(window.testConnectionDelay)await new Promise(resolve=>{window.testResolveConnection=resolve});if(body.ip.includes(':')||window.testConnectionError)return new Response(JSON.stringify({detail:body.ip.includes(':')?'Enter an IP address only, without :2121.':'fixture FTP refused'}),{status:400,headers:{'Content-Type':'application/json'}});value={ok:true,ip:body.ip,port:2121}}
 else if(path==='/api/orbis/plugin'&&(!options.method||options.method==='GET'))value={installed:true,installed_version:'0.8068',available_version:'0.8071',capability_matches:true,declared_version_matches:true,max_songs:8,registration:'registered_once',runtime_verified:false};
 else if(path==='/api/orbis/extras'){if(options.method==='POST'){window.testPluginWrites.push('bundled-extras');value={ok:true,message:'Extras installed (offline fixture)'}}else value={installed:true,installed_version:'0.0008',available_version:'0.0009',registration:'enabled'}}
 else if(path==='/api/orbis/updates')value=window.testUpdateOffline?{state:'unavailable',message:'Update check unavailable. This does not mean up to date.'}:{state:'checked',message:'Official GitHub release checked.',versions:{app:{current:'0.1.13',latest:'0.1.14',update_available:true},main:{current:'0.8079',latest:'0.8079',update_available:false},extras:{current:'0.0009',latest:'0.0010',update_available:true}}};
@@ -163,7 +164,7 @@ else if(path==='/api/install-queue/pause'){window.testQueue.paused=true;value=wi
 else if(path==='/api/install-queue/start'){window.testQueue.paused=false;value=window.testQueue}
 else if(path.startsWith('/api/install-queue/')&&options.method==='DELETE'){window.testQueue.pending=window.testQueue.pending.filter(e=>e.id!==path.split('/').at(-1));value=window.testQueue}
 else if(path==='/api/jobs/status')value={running:false};
-else if(path==='/api/orbis/library')value={songs:window.testSongs};
+else if(path==='/api/orbis/library'){window.testLibraryReads=(window.testLibraryReads||0)+1;value={songs:window.testSongs}}
 else if(path.startsWith('/api/orbis/library/')&&options.method==='DELETE'){const id=decodeURIComponent(path.split('/').at(-1));window.testDeletes.push(id);if(window.testDeleteDelay)await new Promise(resolve=>{window.testResolveDelete=resolve});if(window.testDeleteError===id)return new Response(JSON.stringify({detail:'fixture removal failed'}),{status:503,headers:{'Content-Type':'application/json'}});window.testSongs=window.testSongs.filter(s=>s.id!==id);value={cleanup_pending:[],count:window.testSongs.length}}
 else if(path.startsWith('/api/'))throw Error('Unexpected API during offline test: '+path);
 else return original(url,options);return new Response(JSON.stringify(value),{headers:{'Content-Type':'application/json'}});};})();`;
@@ -368,6 +369,20 @@ try {
   await until("!state.libraryLoading&&state.songs.length===1");
   assert.equal(await evaluate('state.selectedSongs.size'), 1);
   await evaluate("document.querySelector('[data-tab=settings]').click()");
+  // Test uses unsaved typed address, never the saved target/library/setup path.
+  await evaluate("window.libraryReadsBeforeTest=window.testLibraryReads;document.getElementById('ip').value=' 192.0.2.9 ';window.testConnectionDelay=true;document.getElementById('test-connection').click()");
+  await until("window.testAddressRequests?.length===1&&document.getElementById('test-connection').disabled&&window.testResolveConnection");
+  assert.deepEqual(await evaluate('window.testAddressRequests'),[{ip:'192.0.2.9'}]);
+  assert.equal(await evaluate("!window.testSavedRequests&&window.testLibraryReads===window.libraryReadsBeforeTest"),true);
+  await evaluate("window.testConnectionDelay=false;window.testResolveConnection()");
+  await until("!document.getElementById('test-connection').disabled&&document.getElementById('notice-message').textContent.includes('192.0.2.9:2121')");
+  await evaluate("document.getElementById('ip').value='192.0.2.9:2121';document.getElementById('test-connection').click()");
+  await until("window.testAddressRequests.length===2&&!document.getElementById('test-connection').disabled&&document.getElementById('notice-message').textContent.includes('without :2121')");
+  await evaluate("document.getElementById('ip').value='192.0.2.10';window.testConnectionError=true;document.getElementById('test-connection').click()");
+  await until("window.testAddressRequests.length===3&&!document.getElementById('test-connection').disabled&&document.getElementById('notice-message').textContent.includes('fixture FTP refused')");
+  assert.equal(await evaluate("!window.testSavedRequests&&window.testLibraryReads===window.libraryReadsBeforeTest"),true);
+  await evaluate("window.testConnectionError=false;document.getElementById('connection').requestSubmit()");
+  await until("window.testSavedAddress==='192.0.2.10'");
   async function checkSettingsLayout(mobile) {
     const boxes = await evaluate(`(()=>{
       const box = element => {const r=element.getBoundingClientRect();return {left:r.left,right:r.right,top:r.top,bottom:r.bottom,width:r.width,height:r.height}};
@@ -428,7 +443,7 @@ try {
     assert.equal(await evaluate("document.querySelector('aside').getBoundingClientRect().top"),asideTop);
     assert.equal(await evaluate('scrollY'),0);
   }
-  assert.equal(await evaluate("document.getElementById('ip').value"), '192.168.1.67');
+  assert.equal(await evaluate("document.getElementById('ip').value"), '192.0.2.10');
   await evaluate(`window.testProgress={job:{id:'1793030351128670239',exit_code:null,cancelled:false},running:true,index:4,lines:['   Project: /private/project','[additive] Retaining 3 library entries; unrelated map files are not audited.','[additive] Validating and converting map/audio...','[additive] Import refused: fixture error']}`);
   await until("state.jobId==='1793030351128670239'");
   assert.equal(await evaluate("document.getElementById('log').textContent.includes('Project:')||document.getElementById('log').textContent.includes('[additive]')||document.getElementById('log').textContent.includes('Retaining 3')"), false);

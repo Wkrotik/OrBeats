@@ -34,6 +34,21 @@ def helper(name):
     return mod
 
 
+def optional_directory(ftp, path):
+    """Prove absence through a readable ancestor; 550 alone is not absence."""
+    path = path.rstrip("/") or "/"
+    try:
+        return ftp.nlst(path)
+    except error_perm as exc:
+        if not str(exc).startswith("550") or path == "/":
+            raise
+        parent, name = path.rsplit("/", 1)
+        entries = optional_directory(ftp, parent or "/")
+        if entries is not None and any(p.rstrip("/").rsplit("/", 1)[-1] == name for p in entries):
+            raise ValueError("Cannot inspect existing remote directory; refusing to treat it as empty: " + path) from exc
+        return None
+
+
 def read(ftp, path, limit=200000001, missing=False):
     out = bytearray()
 
@@ -50,7 +65,7 @@ def read(ftp, path, limit=200000001, missing=False):
             # absence of the exact name before treating a read failure as missing.
             name = Path(path).name
             parent = path.rsplit("/", 1)[0]
-            if any(item.rstrip("/").rsplit("/", 1)[-1] == name for item in ftp.nlst(parent)):
+            if any(item.rstrip("/").rsplit("/", 1)[-1] == name for item in optional_directory(ftp, parent) or []):
                 raise ValueError("Cannot read existing remote file; refusing to overwrite: " + path) from e
             return None
         raise
@@ -98,9 +113,18 @@ def load_library(ftp):
         return decode(raw), raw
     # Absent is only accepted for the known two-song migration. Every seed byte
     # is checked remotely before a new manifest can replace compiled defaults.
-    if any("library.bin.backup-" in p or "library.bin.rollback-" in p for p in ftp.nlst(BASE)):
+    entries = optional_directory(ftp, BASE) or []
+    if any("library.bin.backup-" in p or "library.bin.rollback-" in p for p in entries):
         raise ValueError("missing library with retained backup; recover it before importing")
-    seed = json.loads((ROOT / "development/fixtures/additive-baseline-library.json").read_text())
+    from additive_legacy import migration_songs
+
+    seed = migration_songs()
+    known = {song["id"] for song in seed}
+    for entry in entries:
+        name = entry.removeprefix(BASE + "/").split("/", 1)[0]
+        match = re.fullmatch(r"(bsd_additive_[0-9a-f]{24})(?:\.bundle|-media)", name)
+        if match and match[1] not in known:
+            raise ValueError("Missing library manifest with unrecognized song files; recover it before management")
     return decode(encode(seed)), None
 
 

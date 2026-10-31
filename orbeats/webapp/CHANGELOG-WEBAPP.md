@@ -1,3 +1,9 @@
+## 0.7.32 — current-address connection testing
+
+- Test the address currently typed, without saving it or reading a library.
+- Clarify IP-only input and automatic anonymous FTP port2121; reject IP:port
+  before any connection, and restore the test button after failure.
+
 ## 0.7.31 — restore pagination below search results
 
 - Revert the experimental in-grid page-selector card. Restore the original

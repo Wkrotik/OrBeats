@@ -45,10 +45,27 @@ def read_settings():
     }
 
 
+def connection_address(body):
+    value = body.get("ip")
+    try:
+        if not isinstance(value, str):
+            raise ValueError("IP must be text")
+        return str(ipaddress.ip_address(value.strip()))
+    except ValueError as exc:
+        raise HTTPException(400, "Enter an IP address only, without :2121. GoldHEN FTP port 2121 is set automatically.") from exc
+
+
+@router.post("/connection/test")
+def test_connection(body: dict):
+    ip = connection_address(body)
+    guarded(library.test_connection, {"ps4": {"ip": ip, "ftp_port": 2121, "ftp_user": "anonymous", "ftp_password": ""}})
+    return {"ok": True, "ip": ip, "port": 2121}
+
+
 @router.post("/settings")
 def save_settings(body: dict):
     try:
-        ip = str(ipaddress.ip_address(body["ip"]))
+        ip = connection_address(body)
         cfg = settings()
         a = cfg.setdefault("ps4", {})
         a.update(ip=ip, ftp_port=2121, ftp_user="anonymous", ftp_password="")

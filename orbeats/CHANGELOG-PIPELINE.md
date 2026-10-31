@@ -1,3 +1,10 @@
+## 0.5395 — fresh packaged libraries (issue #1)
+
+- Replace the missing development-fixture fallback with reviewed production
+  compatibility metadata; packaged fresh consoles now show an empty library.
+- Prove absent FTP paths through readable ancestors. Preserve permission errors,
+  recovery backups, verified legacy migration and unknown-song recovery guards.
+
 ## 0.5394 — preserve additional basic environment lighting channels
 
 - Accept reviewed basic lighting event types16..19 in ordinary V3 and native V4

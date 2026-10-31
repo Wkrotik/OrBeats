@@ -65,6 +65,12 @@ def connection(config, write=False):
             f.close()
 
 
+def test_connection(config):
+    """Read-only FTP connect/login test, independent of library setup."""
+    with connection(config):
+        pass
+
+
 def catalog(config):
     with connection(config) as f:
         songs, manifest = core.load_library(f)

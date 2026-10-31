@@ -428,11 +428,11 @@ def test_cli_compatibility_refusal_is_actionable_not_traceback(tmp_path,monkeypa
     assert 'Import refused: Expert (Expert.dat)' in err and 'chains' in err and 'Traceback' not in err
 
 
-def test_optional_read_still_refuses_missing_parent_or_denied_listing():
+def test_optional_read_proves_absent_parent_but_refuses_denied_listing():
     f = StrictFTP({lib.BASE + '/library.bin': b'old'})
     path = lib.BASE + '/new-media/cover.png'
-    with pytest.raises(error_perm):
-        app.read(f, path, missing=True)
+    # A readable ancestor proves this directory is genuinely absent.
+    assert app.read(f, path, missing=True) is None
     f.mkd(lib.BASE + '/new-media')
     assert app.read(f, path, missing=True) is None
     real_nlst = f.nlst
@@ -441,7 +441,8 @@ def test_optional_read_still_refuses_missing_parent_or_denied_listing():
             raise error_perm('550 permission denied')
         return real_nlst(parent)
     f.nlst = denied
-    with pytest.raises(error_perm, match='permission denied'):
+    # The parent still lists new-media, so its 550 must not become absence.
+    with pytest.raises(ValueError, match='Cannot inspect existing'):
         app.read(f, path, missing=True)
     assert not f.writes
 

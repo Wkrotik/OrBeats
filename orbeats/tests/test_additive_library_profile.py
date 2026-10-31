@@ -7,6 +7,13 @@ import pytest
 ROOT=Path(__file__).resolve().parents[1]
 
 
+def test_production_legacy_metadata_matches_reviewed_baseline():
+    from tools.additive_legacy import migration_songs
+    from tools.additive_library import decode, encode
+    reviewed = json.loads((ROOT / 'development/fixtures/additive-baseline-library.json').read_text())
+    assert decode(encode(migration_songs())) == decode(encode(reviewed))
+
+
 def test_compiled_two_song_profiles_match_independent_manifest_fixtures(tmp_path):
     compiler=shutil.which('clang++')
     if not compiler:pytest.skip('clang++ required')

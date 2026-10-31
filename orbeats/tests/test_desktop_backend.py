@@ -733,3 +733,21 @@ def test_windows_codec_fixture_bounds_native_writes(tmp_path, monkeypatch, rate)
     expected = np.stack([0.25 * np.sin(2 * np.pi * 440 * times),
                          0.2 * np.sin(2 * np.pi * 660 * times)], axis=1)
     assert np.mean((decoded - expected) ** 2) < 0.0001
+
+
+@pytest.mark.parametrize("frozen", [False, True])
+def test_packaged_fresh_library_and_current_address_without_network(packaged, tmp_path, frozen):
+    executable = os.environ.get("ORBEATS_TEST_FROZEN_BACKEND")
+    if frozen and not executable:
+        pytest.skip("Optional locally built frozen helper not provided")
+    spec = importlib.util.spec_from_file_location(
+        "fresh_library_smoke", ROOT / "desktop/development/smoke_fresh_library.py"
+    )
+    module = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(module)
+    helper = Path(executable) if frozen else BACKEND / "entrypoint.py"
+    # Production verification remains enabled; source fixture has synthetic PRXs.
+    env = {**os.environ}
+    proof = module.check(helper, env, tmp_path, runtime=packaged)
+    assert proof["fresh_catalog_empty"] and proof["submitted_address_tested"]
+    assert proof["mocked_ftp_only"] and not proof["console_writes"]

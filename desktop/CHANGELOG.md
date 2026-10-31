@@ -1,3 +1,12 @@
+## 0.1.16 — fresh-library fix and Extras update
+
+- Fix issue #1: ship production legacy compatibility metadata instead of depending
+  on an omitted development fixture. Cover fresh/legacy/recovery states and the
+  actual frozen runtime with no-network regressions on both platforms.
+- Bundle pipeline0.5395, companion0.7.32 and Extras0.0015. Extras retains menu
+  promotion hiding, health dismissal and top-ten ScoreSaber; no saber offsets.
+- Test the currently entered IP independently of saving/library setup.
+
 ## 0.1.15 — import compatibility patch
 
 - Restore horizontal page controls below the results (companion0.7.31).
