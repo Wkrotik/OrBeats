@@ -1,207 +1,180 @@
-# Getting started with OrBeats
+# Installing and setting up OrBeats
 
 [← OrBeats](../README.md)
+
+This guide covers **0.1.20 and later**. It consolidates first-time setup, existing
+libraries, diagnostics and recovery; older releases may lack these controls.
 
 ## Requirements
 
 - PS4 with GoldHEN plugin support and its FTP server enabled.
 - **Beat Saber CUSA12878, patch 2.04**. Other regions/patches are not supported.
-- Windows x64 or Linux x64 computer on the same network as the PS4.
-- Your own legally obtained game data for the one-time conversion template. A
-  fresh setup is **not ready after FTP connects or the plugin is installed**.
+- Windows x64 or Linux x64 computer on the same local network as the PS4.
+- Your own legally obtained game data for the one-time conversion template.
 
-The companion and native plugin are separate components: the computer prepares
-and installs maps; `orbeats.prx` makes the custom pack appear in the game.
+The computer prepares and installs maps; the main `orbeats.prx` plugin makes the
+custom pack appear in the game. **Connecting to FTP or installing the plugin alone
+does not complete an empty setup.** OrBeats does not include game assets.
 
-## Install the companion
+## 1. Install the companion
 
-Release downloads belong on the official [GitHub Releases page](https://github.com/Wkrotik/OrBeats/releases/latest):
-Windows x64 installer (`.exe` directly, not a ZIP), Linux x64 AppImage, and the
-separate `orbeats.prx` and `orbeats_extras.prx` plugins. If no release is listed,
-use the source/build instructions; a release must not be assumed to exist.
-[Actions builds](https://github.com/Wkrotik/OrBeats/actions/workflows/private-build.yml)
-are development candidates. GitHub wraps **Actions artifacts**, not the intended
-release installer, in a ZIP. See the [distribution checklist](public-release-checklist.md)
-for evidence and remaining validation limits.
+Download from the official [GitHub Releases page](https://github.com/Wkrotik/OrBeats/releases/latest).
+Normal users need only their platform's application:
 
-- **Windows:** run the installer. Unsigned candidates may trigger SmartScreen;
-  verify the source and checksum before deciding whether to proceed.
-- **Linux:** make the AppImage executable, then open it. The baseline is
-  Ubuntu 22.04 / GLIBC 2.35 or newer; distribution details are in the
+- **Windows:** run `OrBeats_0.1.20_x64-setup.exe`. It includes the backend, media
+  tools and both plugins. The installer is unsigned; verify the source and
+  `SHA256SUMS` before deciding whether to proceed through a security warning.
+- **Linux:** download `OrBeats_0.1.20_amd64.AppImage`, make it executable and open
+  it. The baseline is Ubuntu 22.04 / GLIBC 2.35 or newer. See the
   [Linux packaging notes](../desktop/packaging/LINUX-BASELINE.md).
+- The separate `orbeats.prx` and `orbeats_extras.prx` downloads are available for
+  manual plugin management. They are also bundled with the application.
 
-Packaged builds include their Python backend and media tools. You do not need
-Python, FFmpeg or a proprietary FMOD SDK installed to use them.
+Python, FFmpeg and a proprietary FMOD SDK are **not** required on your computer.
+GitHub **Actions artifacts** are development candidates wrapped in ZIP files;
+public releases provide the installer/AppImage directly. The sources/notices
+archive is for source and licensing material, not an additional runtime install.
 
-## First setup: connection, plugin and conversion template
+**Bottles:** 0.1.20 fixes the reproduced startup crash in the unused native
+file-drop handler. Update the application in your existing bottle. WebView2 is
+still required. Do not disable the WebView sandbox or add GPU workarounds for
+this fix. Startup was verified with Soda 11 and WebView2; this is not a claim of
+complete Wine/Windows feature parity.
 
-**Local 0.1.17 candidate:** the guided flow below is new development work, not a
-feature of the currently published 0.1.16 installer. On 0.1.16 an empty setup
-still requires a manually obtained, compatible prepared template in the advanced
-conversion setting. Updating the app does not itself obtain game assets.
+## 2. Connect and install the main plugin
 
-The **First setup** page opens automatically until a local template is validated
-and any temporary extraction settings have been restored. It remains accessible
-from the sidebar afterwards. Opening the app does not automatically connect to or
-change the PS4.
+1. **Fully close Beat Saber**. Keep the PS4 on with GoldHEN FTP enabled.
+2. In **Console & settings**, enter the PS4's **IP address only**, choose **Test**,
+   then **Save connection**. Testing uses the address currently typed, but does
+   not save it or validate the song library. GoldHEN FTP uses port **2121**,
+   anonymous access and no password; do not append the port to the IP field.
+3. Check/install the bundled main plugin. Keep `orbeats.prx` enabled in GoldHEN;
+   do not register multiple copies under different names.
 
-1. **Fully close Beat Saber**, leaving the PS4 on and GoldHEN FTP enabled.
-2. Open **Console & settings**, enter the PS4's **IP address only**, test it, then
-   **Save connection**. The test does not save the address or validate the library.
-   GoldHEN uses port **2121**, anonymous access and no password.
-3. Check/install the bundled main `orbeats.prx` using the plugin controls. Keep
-   it enabled in GoldHEN; do not register two copies under different names.
-4. Return to **First setup** and choose **Fetch / check template**. An existing
-   verified OrBeats library or retained template can supply the required schema,
-   so existing users normally do not need another extraction.
-5. If no compatible template exists, keep Beat Saber **fully closed**, choose
-   **Prepare extraction**, and confirm. OrBeats temporarily requests just the
-   base-game `100Bills` asset through the main plugin's existing extractor. It
-   archives the exact previous request file and feature settings for restoration;
-   it does not reactivate unrelated extraction requests, dump the entire game,
-   edit stock songs/saves/DLC or bypass entitlements.
-6. **Launch Beat Saber yourself**, with the main plugin enabled, and wait at its
-   main menu. Keep GoldHEN FTP available. Choose **Fetch / check template** in
-   OrBeats. This step only reads the PS4, so it can run while the title is open.
-   A successful FTP connection or extraction notification alone is not completion:
-   OrBeats must perform a synthetic conversion and independently validate it.
-7. **Fully close Beat Saber**, then choose **Restore settings / finish** and
-   confirm. Only the request/features bytes changed by this setup are restored,
-   with title checks and transaction readback. Plugin-owned extraction status and
-   output are preserved. Do not install songs until setup reports ready.
+The companion never launches or closes Beat Saber for you. Opening the app or
+setup page does not automatically connect to or change the PS4.
 
-If extraction is still pending, wait and fetch again. An explicit extraction
-failure requires fully closing and relaunching the game before retrying; the
-native extractor runs once per game boot. Unsupported or invalid assets are
-refused, not accepted as a completed setup. If connection/settings files change
-independently, stop and inspect the retained recovery state instead of overwriting
-it. Do not delete recovery files to get past a refusal.
+## 3. Complete first-time setup
 
-The local cache contains only a derived, validated conversion template with
-synthetic song content, under the app data folder's `setup/` directory. The
-configured template path is displayed in advanced settings. Original extracted
-data/status remain on the user's PS4; OrBeats neither ships nor uploads them.
-The raw-stock first-run path still requires hardware validation; offline tests
-are not a claim that this sequence has been confirmed on a fresh console.
+An incomplete setup opens automatically. To reopen it later, choose **Setup** at
+the top right of **Console & settings**; it is not a permanent sidebar tab.
 
-A title-state refusal means the game must be closed; it is not a reason to bypass
-the guard. The companion never launches or closes the game for you.
+The activity panel **above the instructions** shows the current step, elapsed
+time and an animated loading bar while work runs. The bar indicates activity,
+**not a percentage**. Template validation can take a while. Keep OrBeats open and
+do not start another check or installation while it is working.
+
+### Existing library or retained template: check this first
+
+Choose **Check existing setup / Fetch template**. A verified existing OrBeats
+library, retained conversion template or explicitly configured compatible template
+can supply the schema. OrBeats validates it through a synthetic conversion and
+independent readback before treating it as ready.
+
+- If setup reports **complete**, install songs normally. **Do not prepare a new
+  extraction or finalize anything when no temporary settings are pending.**
+- A subsequent check of an intact, hash-verified local cache does not reconnect
+  to FTP or reconvert the template.
+- If a previous extraction still requires restoration, a ready template alone is
+  not enough: follow the close-and-restore step below.
+
+### Empty library with no compatible template: extract once
+
+1. Keep Beat Saber **fully closed**, choose **Prepare first-time extraction**, and
+   confirm. OrBeats temporarily requests only the base-game `100Bills` schema
+   through the main plugin's extractor. It retains the exact previous request
+   and feature settings for restoration.
+2. **Launch Beat Saber yourself**, with the main plugin enabled. Wait at its main
+   menu for the extraction notification; keep GoldHEN FTP available.
+3. Leave the game running and choose **Check existing setup / Fetch template**.
+   This step only reads the PS4. OrBeats must fetch the data, perform a synthetic
+   conversion and independently validate it. A notification or FTP connection
+   alone does not mean setup is complete.
+4. **Fully close Beat Saber**, choose **Restore settings / finish**, and confirm.
+   This restores only the temporary request/features changes, with title checks
+   and transaction readback. Plugin-owned extraction status/output are preserved.
+5. Start song installation only after setup reports **complete**.
+
+If extraction is pending, wait and fetch again. An explicit extraction failure
+requires fully closing and relaunching the game before retrying: the native
+extractor runs once per game boot. Invalid/unsupported assets are refused.
+If connection/settings files change independently, stop and inspect the retained
+recovery state; do not delete recovery files to bypass a refusal.
+
+This flow does not dump the whole game, reactivate unrelated extraction requests,
+modify stock songs, saves or DLC, or bypass entitlements. The local `setup/` cache
+contains a derived, validated template with synthetic content, not bundled game
+data. Its configured path appears in advanced settings. No templates are uploaded.
+The raw-stock path has not been independently confirmed on a completely fresh
+console; offline tests are not a substitute for that hardware validation.
+
+## 4. Add and manage songs
+
+Search **Discover** by title, artist, mapper or BeatSaver link, inspect the map's
+difficulties, add it to **Downloads**, then explicitly start installation.
+Keep Beat Saber **fully closed** for installs, removals, plugin writes and setup
+preparation/restoration. A restored queue starts paused.
+
+The current/last job log is above pending entries and history. Expand it, choose
+**Jump to latest** to resume following output, or copy/save it when reporting an
+error. Unsupported map requirements are explained there; see
+[map compatibility](native-map-expansion.md).
+
+When installation finishes, launch Beat Saber and select **OrBeats**. Stock and
+DLC songs remain in place. Use **Your library** with the game closed to remove
+custom songs individually or in a selection.
 
 ## Optional Extras and updates
 
 Install/check the main plugin first, then use **Install Extras** in Console &
-settings while Beat Saber is fully closed. Extras is registered only for
-CUSA12878; it does not replace the main plugin or modify your song library.
-Unknown existing binaries/ambiguous registrations are refused rather than erased.
+settings with Beat Saber fully closed. Extras is optional, registered only for
+CUSA12878 and does not replace the main plugin or alter your song library.
+Unknown binaries or ambiguous registrations are refused rather than erased.
 
-Extras adds health-warning auto-dismiss (preserving existing settings) and a
-**read-only top-ten ScoreSaber leaderboard** for supported Standard custom-map
-difficulties. It does not submit scores or sign into a ScoreSaber account. Older
-songs imported without their original map identity must be reimported for score
-lookup. Unranked/unsupported maps and network failures are not fake empty success.
+Extras hides supported promotional tiles, auto-dismisses the health warning
+while preserving settings, and provides a **read-only top-ten ScoreSaber
+leaderboard** for supported Standard custom-map difficulties. It does not submit
+scores or sign into an account. Songs imported without their original map identity
+must be reimported for score lookup. Unsupported/unranked maps and network errors
+are not presented as a successful empty leaderboard.
 
-**Check updates** queries the official public GitHub release for the desktop app
-and both bundled plugin versions. This is separate from **Check PS4 version**;
-a bundled-version comparison is not a claim about the console's installed files.
-An unavailable/offline feed does not mean up to date. Desktop upgrades are manual:
-copy the release link and download the new installer/AppImage. Plugin release
-installation is explicit and confirmed; it verifies the manifest's SHA-256,
-byte count and embedded version before the usual closed-title/readback/local
-recovery transaction. No program is downloaded and automatically executed.
+**Check updates** in Settings queries the official public release for the desktop
+application and both bundled plugin versions. This is separate from **Check PS4
+version**: bundled-version information does not prove what is installed on the
+console. An unavailable feed does not mean up to date. Desktop upgrades are manual;
+no downloaded program is automatically executed. Explicit plugin updates verify
+SHA-256, byte count and embedded version before closed-title transaction/readback.
 
-## Add and manage songs
+## Interrupted installation recovery
 
-Search **Discover** by title, artist, mapper or BeatSaver link. Open a map's
-information to inspect its difficulties, then add it to **Downloads**. Start
-installation explicitly; a restored queue starts paused.
+If an operation reports `.install-lock`, do not delete it blindly. Stop all
+imports, CLI tasks, plugin writes and setup operations **on every computer**, and
+fully close Beat Saber. The app cannot reliably detect another computer's work.
+Keep the original log and interrupted transaction evidence.
 
-The current/last installation log sits above pending entries and history. Expand
-it to read progress, use **Jump to latest** to resume following output, or copy
-or save it when reporting a failure. Unsupported map requirements are explained
-there; see [map compatibility](native-map-expansion.md).
+**Installation recovery**, below Updates in Console & settings, can explicitly
+inspect and remove **only an empty lock** after readable, stable manifest/file
+checks and a local inspection archive. Nonempty locks, pending staging/rollback
+files, unreadable or inconsistent state are refused. Lock age alone is not proof
+of safety. Recovery does not delete songs/historical backups or restart an import.
+See the [recovery documentation](additive-companion.md) if inspection is refused.
 
-When the queue finishes, launch Beat Saber and select **OrBeats**. Stock and DLC
-songs stay in place. Return to **Your library** with the title closed to remove
-custom songs individually or in a selection.
+## Diagnostics and privacy
 
-## Recovery and privacy
+Bounded per-job logs are saved under the application data directory:
 
-Settings, queue history and rollback files are local to your computer. Writes use
-staging, readback and a final library publication; successful operations remove
-temporary remote files while retaining local recovery data.
+- **Windows:** `%LOCALAPPDATA%\io.orbeats.companion\logs\`
+- **Linux:** normally `~/.local/share/io.orbeats.companion/logs/`
 
-If an interrupted operation leaves an installation lock, preserve the log and
-journal. Do not delete the lock or unknown console files blindly. See the
-[recovery documentation](additive-companion.md).
+`installation-*.log` records worker startup, output and exit status (up to 20 files,
+about 4 MiB each). `setup-*.log` records validation phases (up to 20 files, about
+1 MB of phase output plus a delayed diagnostic stack). A stack trace may be
+requested after 30 seconds; it is diagnostic, **not** an automatic retry or proof
+that an operation stopped. A no-output warning is not permission to start a second
+writer. Downloads also offers Copy/Save for the current installation log.
 
-The source web server is a local administrative interface, not a public hosting
-service. Do not expose it or GoldHEN FTP to the Internet.
-
-## Installation diagnostics (local 0.1.17 candidate)
-
-0.1.16 keeps live job output in memory; it does not automatically save a complete
-installation log. The local candidate adds flushed, bounded per-job logs under:
-
-- **Windows:** `%LOCALAPPDATA%\io.orbeats.companion\logs\installation-*.log`
-- **Linux:** the app's local data directory, normally
-  `~/.local/share/io.orbeats.companion/logs/installation-*.log`
-
-At most20 app-owned job logs are retained, roughly4MiB each. They include worker
-startup stages, merged stdout/stderr, and exit status. A startup stack trace is
-requested after30seconds; this is diagnostic, not an automatic retry, kill or a
-proven fix for the reported native Windows stall. A no-output warning does not
-mean it is safe to start a second install. The Downloads panel's Copy/Save log
-controls can also export the current live log.
-
-For a bug report, send only the relevant job log after reviewing it for personal
-paths, addresses or song names. Do **not** send the whole app-data folder: it can
-contain settings, private templates, recovery records and downloads. Logs are
-never uploaded automatically.
-
-### Testing-candidate follow-up (0.1.18; not a public release)
-
-Setup is no longer a permanent navigation tab. An incomplete first setup opens
-automatically; reopen it with **Setup** at the right of the Console & settings
-heading. The template check reports live transfer/conversion stages and elapsed
-time. It is read-only on the PS4; validation can take a minute. Do not start
-another check while it is working. Its private `setup-*.log` files sit beside
-`installation-*.log` in the app-data `logs` folder (at most 20 setup logs; phase
-output is capped at about 1 MB plus a delayed diagnostic stack). Never share the
-whole app-data folder. No logs are uploaded automatically.
-
-An `.install-lock` refusal must be inspected, not automatically cleared. Close
-other companion/CLI instances, keep Beat Saber closed, and retain any interrupted
-transaction data. A lock's age, empty directory or absent owner file does not
-prove it is safe to delete. A permission failure to create the directory is now
-reported separately from a confirmed existing lock.
-
-### Interrupted installation lock (0.1.18 testing candidate)
-
-If an import reports `.install-lock`, **do not clear it while any import, plugin
-update, setup or CLI task is running on any computer**. Close Beat Saber and stop
-all writers first. The current app cannot reliably detect another computer's work.
-
-In the0.1.18 candidate, Console & settings has **Installation recovery** below
-Updates. Its confirmation permits only removal of an empty lock after readable,
-stable manifest/file-name checks and a local inspection archive. Nonempty locks,
-pending staging/rollback files and inaccessible or inconsistent state are refused;
-keep that evidence for manual inspection. Historical backups and songs are never
-deleted. This is not automatic stale-lock detection, and recovery does not restart
-an import. This button is not present in the public0.1.16 or earlier0.1.17 candidate.
-
-### Local setup-worker candidate (0.1.19; not a public release)
-
-A successful existing-template check is sufficient: **skip extraction and
-finalization when no extraction settings are pending**. This candidate disables
-those unnecessary controls and explains the next required step. Rechecking an
-intact, hash-verified local template does not reconnect to FTP or reconvert it.
-
-If extraction was prepared earlier, the template may be ready but setup remains
-incomplete until you fully close Beat Saber and explicitly restore the temporary
-settings. Updating the app does not discard that recovery obligation.
-
-Template conversion runs in a separate local helper process. Native audio-library
-initialization must not block the app's setup/status requests. Diagnostic stack
-dumps indicate slow progress, not automatic cancellation. Strict conversion and
-independent readback still must succeed; a failed worker never marks setup ready.
-Native Windows retesting is still required for this local candidate.
+Review relevant logs for personal paths, addresses and song names before sharing.
+**Do not send or delete the whole app-data folder:** it also contains settings,
+private templates, queue state and recovery records. Logs are not uploaded
+automatically. Do not expose the local administrative web server or GoldHEN FTP
+to the Internet.

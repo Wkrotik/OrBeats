@@ -8,11 +8,11 @@
 
 Browse BeatSaver, build your library, and play without replacing the original soundtrack or DLC.
 
-[![Get started](https://img.shields.io/badge/Get_started-ABE28F?style=for-the-badge&logoColor=101813)](docs/getting-started.md)
+[![Get started](https://img.shields.io/badge/Get_started-ABE28F?style=for-the-badge&logoColor=101813)](docs/installation.md)
 [![Builds](https://img.shields.io/badge/Windows_%26_Linux-Builds-26382C?style=for-the-badge)](https://github.com/Wkrotik/OrBeats/actions/workflows/private-build.yml)
 [![License](https://img.shields.io/badge/License-GPL--3.0-26382C?style=for-the-badge)](LICENSE)
 
-[Downloads](https://github.com/Wkrotik/OrBeats/releases/latest) · [Installation](docs/getting-started.md) · [Map support](docs/native-map-expansion.md) · [Development](docs/development.md)
+[Downloads](https://github.com/Wkrotik/OrBeats/releases/latest) · [Installation](docs/installation.md) · [Map support](docs/native-map-expansion.md) · [Development](docs/development.md)
 
 </div>
 
@@ -41,7 +41,7 @@ Browse BeatSaver, build your library, and play without replacing the original so
 You need **Beat Saber CUSA12878, patch 2.04**, on a PS4 with **GoldHEN plugin support and FTP enabled**, plus a Windows x64 or Linux x64 computer. Other game builds are not supported.
 
 1. Open the companion and enter your PS4's IP address in **Console & settings**.
-2. Follow the [first-time setup guide](docs/getting-started.md) for the plugin **and conversion template**. FTP connection alone is not enough; a fresh setup needs data from your own game. The guided extraction page is new in the local0.1.17 candidate, not the published0.1.16 app.
+2. Follow the [first-time setup guide](docs/installation.md) for the plugin **and conversion template**. FTP connection alone is not enough; a fresh setup needs data from your own game. The guided first-time setup is included in 0.1.20; existing validated templates are reused without another extraction.
 3. Find a map, add it to Downloads and start the queue.
 4. Once installation finishes, launch Beat Saber and open the **OrBeats** pack.
 
@@ -55,7 +55,7 @@ The library supports **up to 64 custom songs**. Chroma, Noodle Extensions and cu
 
 ## Documentation
 
-- [Installation and everyday use](docs/getting-started.md)
+- [Installation and everyday use](docs/installation.md)
 - [Map compatibility](docs/native-map-expansion.md)
 - [Building and contributing](docs/development.md)
 - [Report a bug, request a feature or share a compatibility test](https://github.com/Wkrotik/OrBeats/issues/new/choose)

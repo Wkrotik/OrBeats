@@ -1,8 +1,8 @@
-## 0.1.20 — Bottles startup and visible setup activity candidate
+## 0.1.20 — Bottles startup and visible setup activity
 
 - Disable the unused native file-drop handler on both desktop windows through Tauri's supported API. Avoid Wine's reproduced OLE drag/drop crash without disabling WebView sandboxing or HTML drag/drop.
 - Move setup activity above the instructions: prominent current step, indeterminate loading bar, elapsed time and explicit success/error state. Respect reduced motion; never imply a percentage, auto-retry or completed setup while restoration is pending.
-- Add both-window configuration and desktop/mobile activity lifecycle regressions. Native Windows build and isolated Bottles startup remain separate validation gates; no console work or public release.
+- Add both-window configuration and desktop/mobile activity lifecycle regressions. Native Windows CI and isolated Bottles startup passed; the owner also reports Bottles working. No console writes during release work.
 
 ## 0.1.19 — local setup worker candidate
 
