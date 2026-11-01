@@ -840,3 +840,15 @@ th {
 .settings-heading { display: flex; align-items: center; justify-content: space-between; gap: 18px; flex-wrap: wrap; margin-bottom: 18px; }
 .settings-heading h1 { margin-bottom: 12px; font-size: clamp(24px, 3.8vw, 58px); }
 .settings-heading button { flex-shrink: 0; }
+
+/* Visible setup activity, above the instructions; never a fabricated percent. */
+.setup-activity { padding: 20px 24px; margin: 22px 0; border: 2px solid var(--line); border-radius: 16px; background: var(--surface); overflow-wrap: anywhere; }
+.setup-activity[data-state="running"], .setup-activity[data-state="complete"] { border-color: var(--accent); background: var(--accent-soft); }
+.setup-activity[data-state="failed"] { border-color: #b74b39; }
+.setup-activity-heading { display: flex; align-items: center; justify-content: space-between; gap: 12px; flex-wrap: wrap; }
+.setup-activity-heading strong { font-size: 20px; }
+#setup-elapsed { font-variant-numeric: tabular-nums; font-size: 15px; }
+#setup-status { margin: 12px 0 0; font-size: 17px; line-height: 1.55; color: var(--ink); }
+#setup-progress { height: 12px; margin: 18px 0 12px; }
+#setup-activity-hint { margin-bottom: 0; color: var(--ink); }
+@media (max-width: 600px) { .setup-activity { padding: 18px; } }

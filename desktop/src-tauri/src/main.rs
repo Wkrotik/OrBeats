@@ -139,6 +139,9 @@ fn start(app: &tauri::AppHandle) -> Result<(), Box<dyn std::error::Error>> {
             }
             let origin = url.origin();
             let created = WebviewWindowBuilder::new(&window_handle, "main", WebviewUrl::External(url))
+                // Native file-drop events are unused. Avoid Wry's OLE hook,
+                // which faults in Wine; ordinary DOM drag/drop stays available.
+                .disable_drag_drop_handler()
                 .title("OrBeats")
                 .inner_size(1240.0, 820.0)
                 .min_inner_size(760.0, 560.0)
@@ -195,6 +198,7 @@ fn main() {
         .setup(|app| {
             app.manage(Status(Mutex::new("Starting the private OrBeats backend…".into())));
             WebviewWindowBuilder::new(app, "status", WebviewUrl::App("index.html".into()))
+                .disable_drag_drop_handler()
                 .title("OrBeats")
                 .inner_size(600.0, 320.0)
                 .on_navigation(protocol::status_navigation)

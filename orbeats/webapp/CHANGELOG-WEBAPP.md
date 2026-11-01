@@ -1,3 +1,7 @@
+## 0.7.36
+
+- Show setup work in a prominent activity panel above the steps, with an indeterminate loading bar, current phase and elapsed time. Stop activity on completion/refusal and ignore late polls; support reduced motion and keep pending-restoration guidance explicit.
+
 ## 0.7.35
 
 - Stream isolated setup-worker progress without native conversion imports in HTTP threads. Reuse verified local cache, refuse unnecessary extraction before FTP, preserve wrong-console/restoration guards, and show state-aware setup controls.

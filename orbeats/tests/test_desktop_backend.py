@@ -787,3 +787,13 @@ def test_setup_worker_keeps_http_responsive_and_refuses_invalid_template(package
         assert proof == {'responsive_during_worker':True,'invalid_template_refused':True,'real_child_dispatch':True,'console_writes':False}
     finally:
         sys.path.pop(0)
+
+
+def test_both_native_windows_disable_unused_file_drop_hook():
+    # Prevent either startup or main window from reintroducing the Wine OLE crash.
+    import re
+
+    source = (ROOT / "desktop/src-tauri/src/main.rs").read_text()
+    builders = re.findall(r"WebviewWindowBuilder::new\(.*?\.build\(\)", source, re.S)
+    assert len(builders) == 2
+    assert all(".disable_drag_drop_handler()" in builder for builder in builders)

@@ -616,17 +616,21 @@ async function initialize() {
 				action === "request" ? "Prepare extraction" : "Restore settings")) return;
 			const buttons = ["request", "collect", "finish"].map(a => $("setup-" + a));
 			buttons.forEach(b => { b.disabled = true; });
-			$("setup-status").textContent = action === "collect" ? "Reading and validating your template. This can take a moment; no PS4 files are changed…" : "Checking that Beat Saber is closed, then applying the scoped transaction…";
-			let polling = false, watching = true;
 			const started = Date.now();
+			setupActivity(action === "collect" ? "Reading and validating your template. No PS4 files are changed…" : "Checking that Beat Saber is closed, then applying the scoped transaction…", {busy: true, started});
+			$("setup-activity").scrollIntoView({block: "nearest"});
+			let polling = false, watching = true;
 			const progress = setInterval(async () => {
 				if (polling) return;
 				polling = true;
 				try {
 					const status = await api("/api/orbis/setup");
 					const phase = status.activity?.phase || "Waiting for setup response";
-					if (watching) $("setup-status").textContent = `${phase} — ${Math.floor((Date.now() - started) / 1000)}s elapsed. Do not start another check.`;
-				} catch { /* The action itself reports errors; do not imply completion. */ }
+					if (watching) setupActivity(phase, {busy: true, started});
+				} catch {
+					// A missed poll is not completion; keep activity visible.
+					if (watching) setupActivity("Waiting for a status update. The setup operation has not reported completion.", {busy: true, started});
+				}
 				finally { polling = false; }
 			}, 1000);
 			try {
@@ -635,11 +639,11 @@ async function initialize() {
 				clearInterval(progress);
 				const status = await api("/api/orbis/setup");
 				setupControls(status);
-				$("setup-status").textContent = (result.message || "Setup state checked.") + (status.complete ? " Ready to install songs." : status.cleanup_required ? " Close Beat Saber and finalize after the template is fetched." : " Complete the remaining steps before installing songs.");
+				setupActivity((result.message || "Setup state checked.") + (status.complete ? " Ready to install songs." : status.cleanup_required ? " Close Beat Saber and finalize after the template is fetched." : " Complete the remaining steps before installing songs."), {complete: status.complete});
 				await loadSettings();
 			} catch (e) {
 				watching = false;
-				$("setup-status").textContent = "Setup not completed: " + e.message;
+				setupActivity("Setup not completed: " + e.message, {failed: true});
 				throw e;
 			} finally {
 				watching = false;
@@ -855,15 +859,26 @@ async function initialize() {
 	try {
 		setup = await api("/api/orbis/setup"); // Local state only; never auto-connect.
 		setupControls(setup);
-		$("setup-status").textContent = setup.complete ? "Setup complete. Keep Beat Saber closed for song installation." : setup.cleanup_required ? "Extraction settings await restoration. Follow the fetch and close/finalize steps." : "No validated local template yet. Check an existing library first, or prepare the one-time extraction.";
+		setupActivity(setup.complete ? "Setup complete. Keep Beat Saber closed for song installation." : setup.cleanup_required ? "Extraction settings await restoration. Follow the fetch and close/finalize steps." : "No validated local template yet. Check an existing library first, or prepare the one-time extraction.", {complete: setup.complete});
 	} catch (e) {
-		$("setup-status").textContent = "Could not verify local setup: " + e.message;
+		setupActivity("Could not verify local setup: " + e.message, {failed: true});
 	}
 	setTab(!setup.complete ? "setup" :
 		["library", "settings", "setup"].includes(location.hash.slice(1))
 			? location.hash.slice(1) : "discover");
 	pollActivity();
 	await search();
+}
+function setupActivity(message, {busy = false, started = 0, failed = false, complete = false} = {}) {
+	const panel = $("setup-activity");
+	panel.dataset.state = busy ? "running" : failed ? "failed" : complete ? "complete" : "idle";
+	panel.setAttribute("aria-busy", String(busy));
+	$("setup-activity-title").textContent = busy ? "Setup is working" : failed ? "Setup needs attention" : complete ? "Setup complete" : "Setup status";
+	$("setup-status").textContent = message;
+	$("setup-progress").hidden = !busy;
+	$("setup-activity-hint").hidden = !busy;
+	$("setup-elapsed").hidden = !busy;
+	$("setup-elapsed").textContent = busy ? `${Math.floor((Date.now() - started) / 1000)}s elapsed` : "";
 }
 function setupControls(status) {
 	state.setupStatus = status;

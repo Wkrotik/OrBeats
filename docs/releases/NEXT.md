@@ -1,31 +1,29 @@
-# Next local candidate — 0.1.19 (not published)
+# Next testing candidate — 0.1.20 (not published)
 
-Commit/push and native Windows CI are approved for this testing candidate.
-No tag or public release: Windows user testing and separate approval remain
-required. Do not replace the public 0.1.16 release assets.
+The user approved disabling unused native file-drop handlers, making setup work
+more visible, and committing/pushing the validated changes for Windows CI.
+No tag or public release; public latest 0.1.16 remains untouched.
 
-- Desktop 0.1.19 / companion 0.7.35 / pipeline 0.5398.
+- Desktop 0.1.20 / companion 0.7.36 / pipeline 0.5398.
 - Main 0.8079 and Extras 0.0015 unchanged.
-- The affected user's 0.1.18 song installation succeeded. Setup logs showed
-  native NumPy initialization inside an HTTP request thread; the first check
-  eventually completed, while another log ended during native initialization.
-  A 45-second stack dump is diagnostic, not cancellation or proof of deadlock.
-- Move synthetic template conversion and native audio imports into a separate
-  allowlisted, local-only helper process. Stream its phases and diagnostics;
-  keep HTTP status requests responsive. Preserve strict conversion, independent
-  readback, bounded files, byte-backed UnityPy loading and failed-worker refusal.
-- Reuse an intact, hash-verified local template without FTP or another conversion.
-  Refuse unnecessary extraction before opening FTP. Pending extraction settings
-  still require explicit restoration on the correct console; never auto-clear
-  that obligation or mark setup complete before restoration.
-- Show state-aware controls: extraction disabled when a template is already ready
-  or extraction is pending; finalization enabled only for pending restoration.
-  Explain when steps 3 and 4 should be skipped.
-- Add source/frozen/native-CI coverage for actual child dispatch, HTTP polling
-  during native imports and invalid-template refusal, without game assets or FTP.
+- Disable the unused Tauri native file-drop handler in BOTH status and main
+  windows. Wine/Soda crashed in ole32!RevokeDragDrop before backend startup.
+  Use the supported builder API, not a shipped binary patch, GPU/sandbox flags
+  or changes to the user's original bottle. Ordinary DOM drag/drop is retained.
+- Put a prominent setup activity panel above the instructions: animated,
+  indeterminate loading bar, current phase and elapsed time. No fake percentage;
+  respect reduced motion, stop on completion/error and ignore late status polls.
+  Keep restoration obligations and scoped write confirmations unchanged.
+- Regressions: both window builders, desktop/mobile bar visibility/placement,
+  reduced motion, success/refusal cleanup and late-poll error preservation.
 
-Local validation: 2,066 host tests, 1,217 sanitized-source tests and 60 actual
-frozen-backend tests passed, plus desktop/mobile offline browser checks and an
-actual frozen owned-template conversion. Native Windows CI/user retesting and
-fresh-console extraction remain validation gates. Private logs, caches and
-console inspection archives are never part of the source export.
+Validate full host/source-only/frozen tests and native builds, then retest the
+actual newly built Windows shell in an isolated network-disabled Bottles copy.
+Bottles startup success is not proof of real PS4 import or fresh extraction.
+Private crash logs and copied prefixes stay out of source publication.
+
+Local validation passed: 2,067 host tests, 1,218 tests on the actual curated source
+export, 61 actual frozen-backend tests, seven native Rust tests and the native
+Ubuntu 22.04 release build. Desktop/mobile browser fixtures passed, including
+visible running/error/completed states, reduced motion and stale-poll guards.
+Native Windows CI and source-built Bottles startup are still to be checked.
