@@ -10,6 +10,8 @@ import faulthandler
 import hashlib
 import json
 import os
+import subprocess
+import sys
 import tempfile
 import threading
 import time
@@ -251,8 +253,16 @@ def _same_console(record, cfg):
 
 
 def request(cfg):
-    """Prepare extraction before asking the user to launch the title themselves."""
-    with operation("Checking closed title and preparing extraction"), library.connection(cfg, True) as f:
+    """Never prepare extraction when a verified local template already suffices."""
+    with operation("Checking whether first-time extraction is needed"):
+        if local_status(cfg)["ready"]:
+            raise ValueError("A verified local template is already ready; extraction is not needed")
+        return _request(cfg)
+
+
+def _request(cfg):
+    phase("Checking closed title and preparing extraction", force=True)
+    with library.connection(cfg, True) as f:
         previous = pending()
         if previous and not previous.get("restored"):
             _same_console(previous, cfg)
@@ -294,22 +304,63 @@ def request(cfg):
 
 
 def _validate_seed(blob):
-    """Prove the real prepare/independent-readback path, not just UnityFS magic."""
+    """Keep native conversion/imports out of the HTTP process, not just its loop."""
+    from runtime_dispatch import command
+
     if not blob or len(blob) > MAX_TEMPLATE:
         raise ValueError("Conversion template is empty or exceeds the setup size bound")
-    phase("Loading conversion helpers")
-    prepare = core.helper("prepare_additive_bundle.py")
     with tempfile.TemporaryDirectory(prefix="orbeats-setup-") as tmp:
         root = Path(tmp)
-        template = root / "source.bundle"
+        template, output = root / "source.bundle", root / "validated.bundle"
         template.write_bytes(blob)
-        phase("Generating a small synthetic validation song")
-        prepare.generate_probe(root / "synthetic")
-        phase("Converting template and independently reading it back; this can take a minute")
-        result = prepare.prepare(root / "synthetic", template, root / "validated")
-        phase("Verifying the converted template")
-        prepare.validate(root / "validated", prepare.load_song(root / "synthetic"))
-        return (root / "validated" / result["bundle"]["file"]).read_bytes()
+        os.chmod(template, 0o600)
+        phase("Starting isolated template validation worker", force=True)
+        argv = command(
+            paths.PROJECT_DIR / "development/scripts/validate_setup_template.py",
+            ["--input", str(template), "--output", str(output)],
+        )
+        process = subprocess.Popen(
+            argv,
+            stdin=subprocess.DEVNULL,
+            stdout=subprocess.PIPE,
+            stderr=subprocess.STDOUT,
+            encoding="utf-8",
+            errors="replace",
+            text=True,
+            env={**os.environ, "PYTHONUNBUFFERED": "1", "PYTHONIOENCODING": "utf-8"},
+            creationflags=subprocess.CREATE_NO_WINDOW if sys.platform == "win32" else 0,
+        )
+        tail = []
+        try:
+            for line in iter(lambda: process.stdout.readline(8193), ""):
+                line = line.rstrip()
+                if line:
+                    tail.append(line[:8192])
+                    tail = tail[-12:]
+                    if line.startswith("[setup-worker] "):
+                        phase(line.removeprefix("[setup-worker] "), force=True)
+                    else:
+                        # Keep stack traces/warnings in diagnostics, not the UI's
+                        # current progress label (which remains the actual stage).
+                        with _activity_lock:
+                            if _activity_log and _activity_log.tell() < 1000000:
+                                _activity_log.write(line[:8192] + "\n")
+                                _activity_log.flush()
+            code = process.wait()
+        except BaseException:
+            # This child has NO console access or publication transaction. Reap it
+            # before removing its private temporary inputs if the parent fails.
+            if process.poll() is None:
+                process.kill()
+            process.wait()
+            raise
+        finally:
+            process.stdout.close()
+        if code:
+            raise ValueError("Template validation worker failed (exit " + str(code) + "): " + "\n".join(tail)[-4000:])
+        if output.is_symlink() or not output.is_file() or not 0 < output.stat().st_size <= MAX_TEMPLATE:
+            raise ValueError("Template worker did not produce a bounded validated result")
+        return output.read_bytes()
 
 
 def _existing_seed(f):
@@ -338,6 +389,18 @@ def collect(cfg):
         record = pending()
         if record and not record.get("restored"):
             _same_console(record, cfg)
+        status = local_status(cfg)
+        if status["ready"]:
+            return {
+                "ok": True,
+                **status,
+                "message": "Using the already verified local template. "
+                + (
+                    "Close Beat Saber and restore extraction settings to finish setup."
+                    if status["cleanup_required"]
+                    else "No extraction or further template check is needed."
+                ),
+            }
         with library.connection(cfg) as connection:
             f = ProgressFTP(connection)
             phase("Checking installed plugin and supported settings")

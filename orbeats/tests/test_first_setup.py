@@ -526,3 +526,39 @@ def test_lock_recovery_endpoint_requires_confirmation_and_keeps_busy_origin_guar
     response = client.post(url, json=body)
     assert response.status_code == 200 and response.json()["removed"]
     assert f.writes == [("rmdir", wire.BASE + "/.install-lock")]
+
+
+def test_verified_cache_reuse_and_no_unnecessary_extraction(environment, monkeypatch):
+    f, cfg, _ = environment
+    f.files[wire.BASE + '/template.bundle'] = b'owned test protocol seed'
+    assert setup.collect(cfg)['complete']
+    before = dict(f.files), list(f.writes)
+    monkeypatch.setattr(setup.library, 'FTP', lambda: pytest.fail('Cached setup must not connect'))
+    monkeypatch.setattr(setup, '_validate_seed', lambda blob: pytest.fail('No redundant conversion'))
+    assert setup.collect(cfg)['complete']
+    with pytest.raises(ValueError, match='already ready'):
+        setup.request(cfg)
+    assert (f.files, f.writes) == before
+
+
+def test_verified_cache_keeps_pending_restoration_and_console_identity(environment, monkeypatch):
+    f, cfg, _ = environment
+    setup.request(cfg)
+    f.files[wire.BASE + '/template.bundle'] = b'owned test protocol seed'
+    assert setup.collect(cfg)['cleanup_required']
+    monkeypatch.setattr(setup.library, 'FTP', lambda: pytest.fail('Cached reuse is local'))
+    result = setup.collect(cfg)
+    assert result['ready'] and not result['complete'] and result['cleanup_required']
+    wrong = dict(cfg, ps4={'ip':'192.0.2.99'})
+    with pytest.raises(ValueError, match='another PS4'):
+        setup.collect(wrong)
+
+
+def test_tampered_cache_never_suppresses_validation(environment, monkeypatch):
+    f, cfg, _ = environment
+    f.files[wire.BASE + '/template.bundle'] = b'owned test protocol seed'
+    setup.collect(cfg)
+    Path(cfg['additive_template']).write_bytes(b'tampered')
+    monkeypatch.setattr(setup, '_validate_seed', lambda blob: (_ for _ in ()).throw(ValueError('strict revalidation reached')))
+    with pytest.raises(ValueError, match='strict revalidation reached'):
+        setup.collect(cfg)

@@ -1,3 +1,9 @@
+## 0.1.19 — local setup worker candidate
+
+- Isolate template conversion/native audio initialization in an owned helper process; stream diagnostic phases while the HTTP server remains responsive. Strict conversion/readback and Windows reader cleanup remain mandatory.
+- Reuse an intact, hash-verified local template without FTP or another conversion; never prepare extraction when that template already suffices. Keep pending extraction restoration explicit.
+- Disable unneeded extraction/finalization controls and explain the next required step. Add source/frozen/native-CI HTTP responsiveness and invalid-template refusal coverage. No release or new console writes.
+
 ## 0.1.18 — testing candidate
 
 - Add explicit empty-install-lock recovery below Updates. Require confirmation that all writers are stopped, refuse active local work/open title/nonempty lock/pending files/unstable or unreadable library, archive inspection and remove only the lock. Never retry an import automatically.

@@ -1,3 +1,7 @@
+## 0.5398
+
+- Add allowlisted local-only template validation worker, main-thread native imports and synthetic conversion/independent readback. Preserve bounded files and byte-backed UnityPy loading; no console/config/network operations in the worker.
+
 ## 0.5397
 
 - Load the conversion template from bytes, closing the input stream before Unity parsing. Avoid Windows WinError32 during temporary template cleanup without suppressing cleanup or validation errors.

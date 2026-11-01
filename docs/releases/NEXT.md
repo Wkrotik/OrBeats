@@ -1,36 +1,31 @@
-# Next candidate — 0.1.18 (not published)
+# Next local candidate — 0.1.19 (not published)
 
-Commit, push and native Windows CI are approved for this testing candidate.
-No tag or public release: Windows user testing and separate approval remain required.
-The public 0.1.16 release assets must not be replaced.
+Commit/push and native Windows CI are approved for this testing candidate.
+No tag or public release: Windows user testing and separate approval remain
+required. Do not replace the public 0.1.16 release assets.
 
-- Desktop 0.1.18 / companion 0.7.34 / pipeline 0.5397.
-- Main 0.8079 and Extras 0.0015 unchanged; no new plugin/hardware parity claim.
-- Move Setup from permanent navigation to the Console & settings header; retain
-  automatic incomplete first setup. Show transfer/conversion stages and elapsed
-  time, reject duplicate checks, and save bounded private setup diagnostics.
-- Fix Windows template cleanup: UnityPy receives bytes with the source stream
-  already closed, not a retained path reader. The published Windows helper under
-  Wine reproduced WinError 32 on temporary source.bundle; changing the loader
-  made the same real read-only checker succeed. This is not native Windows proof.
-  Strict schema validation, independent readback and cleanup errors remain enabled.
-- Distinguish a confirmed import lock from FTP listing/creation permission errors.
-  An abandoned lock's original cause remains unknown; no age-based auto-recovery.
-- Add Installation recovery below Updates. Require explicit confirmation that
-  Beat Saber and all writers on every computer are stopped. Refuse local busy/
-  queue/setup/origin violations, unreadable/unstable library state, nonempty locks
-  or pending staging/rollback files, including orphan owned-media directories.
-  Archive inspection locally, recheck state, then remove only the empty lock.
-  Preserve songs/plugins/backups; never automatically retry an import. Another
-  computer's writer activity cannot reliably be detected by this app.
-- One explicitly authorized empty-lock recovery was completed on the user's
-  console with unchanged manifest and no other console writes or automatic retry.
-- Source-safe and actual frozen smokes cover template-reader lifetime and scoped
-  empty-lock recovery without game assets or network operations. Existing native
-  Windows CI runs these plus the real nested worker launch/refusal tests.
+- Desktop 0.1.19 / companion 0.7.35 / pipeline 0.5398.
+- Main 0.8079 and Extras 0.0015 unchanged.
+- The affected user's 0.1.18 song installation succeeded. Setup logs showed
+  native NumPy initialization inside an HTTP request thread; the first check
+  eventually completed, while another log ended during native initialization.
+  A 45-second stack dump is diagnostic, not cancellation or proof of deadlock.
+- Move synthetic template conversion and native audio imports into a separate
+  allowlisted, local-only helper process. Stream its phases and diagnostics;
+  keep HTTP status requests responsive. Preserve strict conversion, independent
+  readback, bounded files, byte-backed UnityPy loading and failed-worker refusal.
+- Reuse an intact, hash-verified local template without FTP or another conversion.
+  Refuse unnecessary extraction before opening FTP. Pending extraction settings
+  still require explicit restoration on the correct console; never auto-clear
+  that obligation or mark setup complete before restoration.
+- Show state-aware controls: extraction disabled when a template is already ready
+  or extraction is pending; finalization enabled only for pending restoration.
+  Explain when steps 3 and 4 should be skipped.
+- Add source/frozen/native-CI coverage for actual child dispatch, HTTP polling
+  during native imports and invalid-template refusal, without game assets or FTP.
 
-Validation before commit: 2,062 host tests, 1,213 sanitized-source tests and 58
-actual Linux frozen-backend tests passed, plus desktop/mobile offline browser
-checks. Native Windows CI and the affected user's import remain to be checked.
-Fresh-console raw-stock extraction still lacks user-observed hardware proof.
-Private console inspection archives, caches and logs are excluded from publication.
+Local validation: 2,066 host tests, 1,217 sanitized-source tests and 60 actual
+frozen-backend tests passed, plus desktop/mobile offline browser checks and an
+actual frozen owned-template conversion. Native Windows CI/user retesting and
+fresh-console extraction remain validation gates. Private logs, caches and
+console inspection archives are never part of the source export.

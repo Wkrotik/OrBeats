@@ -1,3 +1,7 @@
+## 0.7.35
+
+- Stream isolated setup-worker progress without native conversion imports in HTTP threads. Reuse verified local cache, refuse unnecessary extraction before FTP, preserve wrong-console/restoration guards, and show state-aware setup controls.
+
 ## 0.7.34
 
 - Add a warned, confirmed recovery button below Updates for an empty installation lock. Keep local busy/origin guards, scoped stable-state checks and durable evidence; preserve every song/plugin/backup and never restart work automatically.

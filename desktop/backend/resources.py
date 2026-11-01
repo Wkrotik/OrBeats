@@ -70,6 +70,7 @@ FILES = (
     "development/scripts/import_v3_additive.py",
     "development/scripts/import_v4_additive.py",
     "development/scripts/prepare_additive_bundle.py",
+    "development/scripts/validate_setup_template.py",
     "development/scripts/prepare_additive_media.py",
 )
 

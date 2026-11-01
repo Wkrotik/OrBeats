@@ -188,3 +188,20 @@ pending staging/rollback files and inaccessible or inconsistent state are refuse
 keep that evidence for manual inspection. Historical backups and songs are never
 deleted. This is not automatic stale-lock detection, and recovery does not restart
 an import. This button is not present in the public0.1.16 or earlier0.1.17 candidate.
+
+### Local setup-worker candidate (0.1.19; not a public release)
+
+A successful existing-template check is sufficient: **skip extraction and
+finalization when no extraction settings are pending**. This candidate disables
+those unnecessary controls and explains the next required step. Rechecking an
+intact, hash-verified local template does not reconnect to FTP or reconvert it.
+
+If extraction was prepared earlier, the template may be ready but setup remains
+incomplete until you fully close Beat Saber and explicitly restore the temporary
+settings. Updating the app does not discard that recovery obligation.
+
+Template conversion runs in a separate local helper process. Native audio-library
+initialization must not block the app's setup/status requests. Diagnostic stack
+dumps indicate slow progress, not automatic cancellation. Strict conversion and
+independent readback still must succeed; a failed worker never marks setup ready.
+Native Windows retesting is still required for this local candidate.

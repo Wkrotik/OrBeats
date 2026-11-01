@@ -7,6 +7,7 @@ TASKS = {
     "pipeline": "tools/full_custom_song_pipeline.py",
     "import-v3": "development/scripts/import_v3_additive.py",
     "prepare-additive": "development/scripts/prepare_additive_bundle.py",
+    "validate-template": "development/scripts/validate_setup_template.py",
     "batch": "webapp/batch_runner.py",
     "beatsage": "webapp/beatsage_client.py",
 }

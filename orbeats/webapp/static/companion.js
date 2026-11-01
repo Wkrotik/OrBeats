@@ -634,6 +634,7 @@ async function initialize() {
 				watching = false;
 				clearInterval(progress);
 				const status = await api("/api/orbis/setup");
+				setupControls(status);
 				$("setup-status").textContent = (result.message || "Setup state checked.") + (status.complete ? " Ready to install songs." : status.cleanup_required ? " Close Beat Saber and finalize after the template is fetched." : " Complete the remaining steps before installing songs.");
 				await loadSettings();
 			} catch (e) {
@@ -643,7 +644,8 @@ async function initialize() {
 			} finally {
 				watching = false;
 				clearInterval(progress);
-				buttons.forEach(b => { b.disabled = false; });
+				try { setupControls(await api("/api/orbis/setup")); }
+				catch { setupControls(state.setupStatus || {}); }
 			}
 		});
 	}
@@ -852,6 +854,7 @@ async function initialize() {
 	let setup = {complete: false};
 	try {
 		setup = await api("/api/orbis/setup"); // Local state only; never auto-connect.
+		setupControls(setup);
 		$("setup-status").textContent = setup.complete ? "Setup complete. Keep Beat Saber closed for song installation." : setup.cleanup_required ? "Extraction settings await restoration. Follow the fetch and close/finalize steps." : "No validated local template yet. Check an existing library first, or prepare the one-time extraction.";
 	} catch (e) {
 		$("setup-status").textContent = "Could not verify local setup: " + e.message;
@@ -862,6 +865,20 @@ async function initialize() {
 	pollActivity();
 	await search();
 }
+function setupControls(status) {
+	state.setupStatus = status;
+	const busy = !!status.activity?.busy;
+	$("setup-request").disabled = busy || !!status.ready || !!status.cleanup_required;
+	$("setup-collect").disabled = busy;
+	$("setup-collect").textContent = status.ready ? "Use verified local template" : "Check existing setup / Fetch template";
+	$("setup-finish").disabled = busy || !status.cleanup_required;
+	$("setup-next").textContent = status.ready
+		? status.cleanup_required ? "Template verified. Skip extraction. Fully close Beat Saber, then restore extraction settings below."
+		: "Setup complete: a verified template is saved on this computer. Skip extraction and finalization; keep Beat Saber closed to install songs."
+		: status.cleanup_required ? "Extraction is prepared. Fetch the template after the game notification, then close Beat Saber and restore settings. You can also restore without fetching to cancel extraction."
+		: "First check the existing library. Only prepare extraction if no usable template was found. Steps 3 and 4 are not required when that check succeeds.";
+}
+
 document.addEventListener("click", (event) => {
 	const button = event.target.closest("[data-queue-retry]");
 	if (!button || button.disabled) return;

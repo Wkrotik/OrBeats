@@ -104,6 +104,9 @@ def smoke(executable):
         from smoke_nested_worker import check as check_nested_worker
 
         nested_worker = check_nested_worker(executable, env, root)
+        from smoke_setup_worker import check as check_setup_worker
+
+        setup_worker = check_setup_worker(executable, env, root)
         source = root / "source"
         source.mkdir()
         Image.new("RGB", (64, 64), (50, 80, 120)).save(source / "cover.png")
@@ -234,6 +237,7 @@ def smoke(executable):
         "frozen_codec_rates": codec_rates,
         "fresh_library": fresh_library,
         "nested_worker": nested_worker,
+        "setup_worker": setup_worker,
         "host_python_or_ffmpeg_on_path": False,
         "private_bootstrap": True,
         "graceful_stop": True,
