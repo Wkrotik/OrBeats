@@ -7,6 +7,7 @@ import urllib.parse
 import library_manager as library
 import extras_manager as extras
 import release_updates
+import first_setup
 from adapters import beatsaver, config, paths
 from fastapi import APIRouter, HTTPException
 from fastapi.responses import Response
@@ -74,6 +75,19 @@ def save_settings(body: dict):
         return {"ok": True}
     except (KeyError, ValueError) as e:
         raise HTTPException(400, str(e))
+
+
+@router.get("/setup")
+def setup_status():
+    return guarded(first_setup.local_status, settings())
+
+
+@router.post("/setup/{action}")
+def setup_action(action: str):
+    functions = {"request": first_setup.request, "collect": first_setup.collect, "finish": first_setup.finish}
+    if action not in functions:
+        raise HTTPException(400, "Unknown first-setup action")
+    return guarded(functions[action], settings())
 
 
 @router.get("/search")

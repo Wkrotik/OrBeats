@@ -80,3 +80,39 @@ def test_failed_subprocess_start_does_not_leave_phantom_busy_job(monkeypatch):
     r=SingleJobRunner()
     with pytest.raises(FileNotFoundError):r.start_script('fixture.py',[])
     assert r.current is None and not r.is_busy()
+
+
+def test_worker_stdin_isolated_and_failed_job_log_persists(monkeypatch, tmp_path):
+    from adapters import runner as module
+    monkeypatch.setenv('ORBEATS_STATE_DIR', str(tmp_path))
+    monkeypatch.setattr(module.paths, 'DATA_DIR', tmp_path)
+    r = SingleJobRunner()
+    job = r._spawn([sys.executable, '-c', 'import sys;print("stdin EOF="+repr(sys.stdin.read()),flush=True);print("specific failure",file=sys.stderr,flush=True);sys.exit(3)'], 'Synthetic worker', 'No console operation')
+    for _ in range(200):
+        if job.exit_code is not None:
+            break
+        time.sleep(.01)
+    assert job.exit_code == 3
+    report = Path(job.log_path).read_text()
+    assert "stdin EOF=''" in report and 'specific failure' in report
+    assert '[job] Worker exited with code 3' in report
+    assert r.snapshot()['job']['log_file'] == job.log_path
+
+
+def test_worker_log_symlink_is_not_followed(monkeypatch, tmp_path):
+    from adapters import runner as module
+    outside = tmp_path / 'outside'
+    outside.mkdir()
+    state = tmp_path / 'state'
+    state.mkdir()
+    (state / 'logs').symlink_to(outside, target_is_directory=True)
+    monkeypatch.setenv('ORBEATS_STATE_DIR', str(state))
+    monkeypatch.setattr(module.paths, 'DATA_DIR', state)
+    r = SingleJobRunner()
+    job = r._spawn([sys.executable, '-c', 'print("safe output")'], 'Synthetic worker', 'No console operation')
+    for _ in range(200):
+        if job.exit_code is not None:
+            break
+        time.sleep(.01)
+    assert job.exit_code == 0 and not list(outside.iterdir())
+    assert any('Could not save diagnostic log' in line for line in job.lines)

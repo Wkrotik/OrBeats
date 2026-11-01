@@ -24,6 +24,7 @@
     "tests/test_extras_integration.py",
     "tests/test_extras_native_scores.py",
     "tests/test_extras_transport.py",
+    "tests/test_first_setup.py",
     "tests/test_fresh_library.py",
     "tests/test_github_templates.py",
     "tests/test_hevag_audio_compatibility.py",

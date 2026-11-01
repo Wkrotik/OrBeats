@@ -50,6 +50,18 @@ def runtime_path(root):
 
 
 def task(args):
+    # Keep JSON task stdout intact. Pipeline-only diagnostics use its captured
+    # stderr and distinguish Python startup, integrity, DLL loading and imports.
+    diagnostic = bool(args and args[0] == "pipeline")
+    def phase(message):
+        if diagnostic:
+            print("[worker] " + message, file=sys.stderr, flush=True)
+    phase("Python task entry reached")
+    if diagnostic:
+        os.environ["ORBEATS_JOB_DIAGNOSTICS"] = "1"
+        import faulthandler
+        faulthandler.enable()
+        faulthandler.dump_traceback_later(30)
     # Frozen Python ignores -u; both ends of the job pipe use explicit UTF-8.
     for stream in (sys.stdout, sys.stderr):
         stream.reconfigure(
@@ -59,15 +71,23 @@ def task(args):
             write_through=True,
         )
     root = Path(os.environ["ORBEATS_RUNTIME_ROOT"]).resolve()
+    phase("Verifying bundled runtime")
     verify(root)
+    phase("Runtime verified; activating bundled media libraries")
     runtime_path(root)
+    phase("Bundled media active; loading task dispatcher")
     from runtime_dispatch import TASKS
 
     if len(args) < 2 or args[0] not in TASKS or args[1] != "--":
         raise ValueError("Invalid desktop task invocation")
     script = root / TASKS[args[0]]
     sys.argv = [str(script), *args[2:]]
-    runpy.run_path(str(script), run_name="__main__")
+    phase("Entering pipeline script")
+    try:
+        runpy.run_path(str(script), run_name="__main__")
+    finally:
+        if diagnostic:
+            faulthandler.cancel_dump_traceback_later()
 
 
 async def serve(root, state):

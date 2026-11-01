@@ -42,6 +42,7 @@ class Job:
     lock: threading.Lock = field(default_factory=threading.Lock, repr=False)
     label: str = ""
     command_line: str = ""
+    log_path: str = ""
 
 
 class SingleJobRunner:
@@ -106,7 +107,7 @@ class SingleJobRunner:
                             "id": str(job.id), "label": job.label, "command": job.command_line,
                             "started_at": job.started_at, "ended_at": job.ended_at,
                             "exit_code": job.exit_code, "cancelled": job.cancelled,
-                            "line_count": len(job.lines)}}
+                            "line_count": len(job.lines), "log_file": job.log_path}}
 
     # -- job lifecycle ------------------------------------------------------
     def start(self, argv: list[str], label: str = "") -> Job:
@@ -155,10 +156,10 @@ class SingleJobRunner:
             self._job = job
             try:
                 proc = subprocess.Popen(
-                    popen_argv, cwd=job.cwd, stdout=subprocess.PIPE,
+                    popen_argv, cwd=job.cwd, stdin=subprocess.DEVNULL, stdout=subprocess.PIPE,
                     stderr=subprocess.STDOUT, text=True, bufsize=1,
                     encoding="utf-8", errors="replace",
-                    env={**os.environ, "PYTHONIOENCODING": "utf-8", "PYTHONUNBUFFERED": "1"},
+                    env={**os.environ, "PYTHONIOENCODING": "utf-8", "PYTHONUNBUFFERED": "1", "ORBEATS_JOB_DIAGNOSTICS": "1"},
                     start_new_session=True,
                     creationflags=getattr(subprocess, "CREATE_NO_WINDOW", 0) if os.name == "nt" else 0,
                 )
@@ -168,29 +169,80 @@ class SingleJobRunner:
                 self._job=previous
                 raise
 
+        # Desktop jobs must not inherit the parent's private STOP/EOF pipe.
+        # Persist diagnostics immediately, not only when a queue entry completes.
+        # No bootstrap URL/cookie or config contents are written here.
+        log = None
+        if os.environ.get("ORBEATS_STATE_DIR"):
+            try:
+                folder = paths.DATA_DIR / "logs"
+                if folder.is_symlink():
+                    raise ValueError("Log directory must not be a symlink")
+                folder.mkdir(parents=True, exist_ok=True)
+                target = folder / f"installation-{job.id}.log"
+                log = target.open("x", encoding="utf-8")
+                os.chmod(target, 0o600)
+                job.log_path = str(target)
+                for old in sorted(folder.glob("installation-[0-9]*.log"), reverse=True)[20:]:
+                    if not old.is_symlink() and old.stem.removeprefix("installation-").isdigit():
+                        old.unlink()  # Only this app's bounded diagnostic history.
+                log.write(job.lines[0] + "\n")
+                log.flush()
+            except (OSError, ValueError) as e:
+                if log:
+                    log.close()
+                log = None
+                job.lines.append("[job] Could not save diagnostic log: " + str(e))
+        log_bytes = 0
+        first_output = threading.Event()
+
+        def append(line):
+            nonlocal log_bytes, log
+            line = line.rstrip("\r\n")[:8192]
+            with job.lock:
+                if len(job.lines) < MAX_BUFFER_LINES:
+                    job.lines.append(line)
+                elif len(job.lines) == MAX_BUFFER_LINES:
+                    job.lines.append("… log truncated (max lines reached)")
+                if log:
+                    try:
+                        if log_bytes < 4 * 1024 * 1024:
+                            log.write(line + "\n")
+                            log.flush()
+                            log_bytes += len(line.encode("utf-8")) + 1
+                    except OSError:
+                        log.close()
+                        log = None
+                        job.lines.append("[job] Diagnostic log write failed; live log remains available")
+
+        def startup_warning():
+            if not first_output.wait(20):
+                append("[job] No child output after 20 seconds. Process creation is not proof of pipeline startup. Preserve this log; do not start a duplicate installation.")
+
         def _drain():
+            nonlocal log
             assert proc.stdout is not None
-            truncated = False
             try:
                 for line in proc.stdout:
-                    with job.lock:
-                        if len(job.lines) < MAX_BUFFER_LINES:
-                            job.lines.append(line.rstrip("\n"))
-                        elif not truncated:
-                            job.lines.append("… log truncated (max lines reached)")
-                            truncated = True
+                    first_output.set()
+                    append(line)
             except (OSError, UnicodeError) as e:
-                with job.lock:
-                    job.lines.append("[job] Output stream failed: " + str(e))
+                append("[job] Output stream failed: " + str(e))
             finally:
+                first_output.set()
                 proc.stdout.close()
                 proc.wait()
+                append(f"[job] Worker exited with code {proc.returncode}")
                 with job.lock:
+                    if log:
+                        log.close()
+                        log = None
                     job.ended_at = time.time()
                     job.exit_code = proc.returncode
                     if self.pending_flags and job.exit_code is not None:
                         self.pending_flags = None
 
+        threading.Thread(target=startup_warning, daemon=True).start()
         threading.Thread(target=_drain, daemon=True).start()
         return job
 

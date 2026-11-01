@@ -69,3 +69,7 @@ CLAUDE.md
 orbeats_extras/obj/
 orbeats_extras/obj-debug/
 orbeats_extras/*.prx
+
+# Private first-setup templates and desktop diagnostics in source mode.
+orbeats/setup/
+orbeats/logs/

@@ -96,6 +96,8 @@ def eligible(relative):
         return str(p) in ROOT_FILES
     if p.parts[:3] in (("orbeats", "development", "docs"), ("orbeats", "development", "fixtures")):
         return False
+    if p.parts[:2] in (("orbeats", "setup"), ("orbeats", "logs")):
+        return False  # Private console recovery, derived templates and diagnostics.
     if p.parts[0] == ".devcontainer":
         return p.name in {"setup_additive_host.sh", "setup_additive_toolchain.sh", "setup_additive_analysis.sh"}
     if p.parts[0] == ".github":

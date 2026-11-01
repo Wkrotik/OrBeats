@@ -41,7 +41,7 @@ Browse BeatSaver, build your library, and play without replacing the original so
 You need **Beat Saber CUSA12878, patch 2.04**, on a PS4 with **GoldHEN plugin support and FTP enabled**, plus a Windows x64 or Linux x64 computer. Other game builds are not supported.
 
 1. Open the companion and enter your PS4's IP address in **Console & settings**.
-2. Set up the plugin and conversion template using the [installation guide](docs/getting-started.md).
+2. Follow the [first-time setup guide](docs/getting-started.md) for the plugin **and conversion template**. FTP connection alone is not enough; a fresh setup needs data from your own game. The guided extraction page is new in the local0.1.17 candidate, not the published0.1.16 app.
 3. Find a map, add it to Downloads and start the queue.
 4. Once installation finishes, launch Beat Saber and open the **OrBeats** pack.
 

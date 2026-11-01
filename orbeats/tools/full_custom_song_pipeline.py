@@ -40,6 +40,18 @@ import struct
 import sys
 import tempfile
 
+
+def _worker_phase(message):
+    if os.environ.get('ORBEATS_JOB_DIAGNOSTICS') == '1':
+        print('[worker] ' + message, file=sys.stderr, flush=True)
+
+
+if os.environ.get('ORBEATS_JOB_DIAGNOSTICS') == '1':
+    import faulthandler
+    faulthandler.enable()
+    faulthandler.dump_traceback_later(30)
+_worker_phase('Pipeline script loaded; loading dependencies')
+
 # ---------------------------------------------------------------------------
 # Path setup
 # ---------------------------------------------------------------------------
@@ -188,9 +200,12 @@ def load_config(config_path: str) -> dict:
 # ---------------------------------------------------------------------------
 # Imports from our toolchain
 # ---------------------------------------------------------------------------
+_worker_phase('Loading pack and preview helpers')
 import build_pack_mode_bundles as pack_modes_builder
 import song_previews
+_worker_phase('Loading soundfile audio library')
 import soundfile as sf
+_worker_phase('Loading UnityPy')
 import UnityPy
 from UnityPy.streams import EndianBinaryReader
 
@@ -5245,6 +5260,10 @@ def clear_target_song(config: dict, slot_name: str):
 # ============================================================================
 
 def main():
+    if os.environ.get('ORBEATS_JOB_DIAGNOSTICS') == '1':
+        import faulthandler
+        faulthandler.cancel_dump_traceback_later()
+    _worker_phase('Pipeline imports complete; entering CLI')
     # Print pipeline version
     ver_path = os.path.join(PROJECT_ROOT, 'VERSION')
     if os.path.exists(ver_path):

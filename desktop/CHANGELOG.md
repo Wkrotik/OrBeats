@@ -1,3 +1,15 @@
+## 0.1.17 — local setup/diagnostic candidate, not released
+
+- Bundle companion0.7.33 and pipeline0.5396. Main0.8079/Extras0.0015 unchanged.
+- Add explicit first-run template preparation, read-only collection/independent
+  validation and closed-title restoration using the existing main-plugin extractor.
+- Save bounded installation logs and startup milestones; isolate worker stdin
+  from the desktop STOP pipe. This is diagnostic hardening, not a proven repair
+  for the user-reported native Windows stall.
+- Add native Windows smoke coverage for the actual server -> runner -> real
+  pipeline launch, help and safe additive refusal before FTP (no PS4 writes).
+- No new native Windows or fresh-console hardware result is claimed yet.
+
 ## 0.1.16 — fresh-library fix and Extras update
 
 - Fix issue #1: ship production legacy compatibility metadata instead of depending

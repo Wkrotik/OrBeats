@@ -1,3 +1,16 @@
+## 0.7.33 — guided first setup and saved job diagnostics
+
+- Open a local-state-only first-setup page until a derived template is validated
+  and temporary extractor settings are restored. Reuse a verified existing
+  library/retained template, or explicitly request one base-game asset through
+  the existing plugin; never launch the title or dump all game data.
+- Archive exact prior request/features bytes, preserve plugin-owned output/status,
+  refuse wrong-console/concurrent state, and keep closed-title transactions for
+  prepare/restore. Collection is read-only and independently validates conversion.
+- Exclude private setup/cache/log state from source publication.
+- Persist bounded per-job logs, report worker startup stages and exit status,
+  isolate stdin and warn after no output without killing or retrying installation.
+
 ## 0.7.32 — current-address connection testing
 
 - Test the address currently typed, without saving it or reading a library.

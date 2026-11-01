@@ -176,3 +176,18 @@ def test_empty_artist_has_explicit_nonempty_wire_fallback(song,artist):
 def test_invalid_artist_type_still_rejected(song):
     change_info(song,lambda i:i.update(_songAuthorName={'not':'text'}))
     with pytest.raises(ValueError,match='author'):prepare.load_song(song)
+
+
+def test_first_setup_validator_uses_real_conversion_and_readback():
+    # Local owned-input proof only; the source-only setup tests use synthetic
+    # protocol bytes and never export this fixture or claim raw-stock parity.
+    if not TEMPLATE.is_file():
+        pytest.skip('Locally owned template not available')
+    sys.path.insert(0, str(ROOT / 'webapp'))
+    try:
+        import first_setup
+        checked = first_setup._validate_seed(TEMPLATE.read_bytes())
+        assert checked.startswith(b'UnityFS\0')
+        assert first_setup._validate_seed(checked).startswith(b'UnityFS\0')
+    finally:
+        sys.path.remove(str(ROOT / 'webapp'))

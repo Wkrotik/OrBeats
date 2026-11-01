@@ -590,6 +590,29 @@ async function initialize() {
 	}
 	for (const b of document.querySelectorAll("nav button"))
 		b.addEventListener("click", () => setTab(b.dataset.tab));
+	$("setup-settings").onclick = () => setTab("settings");
+	for (const action of ["request", "collect", "finish"]) {
+		$("setup-" + action).onclick = safely(async () => {
+			if (action !== "collect" && !await confirmAction(
+				action === "request" ? "Prepare first-time extraction?" : "Restore extraction settings?",
+				"Beat Saber must be fully closed. Only this setup's request and feature settings are changed, with readback and local recovery. You must launch and close the game yourself.",
+				action === "request" ? "Prepare extraction" : "Restore settings")) return;
+			const buttons = ["request", "collect", "finish"].map(a => $("setup-" + a));
+			buttons.forEach(b => { b.disabled = true; });
+			$("setup-status").textContent = action === "collect" ? "Reading and validating your template. This can take a moment; no PS4 files are changed…" : "Checking that Beat Saber is closed, then applying the scoped transaction…";
+			try {
+				const result = await api("/api/orbis/setup/" + action, {method: "POST", body: "{}"});
+				const status = await api("/api/orbis/setup");
+				$("setup-status").textContent = (result.message || "Setup state checked.") + (status.complete ? " Ready to install songs." : status.cleanup_required ? " Close Beat Saber and finalize after the template is fetched." : " Complete the remaining steps before installing songs.");
+				await loadSettings();
+			} catch (e) {
+				$("setup-status").textContent = "Setup not completed: " + e.message;
+				throw e;
+			} finally {
+				buttons.forEach(b => { b.disabled = false; });
+			}
+		});
+	}
 	$("open-downloads").onclick = () => { if (!$("downloads").open) $("downloads").showModal(); followLogTail(); };
 	$("close-downloads").onclick = () => $("downloads").close();
 	// Share the geometry/gesture guard across panels: padding is not backdrop,
@@ -792,11 +815,16 @@ async function initialize() {
 	const ping = await api("/api/ping");
 	$("versions").textContent =
 		`App ${ping.webapp_version} · Pipeline ${ping.pipeline_version}`;
-	setTab(
-		["library", "settings"].includes(location.hash.slice(1))
-			? location.hash.slice(1)
-			: "discover",
-	);
+	let setup = {complete: false};
+	try {
+		setup = await api("/api/orbis/setup"); // Local state only; never auto-connect.
+		$("setup-status").textContent = setup.complete ? "Setup complete. Keep Beat Saber closed for song installation." : setup.cleanup_required ? "Extraction settings await restoration. Follow the fetch and close/finalize steps." : "No validated local template yet. Check an existing library first, or prepare the one-time extraction.";
+	} catch (e) {
+		$("setup-status").textContent = "Could not verify local setup: " + e.message;
+	}
+	setTab(!setup.complete ? "setup" :
+		["library", "settings", "setup"].includes(location.hash.slice(1))
+			? location.hash.slice(1) : "discover");
 	pollActivity();
 	await search();
 }

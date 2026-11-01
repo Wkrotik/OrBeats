@@ -184,7 +184,8 @@ class InstallQueue:
                     # its log with the next installation. Never execute log content.
                     reason = next(
                         (line.strip() for line in reversed(job.lines)
-                         if line.strip() and not (line.startswith("[PYI-") and "Failed to execute script" in line)),
+                         if line.strip() and not line.startswith("[job] Worker exited")
+                         and not (line.startswith("[PYI-") and "Failed to execute script" in line)),
                         "Cancelled" if job.cancelled else "Installation failed",
                     )
                     self._history[0]["error"] = re.sub(r"^\[additive\]\s*", "", reason)[:512]

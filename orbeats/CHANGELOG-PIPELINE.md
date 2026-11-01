@@ -1,3 +1,10 @@
+## 0.5396 — worker startup diagnostics
+
+- Flush startup milestones around heavy imports when job diagnostics are enabled;
+  request a30-second startup stack trace and cancel it at CLI entry. Preserve
+  command behavior and JSON output from other helper tasks. No automatic retries,
+  process kills or weakened console guards; native Windows hang remains unproven.
+
 ## 0.5395 — fresh packaged libraries (issue #1)
 
 - Replace the missing development-fixture fallback with reviewed production

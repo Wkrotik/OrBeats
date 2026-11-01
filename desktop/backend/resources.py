@@ -18,6 +18,7 @@ FILES = (
     "webapp/server.py",
     "webapp/companion_api.py",
     "webapp/library_manager.py",
+    "webapp/first_setup.py",
     "webapp/extras_manager.py",
     "webapp/release_updates.py",
     "webapp/batch_runner.py",

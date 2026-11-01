@@ -751,3 +751,20 @@ def test_packaged_fresh_library_and_current_address_without_network(packaged, tm
     proof = module.check(helper, env, tmp_path, runtime=packaged)
     assert proof["fresh_catalog_empty"] and proof["submitted_address_tested"]
     assert proof["mocked_ftp_only"] and not proof["console_writes"]
+
+@pytest.mark.parametrize('frozen', [False, True])
+def test_real_nested_pipeline_startup_and_additive_refusal(packaged, tmp_path, frozen):
+    executable = os.environ.get('ORBEATS_TEST_FROZEN_BACKEND')
+    if frozen and not executable:
+        pytest.skip('Optional locally built frozen helper not provided')
+    sys.path.insert(0, str(ROOT / 'desktop/development'))
+    try:
+        from smoke_nested_worker import check
+        env = {k: v for k, v in os.environ.items() if not k.startswith(('ORBEATS_', 'PYTHON'))}
+        env['PYTHONDONTWRITEBYTECODE'] = '1'
+        if frozen:
+            env['PATH'] = '/no-host-python-or-tools'
+        proof = check(executable if frozen else BACKEND / 'entrypoint.py', env, tmp_path, runtime=packaged)
+        assert proof == {'help': True, 'refusal': True, 'saved_job_logs': True, 'ps4_operations': False, 'real_nested_pipeline': True}
+    finally:
+        sys.path.remove(str(ROOT / 'desktop/development'))

@@ -31,6 +31,7 @@ from fastapi.staticfiles import StaticFiles
 
 app = FastAPI(title="OrBeats")
 from companion_api import router as companion_router
+import first_setup
 app.include_router(companion_router)
 from starlette.middleware.trustedhost import TrustedHostMiddleware
 from fastapi.responses import JSONResponse
@@ -47,6 +48,7 @@ async def local_origin_guard(request, call_next):
         path = request.url.path
         management = (path in ('/api/orbis/settings', '/api/orbis/plugin', '/api/config/save')
                       or path.startswith('/api/orbis/library/')
+                      or path.startswith('/api/orbis/setup/')
                       or (path.startswith('/api/jobs/') and path != '/api/jobs/cancel'))
         if management and (RUNNER.is_busy() or INSTALL_QUEUE.has_work()):
             detail = ('A job is already running. Wait before starting another operation.'
@@ -909,6 +911,9 @@ def queue_add(body: dict):
 def queue_action(action: str):
     try:
         if action == "start":
+            extraction = first_setup.pending()
+            if extraction and not extraction["restored"]:
+                raise ValueError("Finish First setup: close Beat Saber and restore extraction settings before starting installations")
             _require_config()
             INSTALL_QUEUE.start()
         elif action == "pause":

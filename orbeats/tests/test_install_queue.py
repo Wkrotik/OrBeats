@@ -332,3 +332,15 @@ def test_pyinstaller_wrapper_never_hides_real_failure_before_next_job():
     runner.jobs[0].exit_code = 1
     wait_for(lambda: bool(queue.status()['history']))
     assert queue.status()['history'][0]['error'] == 'ValueError: actual map or connection reason'
+
+
+def test_exit_marker_does_not_hide_specific_failure_reason():
+    runner = FakeRunner()
+    queue = InstallQueue(runner)
+    queue.add('abc')
+    queue.start()
+    wait_for(lambda: len(runner.jobs) == 1)
+    runner.jobs[0].lines = ['[additive] Import refused: specific fixture reason', '[job] Worker exited with code 2']
+    runner.jobs[0].exit_code = 2
+    wait_for(lambda: queue.status()['paused'] and bool(queue.status()['history']))
+    assert queue.status()['history'][0]['error'] == 'Import refused: specific fixture reason'

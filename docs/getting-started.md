@@ -7,7 +7,8 @@
 - PS4 with GoldHEN plugin support and its FTP server enabled.
 - **Beat Saber CUSA12878, patch 2.04**. Other regions/patches are not supported.
 - Windows x64 or Linux x64 computer on the same network as the PS4.
-- Your own legally obtained conversion template on a completely empty setup.
+- Your own legally obtained game data for the one-time conversion template. A
+  fresh setup is **not ready after FTP connects or the plugin is installed**.
 
 The companion and native plugin are separate components: the computer prepares
 and installs maps; `orbeats.prx` makes the custom pack appear in the game.
@@ -32,19 +33,59 @@ for evidence and remaining validation limits.
 Packaged builds include their Python backend and media tools. You do not need
 Python, FFmpeg or a proprietary FMOD SDK installed to use them.
 
-## Connect and set up the plugin
+## First setup: connection, plugin and conversion template
+
+**Local 0.1.17 candidate:** the guided flow below is new development work, not a
+feature of the currently published 0.1.16 installer. On 0.1.16 an empty setup
+still requires a manually obtained, compatible prepared template in the advanced
+conversion setting. Updating the app does not itself obtain game assets.
+
+The **First setup** page opens automatically until a local template is validated
+and any temporary extraction settings have been restored. It remains accessible
+from the sidebar afterwards. Opening the app does not automatically connect to or
+change the PS4.
 
 1. **Fully close Beat Saber**, leaving the PS4 on and GoldHEN FTP enabled.
-2. In **Console & settings**, enter the PS4's IP address. GoldHEN uses FTP
-   port **2121**, anonymous access and no password.
-3. Use the plugin controls to check or install the bundled `orbeats.prx`.
-   Keep it enabled in GoldHEN. Do not register two copies under different names.
-4. On a new empty installation, supply your own validated prepared template in
-   the advanced conversion settings. An existing additive library can supply
-   its template from the PS4. OrBeats does not distribute copyrighted game assets.
+2. Open **Console & settings**, enter the PS4's **IP address only**, test it, then
+   **Save connection**. The test does not save the address or validate the library.
+   GoldHEN uses port **2121**, anonymous access and no password.
+3. Check/install the bundled main `orbeats.prx` using the plugin controls. Keep
+   it enabled in GoldHEN; do not register two copies under different names.
+4. Return to **First setup** and choose **Fetch / check template**. An existing
+   verified OrBeats library or retained template can supply the required schema,
+   so existing users normally do not need another extraction.
+5. If no compatible template exists, keep Beat Saber **fully closed**, choose
+   **Prepare extraction**, and confirm. OrBeats temporarily requests just the
+   base-game `100Bills` asset through the main plugin's existing extractor. It
+   archives the exact previous request file and feature settings for restoration;
+   it does not reactivate unrelated extraction requests, dump the entire game,
+   edit stock songs/saves/DLC or bypass entitlements.
+6. **Launch Beat Saber yourself**, with the main plugin enabled, and wait at its
+   main menu. Keep GoldHEN FTP available. Choose **Fetch / check template** in
+   OrBeats. This step only reads the PS4, so it can run while the title is open.
+   A successful FTP connection or extraction notification alone is not completion:
+   OrBeats must perform a synthetic conversion and independently validate it.
+7. **Fully close Beat Saber**, then choose **Restore settings / finish** and
+   confirm. Only the request/features bytes changed by this setup are restored,
+   with title checks and transaction readback. Plugin-owned extraction status and
+   output are preserved. Do not install songs until setup reports ready.
+
+If extraction is still pending, wait and fetch again. An explicit extraction
+failure requires fully closing and relaunching the game before retrying; the
+native extractor runs once per game boot. Unsupported or invalid assets are
+refused, not accepted as a completed setup. If connection/settings files change
+independently, stop and inspect the retained recovery state instead of overwriting
+it. Do not delete recovery files to get past a refusal.
+
+The local cache contains only a derived, validated conversion template with
+synthetic song content, under the app data folder's `setup/` directory. The
+configured template path is displayed in advanced settings. Original extracted
+data/status remain on the user's PS4; OrBeats neither ships nor uploads them.
+The raw-stock first-run path still requires hardware validation; offline tests
+are not a claim that this sequence has been confirmed on a fresh console.
 
 A title-state refusal means the game must be closed; it is not a reason to bypass
-the guard. The companion never launches the game for you.
+the guard. The companion never launches or closes the game for you.
 
 ## Optional Extras and updates
 
@@ -95,3 +136,24 @@ journal. Do not delete the lock or unknown console files blindly. See the
 
 The source web server is a local administrative interface, not a public hosting
 service. Do not expose it or GoldHEN FTP to the Internet.
+
+## Installation diagnostics (local 0.1.17 candidate)
+
+0.1.16 keeps live job output in memory; it does not automatically save a complete
+installation log. The local candidate adds flushed, bounded per-job logs under:
+
+- **Windows:** `%LOCALAPPDATA%\io.orbeats.companion\logs\installation-*.log`
+- **Linux:** the app's local data directory, normally
+  `~/.local/share/io.orbeats.companion/logs/installation-*.log`
+
+At most20 app-owned job logs are retained, roughly4MiB each. They include worker
+startup stages, merged stdout/stderr, and exit status. A startup stack trace is
+requested after30seconds; this is diagnostic, not an automatic retry, kill or a
+proven fix for the reported native Windows stall. A no-output warning does not
+mean it is safe to start a second install. The Downloads panel's Copy/Save log
+controls can also export the current live log.
+
+For a bug report, send only the relevant job log after reviewing it for personal
+paths, addresses or song names. Do **not** send the whole app-data folder: it can
+contain settings, private templates, recovery records and downloads. Logs are
+never uploaded automatically.

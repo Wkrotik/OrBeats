@@ -150,6 +150,8 @@ const fixture = {
 const song = { id: 'bsd_additive_000000000000000000000001', title: 'Installed fixture', author: 'Artist', duration: 209, bpm: 132, bytes: 1000, mask: 8, stats: [[0, 0, 0, 0, 0], [0, 0, 0, 0, 0], [0, 0, 0, 0, 0], [1024, 16, 94, 14, 0], [0, 0, 0, 0, 0]] };
 const hooks = `(()=>{const original=window.fetch.bind(window),map=${JSON.stringify(fixture)},song=${JSON.stringify(song)};window.testOriginalSongs=[{...song,info:map},{...song,id:song.id.replace(/1$/,'2'),title:'Compression [Vorbis test]'}];window.testSongs=structuredClone(window.testOriginalSongs);window.testPluginWrites=[];window.testUpdateOffline=false;window.testDeletes=[];window.testDeleteError='';window.testDeleteDelay=false;window.testQueue={pending:[],active:null,history:[],paused:true,message:''};window.testProgress={job:null,running:false,index:0,lines:[]};window.confirm=()=>{throw Error('Native browser confirmation used')};window.fetch=async(url,options={})=>{const path=String(url);let value;
 if(path==='/api/orbis/settings'){if(options.method==='POST'){const body=JSON.parse(options.body);(window.testSavedRequests??=[]).push(body);window.testSavedAddress=body.ip;value={ok:true}}else value={ip:window.testSavedAddress||'192.168.1.67',port:2121,user:'anonymous',template:'',updates:{state:'not_checked',message:'Official GitHub release has not been checked.'}}}
+else if(path==='/api/orbis/setup')value={ready:!!window.testSetupReady,cleanup_required:!!window.testSetupRequested,complete:!!window.testSetupReady&&!window.testSetupRequested};
+else if(path.startsWith('/api/orbis/setup/')&&options.method==='POST'){const action=path.split('/').at(-1);(window.testSetupCalls??=[]).push(action);if(action==='collect'&&!window.testSetupRequested)return new Response(JSON.stringify({detail:'No existing template. Prepare extraction first.'}),{status:400,headers:{'Content-Type':'application/json'}});if(action==='request')window.testSetupRequested=true;if(action==='collect')window.testSetupReady=true;if(action==='finish')window.testSetupRequested=false;value={ok:true,message:action==='request'?'Launch Beat Saber yourself, then Fetch template.':action==='collect'?'Template validated. Close Beat Saber before finalizing.':'Extraction settings restored.'}}
 else if(path==='/api/orbis/connection/test'){const body=JSON.parse(options.body);(window.testAddressRequests??=[]).push(body);if(window.testConnectionDelay)await new Promise(resolve=>{window.testResolveConnection=resolve});if(body.ip.includes(':')||window.testConnectionError)return new Response(JSON.stringify({detail:body.ip.includes(':')?'Enter an IP address only, without :2121.':'fixture FTP refused'}),{status:400,headers:{'Content-Type':'application/json'}});value={ok:true,ip:body.ip,port:2121}}
 else if(path==='/api/orbis/plugin'&&(!options.method||options.method==='GET'))value={installed:true,installed_version:'0.8068',available_version:'0.8071',capability_matches:true,declared_version_matches:true,max_songs:8,registration:'registered_once',runtime_verified:false};
 else if(path==='/api/orbis/extras'){if(options.method==='POST'){window.testPluginWrites.push('bundled-extras');value={ok:true,message:'Extras installed (offline fixture)'}}else value={installed:true,installed_version:'0.0008',available_version:'0.0009',registration:'enabled'}}
@@ -181,6 +183,39 @@ try {
   await send('Emulation.setDeviceMetricsOverride', { width: 1440, height: 1100, deviceScaleFactor: 1, mobile: false });
   await send('Page.bringToFront'); await send('Page.navigate', { url: app });
   await until("document.querySelectorAll('#results .card').length===1");
+  // First launch never auto-targets the console. Scoped writes require an
+  // explicit confirmation; failure and fetched-but-not-restored are not done.
+  assert.equal(await evaluate("!document.getElementById('setup').hidden"),true);
+  assert.deepEqual(await evaluate("window.testSetupCalls||[]"),[]);
+  assert.equal(await evaluate("document.querySelectorAll('#setup h2').length"),4);
+  await evaluate("document.getElementById('setup-collect').click()");
+  await until("document.getElementById('setup-status').textContent.includes('Setup not completed')&&!document.getElementById('setup-collect').disabled");
+  assert.equal(await evaluate("!!window.testSetupReady"),false);
+  await evaluate("document.getElementById('setup-request').click()");
+  await until("document.getElementById('confirm-action').open");
+  await evaluate("document.querySelector('#confirm-action [value=cancel]').click()");
+  await until("!state.confirming");
+  assert.deepEqual(await evaluate("window.testSetupCalls"),['collect']);
+  await evaluate("document.getElementById('setup-request').click()");
+  await until("document.getElementById('confirm-action').open");
+  await evaluate("document.getElementById('confirm-accept').click()");
+  await until("window.testSetupRequested&&!document.getElementById('setup-request').disabled");
+  await evaluate("document.getElementById('setup-collect').click()");
+  await until("window.testSetupReady&&!document.getElementById('setup-collect').disabled");
+  assert.equal(await evaluate("document.getElementById('setup-status').textContent.includes('Ready to install songs')"),false);
+  for (const [width,height] of [[1440,1100],[390,844]]) {
+    await send('Emulation.setDeviceMetricsOverride',{width,height,deviceScaleFactor:1,mobile:width<720});
+    assert.equal(await evaluate("document.documentElement.scrollWidth<=innerWidth+1"),true);
+    const shot=await send('Page.captureScreenshot',{format:'png',captureBeyondViewport:false});
+    await writeFile(output+'/first-setup-'+width+'.png',Buffer.from(shot.data,'base64'));
+  }
+  await send('Emulation.setDeviceMetricsOverride',{width:1440,height:1100,deviceScaleFactor:1,mobile:false});
+  await evaluate("document.getElementById('setup-finish').click()");
+  await until("document.getElementById('confirm-action').open");
+  await evaluate("document.getElementById('confirm-accept').click()");
+  await until("document.getElementById('setup-status').textContent.includes('Ready to install songs')");
+  assert.deepEqual(await evaluate("window.testSetupCalls"),['collect','request','collect','finish']);
+  await evaluate("document.getElementById('dismiss-notice').click();setTab('discover');document.querySelector('main').scrollTop=0");
   // All20 songs remain in the grid; horizontal pagination stays below it at any column count.
   await evaluate(`window.savedPagination=document.getElementById('pagination');window.testSearchPages=[Array.from({length:20},(_,i)=>({...state.maps[0],id:(4096+i).toString(16),metadata:{...state.maps[0].metadata,songName:'Result '+(i+1)}})),Array.from({length:3},(_,i)=>({...state.maps[0],id:(8192+i).toString(16)}))];search()`);
   await until("document.querySelectorAll('#results .card').length===20");
