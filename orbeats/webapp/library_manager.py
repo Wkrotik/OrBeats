@@ -23,24 +23,7 @@ _ftp_lock = Lock()
 
 
 def acquire_install_lock(f):
-    """Never mistake a denied mkdir or another writer's lock for an unlocked console."""
-    try:
-        f.mkd(BASE + "/.install-lock")
-    except error_perm as exc:
-        if not str(exc).startswith("550"):
-            raise
-        try:
-            exists = any(p.rstrip("/").rsplit("/", 1)[-1] == ".install-lock" for p in f.nlst(BASE))
-        except error_perm:
-            raise ValueError("Cannot inspect the installation lock. Check FTP access; no update started.") from exc
-        if exists:
-            raise ValueError(
-                "An active or interrupted installation holds .install-lock. "
-                "Stop all writers and inspect recovery state before explicitly clearing the lock. "
-                "No plugin or library files were changed by this operation."
-            ) from exc
-        raise ValueError("Cannot create .install-lock. Check FTP write access; no update started.") from exc
-
+    return core.acquire_install_lock(f)
 
 @contextmanager
 def connection(config, write=False):
@@ -63,6 +46,80 @@ def connection(config, write=False):
                 except Exception:
                     pass
             f.close()
+
+
+def recover_install_lock(config):
+    """Explicit recovery ONLY: empty lock, stable manifest/names, no pending files.
+
+    User must stop all writers on EVERY computer. FTP has no global process/owner
+    query: these checks cannot establish remote writer inactivity by themselves.
+    Never recursively remove anything or auto-resume an installation.
+    """
+    from console_transaction import LOCAL_BACKUPS, archive
+
+    lock = BASE + "/.install-lock"
+
+    def names(f, folder):
+        rows = f.nlst(folder)  # Listing failure is not absence or an empty lock.
+        if len(rows) > 4096:
+            raise ValueError("Recovery listing exceeds safety bound; inspect manually")
+        result = []
+        for path in rows:
+            if path.startswith("/") and not path.startswith(folder + "/"):
+                raise ValueError("Unexpected recovery listing; inspect manually")
+            name = path.rstrip("/").rsplit("/", 1)[-1]
+            if name not in (".", ".."):
+                result.append(name)
+        return sorted(result)
+
+    def snapshot(f):
+        core.closed(f)
+        root = names(f, BASE)
+        if ".install-lock" not in root:
+            raise ValueError("Installation lock changed during recovery; inspect before retrying")
+        if names(f, lock):
+            raise ValueError("Installation lock is not empty. Nothing was removed; inspect recovery data")
+        manifest = core.read(f, BASE + "/library.bin", MAX_BYTES)
+        songs = core.decode(manifest)
+        listings = {BASE: root}
+        media = [n for n in root if re.fullmatch(r"bsd_additive_[0-9a-f]{24}-media", n)]
+        if len(media) > 256:
+            raise ValueError("Too many recovery directories; inspect manually")
+        for name in media:
+            listings[BASE + "/" + name] = names(f, BASE + "/" + name)
+        for folder, entries in listings.items():
+            if any(any(t in n for t in (".stage-", ".rollback-", ".tmp-")) or n == "library.bin.bak" for n in entries):
+                raise ValueError("Interrupted-install files need inspection. Nothing was removed")
+        for song in songs:
+            for path in paths(song):
+                parent, name = path.rsplit("/", 1)
+                if name not in listings.get(parent, []):
+                    raise ValueError("Library files are missing; inspect recovery state before clearing its lock")
+        return manifest, listings
+
+    # Read-only connection avoids trying to acquire the lock being recovered;
+    # _ftp_lock still serializes local management FTP access.
+    with connection(config) as f:
+        core.closed(f)
+        if ".install-lock" not in names(f, BASE):
+            return {"ok": True, "removed": False, "message": "No installation lock exists. Nothing changed."}
+        before, listing = snapshot(f)
+        directory = LOCAL_BACKUPS / ("lock-recovery-" + uuid.uuid4().hex)
+        archive(directory, "library-before.bin", before)
+        archive(directory, "inspection.json", json.dumps(listing, sort_keys=True).encode())
+        if snapshot(f) != (before, listing):
+            raise ValueError("Console state changed during recovery. Nothing was removed")
+        core.closed(f)
+        if names(f, lock):
+            raise ValueError("Lock contents changed. Nothing was removed")
+        # RMD cannot remove a nonempty directory. NO DELE, recursive traversal,
+        # writes to song/plugin files, or implicit restart is permitted here.
+        f.rmd(lock)
+        archive(directory, "lock-removed.json", b'{"removed":true,"automatic_retry":false}')
+        remaining = names(f, BASE)
+        if ".install-lock" in remaining or core.read(f, BASE + "/library.bin", MAX_BYTES) != before:
+            raise ValueError("Lock removal sent, but console state changed afterward. Do not retry; inspect recovery evidence")
+        return {"ok": True, "removed": True, "message": "Empty installation lock removed. Library and backups were not changed. No installation was restarted."}
 
 
 def test_connection(config):

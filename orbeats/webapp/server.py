@@ -46,10 +46,14 @@ async def local_origin_guard(request, call_next):
             return JSONResponse({'detail':'Cross-origin console changes are refused'},status_code=403)
     if request.method in ('POST', 'DELETE', 'PUT', 'PATCH'):
         path = request.url.path
-        management = (path in ('/api/orbis/settings', '/api/orbis/plugin', '/api/config/save')
+        management = (path in ('/api/orbis/settings', '/api/orbis/plugin', '/api/orbis/extras', '/api/config/save')
                       or path.startswith('/api/orbis/library/')
                       or path.startswith('/api/orbis/setup/')
+                      or path.startswith('/api/orbis/recovery/')
+                      or path.startswith('/api/orbis/updates/')
                       or (path.startswith('/api/jobs/') and path != '/api/jobs/cancel'))
+        if first_setup.activity()['busy'] and (management or path == '/api/install-queue/start'):
+            return JSONResponse({'detail': 'First setup is working. Follow its progress before starting another operation.'}, status_code=409)
         if management and (RUNNER.is_busy() or INSTALL_QUEUE.has_work()):
             detail = ('A job is already running. Wait before starting another operation.'
                       if RUNNER.is_busy() and not INSTALL_QUEUE.has_work()

@@ -591,6 +591,23 @@ async function initialize() {
 	for (const b of document.querySelectorAll("nav button"))
 		b.addEventListener("click", () => setTab(b.dataset.tab));
 	$("setup-settings").onclick = () => setTab("settings");
+	$("open-setup").onclick = () => setTab("setup");
+	$("recover-install-lock").onclick = safely(async () => {
+		if (!await confirmAction("Remove an interrupted installation lock?",
+			"Only continue if Beat Saber is fully closed and OrBeats imports, updates, setup and CLI scripts are stopped on EVERY computer. Clearing a lock during active work can corrupt the library. This app cannot reliably detect another computer's work. Only an empty lock with stable, readable state and no pending files will be removed; songs, plugins and backups stay untouched.",
+			"All writers stopped — remove empty lock")) return;
+		const button = $("recover-install-lock");
+		button.disabled = true;
+		$("recovery-status").textContent = "Inspecting lock and library state. Do not start any imports or updates…";
+		try {
+			const result = await api("/api/orbis/recovery/install-lock", {method: "POST", body: JSON.stringify({confirm_all_writers_stopped: true})});
+			$("recovery-status").textContent = result.message;
+			notify(result.message);
+		} catch (e) {
+			$("recovery-status").textContent = "Recovery not confirmed: " + e.message;
+			throw e;
+		} finally { button.disabled = false; }
+	});
 	for (const action of ["request", "collect", "finish"]) {
 		$("setup-" + action).onclick = safely(async () => {
 			if (action !== "collect" && !await confirmAction(
@@ -600,15 +617,32 @@ async function initialize() {
 			const buttons = ["request", "collect", "finish"].map(a => $("setup-" + a));
 			buttons.forEach(b => { b.disabled = true; });
 			$("setup-status").textContent = action === "collect" ? "Reading and validating your template. This can take a moment; no PS4 files are changed…" : "Checking that Beat Saber is closed, then applying the scoped transaction…";
+			let polling = false, watching = true;
+			const started = Date.now();
+			const progress = setInterval(async () => {
+				if (polling) return;
+				polling = true;
+				try {
+					const status = await api("/api/orbis/setup");
+					const phase = status.activity?.phase || "Waiting for setup response";
+					if (watching) $("setup-status").textContent = `${phase} — ${Math.floor((Date.now() - started) / 1000)}s elapsed. Do not start another check.`;
+				} catch { /* The action itself reports errors; do not imply completion. */ }
+				finally { polling = false; }
+			}, 1000);
 			try {
 				const result = await api("/api/orbis/setup/" + action, {method: "POST", body: "{}"});
+				watching = false;
+				clearInterval(progress);
 				const status = await api("/api/orbis/setup");
 				$("setup-status").textContent = (result.message || "Setup state checked.") + (status.complete ? " Ready to install songs." : status.cleanup_required ? " Close Beat Saber and finalize after the template is fetched." : " Complete the remaining steps before installing songs.");
 				await loadSettings();
 			} catch (e) {
+				watching = false;
 				$("setup-status").textContent = "Setup not completed: " + e.message;
 				throw e;
 			} finally {
+				watching = false;
+				clearInterval(progress);
 				buttons.forEach(b => { b.disabled = false; });
 			}
 		});

@@ -6,12 +6,15 @@ locally; it is never uploaded/shared. No credentials or game data are shipped.
 """
 
 import base64
+import faulthandler
 import hashlib
 import json
 import os
 import tempfile
 import threading
+import time
 import uuid
+from contextlib import contextmanager
 from pathlib import Path
 
 import library_manager as library
@@ -28,6 +31,104 @@ ASSET = "Media/StreamingAssets/BeatmapLevelsData/100Bills"
 MAX_TEMPLATE = 200000000
 MAX_STOCK = 32000000
 _lock = threading.Lock()
+_activity_lock = threading.Lock()
+_activity = {"busy": False, "phase": "", "started": None, "error": "", "log_file": ""}
+_activity_log = None
+_last_log = 0.0
+
+
+def activity():
+    with _activity_lock:
+        return dict(_activity)
+
+
+def phase(message, force=False):
+    global _last_log
+    with _activity_lock:
+        if not _activity["busy"]:
+            return
+        _activity["phase"] = message
+        if _activity_log and (force or time.monotonic() - _last_log >= 0.25):
+            try:
+                if _activity_log.tell() < 1000000:
+                    _activity_log.write(message[:1024] + "\n")
+                    _activity_log.flush()
+                _last_log = time.monotonic()
+            except OSError:
+                pass
+
+
+@contextmanager
+def operation(name):
+    """Never queue duplicate setup clicks behind a long FTP read or conversion."""
+    global _activity_log, _last_log
+    if not _lock.acquire(blocking=False):
+        raise ValueError("Setup is already working; follow its progress instead of starting another check")
+    watchdog = False
+    try:
+        with _activity_lock:
+            _activity.update(busy=True, phase=name, started=time.time(), error="", log_file="")
+        try:
+            folder = paths.DATA_DIR / "logs"
+            if folder.is_symlink():
+                raise OSError("Log directory is a symlink")
+            folder.mkdir(parents=True, exist_ok=True)
+            for old in sorted(folder.glob("setup-*.log"))[:-19]:
+                if old.is_file() and not old.is_symlink():
+                    old.unlink()
+            log = folder / ("setup-" + str(time.time_ns()) + ".log")
+            _activity_log = log.open("x", encoding="utf-8")
+            os.chmod(log, 0o600)
+            with _activity_lock:
+                _activity["log_file"] = str(log)
+            faulthandler.dump_traceback_later(45, file=_activity_log)
+            watchdog = True
+        except (OSError, RuntimeError):
+            pass  # Diagnostics must not turn a recoverable setup error into failure.
+        _last_log = 0.0
+        phase(name)
+        yield
+        phase("Setup operation completed", force=True)
+    except Exception as exc:
+        with _activity_lock:
+            _activity["error"] = str(exc)[:1024]
+        phase("Setup stopped: " + str(exc), force=True)
+        raise
+    finally:
+        if watchdog:
+            faulthandler.cancel_dump_traceback_later()
+        with _activity_lock:
+            if _activity_log:
+                try:
+                    _activity_log.close()
+                except OSError:
+                    pass
+            _activity_log = None
+            _activity["busy"] = False
+        _lock.release()
+
+
+class ProgressFTP:
+    """Transparent read-only progress observation; no new console operations."""
+
+    def __init__(self, ftp):
+        self.ftp = ftp
+
+    def __getattr__(self, name):
+        return getattr(self.ftp, name)
+
+    def retrbinary(self, command, callback, *args, **kwargs):
+        name = command.rsplit("/", 1)[-1]
+        count = 0
+        phase("Reading " + name)
+
+        def received(block):
+            nonlocal count
+            callback(block)
+            count += len(block)
+            phase("Reading " + name + ": " + str(count // 1024) + " KiB received")
+
+        return self.ftp.retrbinary(command, received, *args, **kwargs)
 
 
 def directory():
@@ -94,6 +195,7 @@ def local_status(cfg):
         "requested": needs_cleanup,
         "asset": ASSET,
         "complete": ready and not needs_cleanup,
+        "activity": activity(),
     }
 
 
@@ -150,7 +252,7 @@ def _same_console(record, cfg):
 
 def request(cfg):
     """Prepare extraction before asking the user to launch the title themselves."""
-    with _lock, library.connection(cfg, True) as f:
+    with operation("Checking closed title and preparing extraction"), library.connection(cfg, True) as f:
         previous = pending()
         if previous and not previous.get("restored"):
             _same_console(previous, cfg)
@@ -195,13 +297,17 @@ def _validate_seed(blob):
     """Prove the real prepare/independent-readback path, not just UnityFS magic."""
     if not blob or len(blob) > MAX_TEMPLATE:
         raise ValueError("Conversion template is empty or exceeds the setup size bound")
+    phase("Loading conversion helpers")
     prepare = core.helper("prepare_additive_bundle.py")
     with tempfile.TemporaryDirectory(prefix="orbeats-setup-") as tmp:
         root = Path(tmp)
         template = root / "source.bundle"
         template.write_bytes(blob)
+        phase("Generating a small synthetic validation song")
         prepare.generate_probe(root / "synthetic")
+        phase("Converting template and independently reading it back; this can take a minute")
         result = prepare.prepare(root / "synthetic", template, root / "validated")
+        phase("Verifying the converted template")
         prepare.validate(root / "validated", prepare.load_song(root / "synthetic"))
         return (root / "validated" / result["bundle"]["file"]).read_bytes()
 
@@ -228,12 +334,15 @@ def _existing_seed(f):
 
 def collect(cfg):
     """Only RETR/NLST/login on console. Can run while extractor's title is open."""
-    with _lock:
+    with operation("Waiting for FTP access; other PS4 reads may finish first"):
         record = pending()
         if record and not record.get("restored"):
             _same_console(record, cfg)
-        with library.connection(cfg) as f:
+        with library.connection(cfg) as connection:
+            f = ProgressFTP(connection)
+            phase("Checking installed plugin and supported settings")
             _protocol(f)
+            phase("Checking the installed library for a conversion template")
             blob = _existing_seed(f)
             if blob is None and cfg.get("additive_template"):
                 p = Path(cfg["additive_template"])
@@ -256,7 +365,9 @@ def collect(cfg):
                 blob = core.read(f, AFR + "/game_data/" + ASSET, MAX_STOCK + 1)
                 if len(blob) > MAX_STOCK:
                     raise ValueError("Extracted stock asset exceeds the setup size bound")
+        phase("Validating template with a synthetic conversion")
         checked = _validate_seed(blob)
+        phase("Saving the validated template privately on this computer")
         digest = hashlib.sha256(checked).hexdigest()
         target = directory() / (digest + ".bundle")
         if target.exists():
@@ -280,7 +391,7 @@ def collect(cfg):
 
 def finish(cfg):
     """Restore only our exact request/flag bytes, while closed. Never erase output/status."""
-    with _lock, library.connection(cfg, True) as f:
+    with operation("Checking closed title and restoring extraction settings"), library.connection(cfg, True) as f:
         record = pending()
         if not record or record.get("restored"):
             return {"ok": True, **local_status(cfg)}

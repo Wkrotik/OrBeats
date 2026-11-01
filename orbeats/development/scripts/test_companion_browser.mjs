@@ -9,6 +9,7 @@ await mkdir(output, { recursive: true });
 const page = await (await fetch(cdp + '/json/new?about:blank', { method: 'PUT' })).json();
 const socket = new WebSocket(page.webSocketDebuggerUrl);
 await new Promise((resolve, reject) => { socket.onopen = resolve; socket.onerror = reject; });
+const keepAlive = setInterval(() => {}, 1000);
 let next = 0;
 const pending = new Map(), errors = [], covers = new Map();
 const png = 'iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNk+A8AAQUBAScY42YAAAAASUVORK5CYII=';
@@ -19,7 +20,9 @@ wav.writeUInt32LE(44100, 24); wav.writeUInt32LE(44100 * 4, 28);
 wav.writeUInt16LE(4, 32); wav.writeUInt16LE(16, 34); wav.write('data', 36); wav.writeUInt32LE(wav.length - 44, 40);
 function send(method, params = {}) {
   return new Promise((resolve, reject) => {
-    const id = ++next; pending.set(id, { resolve, reject });
+    const id = ++next;
+    const timer = setTimeout(() => { pending.delete(id); reject(Error('CDP timed out: '+method)); }, 10000);
+    pending.set(id, { resolve: value => {clearTimeout(timer);resolve(value)}, reject: error => {clearTimeout(timer);reject(error)} });
     socket.send(JSON.stringify({ id, method, params }));
   });
 }
@@ -150,8 +153,9 @@ const fixture = {
 const song = { id: 'bsd_additive_000000000000000000000001', title: 'Installed fixture', author: 'Artist', duration: 209, bpm: 132, bytes: 1000, mask: 8, stats: [[0, 0, 0, 0, 0], [0, 0, 0, 0, 0], [0, 0, 0, 0, 0], [1024, 16, 94, 14, 0], [0, 0, 0, 0, 0]] };
 const hooks = `(()=>{const original=window.fetch.bind(window),map=${JSON.stringify(fixture)},song=${JSON.stringify(song)};window.testOriginalSongs=[{...song,info:map},{...song,id:song.id.replace(/1$/,'2'),title:'Compression [Vorbis test]'}];window.testSongs=structuredClone(window.testOriginalSongs);window.testPluginWrites=[];window.testUpdateOffline=false;window.testDeletes=[];window.testDeleteError='';window.testDeleteDelay=false;window.testQueue={pending:[],active:null,history:[],paused:true,message:''};window.testProgress={job:null,running:false,index:0,lines:[]};window.confirm=()=>{throw Error('Native browser confirmation used')};window.fetch=async(url,options={})=>{const path=String(url);let value;
 if(path==='/api/orbis/settings'){if(options.method==='POST'){const body=JSON.parse(options.body);(window.testSavedRequests??=[]).push(body);window.testSavedAddress=body.ip;value={ok:true}}else value={ip:window.testSavedAddress||'192.168.1.67',port:2121,user:'anonymous',template:'',updates:{state:'not_checked',message:'Official GitHub release has not been checked.'}}}
-else if(path==='/api/orbis/setup')value={ready:!!window.testSetupReady,cleanup_required:!!window.testSetupRequested,complete:!!window.testSetupReady&&!window.testSetupRequested};
-else if(path.startsWith('/api/orbis/setup/')&&options.method==='POST'){const action=path.split('/').at(-1);(window.testSetupCalls??=[]).push(action);if(action==='collect'&&!window.testSetupRequested)return new Response(JSON.stringify({detail:'No existing template. Prepare extraction first.'}),{status:400,headers:{'Content-Type':'application/json'}});if(action==='request')window.testSetupRequested=true;if(action==='collect')window.testSetupReady=true;if(action==='finish')window.testSetupRequested=false;value={ok:true,message:action==='request'?'Launch Beat Saber yourself, then Fetch template.':action==='collect'?'Template validated. Close Beat Saber before finalizing.':'Extraction settings restored.'}}
+else if(path==='/api/orbis/setup')value={ready:!!window.testSetupReady,cleanup_required:!!window.testSetupRequested,complete:!!window.testSetupReady&&!window.testSetupRequested,activity:{busy:!!window.testSetupDelay,phase:"Validating synthetic template"}};
+else if(path.startsWith('/api/orbis/setup/')&&options.method==='POST'){const action=path.split('/').at(-1);(window.testSetupCalls??=[]).push(action);if(action==='collect'&&!window.testSetupRequested)return new Response(JSON.stringify({detail:'No existing template. Prepare extraction first.'}),{status:400,headers:{'Content-Type':'application/json'}});if(action==='collect'&&window.testSetupDelay)await new Promise(resolve=>{window.testResolveSetup=resolve});if(action==='request')window.testSetupRequested=true;if(action==='collect')window.testSetupReady=true;if(action==='finish')window.testSetupRequested=false;value={ok:true,message:action==='request'?'Launch Beat Saber yourself, then Fetch template.':action==='collect'?'Template validated. Close Beat Saber before finalizing.':'Extraction settings restored.'}}
+else if(path==='/api/orbis/recovery/install-lock'&&options.method==='POST'){(window.testRecoveryRequests??=[]).push(JSON.parse(options.body));if(window.testRecoveryDelay)await new Promise(resolve=>{window.testResolveRecovery=resolve});if(window.testRecoveryError)return new Response(JSON.stringify({detail:'Lock is not empty; nothing removed'}),{status:400,headers:{'Content-Type':'application/json'}});value={ok:true,removed:true,message:'Empty installation lock removed. No installation restarted.'}}
 else if(path==='/api/orbis/connection/test'){const body=JSON.parse(options.body);(window.testAddressRequests??=[]).push(body);if(window.testConnectionDelay)await new Promise(resolve=>{window.testResolveConnection=resolve});if(body.ip.includes(':')||window.testConnectionError)return new Response(JSON.stringify({detail:body.ip.includes(':')?'Enter an IP address only, without :2121.':'fixture FTP refused'}),{status:400,headers:{'Content-Type':'application/json'}});value={ok:true,ip:body.ip,port:2121}}
 else if(path==='/api/orbis/plugin'&&(!options.method||options.method==='GET'))value={installed:true,installed_version:'0.8068',available_version:'0.8071',capability_matches:true,declared_version_matches:true,max_songs:8,registration:'registered_once',runtime_verified:false};
 else if(path==='/api/orbis/extras'){if(options.method==='POST'){window.testPluginWrites.push('bundled-extras');value={ok:true,message:'Extras installed (offline fixture)'}}else value={installed:true,installed_version:'0.0008',available_version:'0.0009',registration:'enabled'}}
@@ -187,6 +191,36 @@ try {
   // explicit confirmation; failure and fetched-but-not-restored are not done.
   assert.equal(await evaluate("!document.getElementById('setup').hidden"),true);
   assert.deepEqual(await evaluate("window.testSetupCalls||[]"),[]);
+  assert.equal(await evaluate("document.querySelector('aside nav [data-tab=setup]')===null"),true);
+  await evaluate("document.getElementById('setup-settings').click()");
+  assert.equal(await evaluate("!document.getElementById('settings').hidden"),true);
+  for(const width of [1440,390]) {
+    await send('Emulation.setDeviceMetricsOverride',{width,height:width===390?844:1100,deviceScaleFactor:1,mobile:width<720});
+    assert.equal(await evaluate("(()=>{const a=document.querySelector('.settings-heading h1').getBoundingClientRect(),b=document.getElementById('open-setup').getBoundingClientRect();return a.width>0&&b.width>0&&b.left>=a.right-1&&Math.abs(b.top+b.height/2-a.top-a.height/2)<24&&document.documentElement.scrollWidth<=innerWidth+1})()"),true);
+    const shot=await send('Page.captureScreenshot',{format:'png',captureBeyondViewport:false});
+    await writeFile(output+'/settings-setup-button-'+width+'.png',Buffer.from(shot.data,'base64'));
+  }
+  await send('Emulation.setDeviceMetricsOverride',{width:1440,height:1100,deviceScaleFactor:1,mobile:false});
+  assert.equal(await evaluate("document.getElementById('release-settings').nextElementSibling.id"),'installation-recovery');
+  await evaluate("document.getElementById('recover-install-lock').click()");
+  await until("document.getElementById('confirm-action').open");
+  assert.equal(await evaluate("document.getElementById('confirm-action').textContent.includes('EVERY computer')"),true);
+  await evaluate("document.querySelector('#confirm-action [value=cancel]').click()");
+  await until("!state.confirming");
+  assert.deepEqual(await evaluate("window.testRecoveryRequests||[]"),[]);
+  await evaluate("window.testRecoveryDelay=true;document.getElementById('recover-install-lock').click()");
+  await until("document.getElementById('confirm-action').open");
+  await evaluate("document.getElementById('confirm-accept').click()");
+  await until("!!window.testResolveRecovery&&document.getElementById('recover-install-lock').disabled");
+  assert.deepEqual(await evaluate("window.testRecoveryRequests"),[{confirm_all_writers_stopped:true}]);
+  await evaluate("window.testRecoveryDelay=false;window.testResolveRecovery()");
+  await until("!document.getElementById('recover-install-lock').disabled&&document.getElementById('recovery-status').textContent.includes('No installation restarted')");
+  await evaluate("window.testRecoveryError=true;document.getElementById('recover-install-lock').click()");
+  await until("document.getElementById('confirm-action').open");
+  await evaluate("document.getElementById('confirm-accept').click()");
+  await until("!document.getElementById('recover-install-lock').disabled&&document.getElementById('recovery-status').textContent.includes('Lock is not empty')");
+  await evaluate("document.getElementById('dismiss-notice').click();document.getElementById('open-setup').click()");
+  assert.equal(await evaluate("!document.getElementById('setup').hidden"),true);
   assert.equal(await evaluate("document.querySelectorAll('#setup h2').length"),4);
   await evaluate("document.getElementById('setup-collect').click()");
   await until("document.getElementById('setup-status').textContent.includes('Setup not completed')&&!document.getElementById('setup-collect').disabled");
@@ -200,7 +234,11 @@ try {
   await until("document.getElementById('confirm-action').open");
   await evaluate("document.getElementById('confirm-accept').click()");
   await until("window.testSetupRequested&&!document.getElementById('setup-request').disabled");
-  await evaluate("document.getElementById('setup-collect').click()");
+  await evaluate("window.testSetupDelay=true;document.getElementById('setup-collect').click()");
+  await until("!!window.testResolveSetup");
+  await until("document.getElementById('setup-status').textContent.includes('Validating synthetic template')&&document.getElementById('setup-status').textContent.includes('elapsed')");
+  assert.equal(await evaluate("document.getElementById('setup-collect').disabled&&document.getElementById('setup-request').disabled"),true);
+  await evaluate("window.testSetupDelay=false;window.testResolveSetup()");
   await until("window.testSetupReady&&!document.getElementById('setup-collect').disabled");
   assert.equal(await evaluate("document.getElementById('setup-status').textContent.includes('Ready to install songs')"),false);
   for (const [width,height] of [[1440,1100],[390,844]]) {
@@ -550,5 +588,6 @@ try {
   assert.equal(await evaluate("(()=>{const p=document.getElementById('pagination').getBoundingClientRect(),r=document.getElementById('results').getBoundingClientRect(),a=document.getElementById('previous').getBoundingClientRect(),b=document.getElementById('next').getBoundingClientRect();return r.width>0&&p.top>=r.bottom&&Math.abs(a.top-b.top)<1&&a.right<b.left})()"),true);
   console.log(JSON.stringify({ ok: true, viewport: '1440x1100 + 390x844', checks: ['minimal header/brand', 'escaped metadata', 'cover click preview start/stop', 'library cover retry without search cache', 'new and legacy map information without library playback controls', 'visible paused-queue removal guard', 'compression-test removal and selected-only serial bulk removal', 'bulk failure stops and selection refresh', 'opt-in whole-card/keyboard library selection', 'metadata compatibility hints, vote counts and relative dates', 'quiet sidebar queue, failed-map Retry and popup', 'active/last log before80history entries, bounded desktop/mobile scroll, follow/pause/jump with no focus or page-scroll theft', 'solid dismissible bottom toast without reflow/focus theft', 'Downloads/details outside-click dismissal, padding/drag/cancel guards desktop/mobile', 'in-page confirmation/accept/cancel/Escape', 'primary button hover contrast', 'read-only binary plugin version and registration check', 'Extras/version and explicit confirmed bundled/release installation (mock writes only)', 'official updates/offline state', 'sidebar stable under repeated wheel scrolling', 'compact connection + Updates columns on desktop and mobile', 'settings', 'no horizontal overflow', 'no JS exceptions'], contrast, consoleWrites: false, api: 'offline fixtures', screenshots: output }, null, 2));
 } finally {
+  clearInterval(keepAlive);
   socket.close(); await fetch(cdp + '/json/close/' + page.id);
 }

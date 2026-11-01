@@ -1,3 +1,14 @@
+## 0.1.18 — testing candidate
+
+- Add explicit empty-install-lock recovery below Updates. Require confirmation that all writers are stopped, refuse active local work/open title/nonempty lock/pending files/unstable or unreadable library, archive inspection and remove only the lock. Never retry an import automatically.
+
+- Fix a reproduced Windows template validation cleanup failure: UnityPy now receives owned bytes rather than keeping the temporary source.bundle file open. Strict parsing and independent readback remain unchanged.
+
+- Move first setup out of permanent navigation into the Console settings header.
+- Show live setup stages, transfer counts and elapsed time, and save private setup logs.
+- Refuse duplicate setup clicks and conflicting installs/settings changes while checking.
+- Distinguish a verified existing import lock from FTP access/permission failures; never clear locks automatically.
+
 ## 0.1.17 — local setup/diagnostic candidate, not released
 
 - Bundle companion0.7.33 and pipeline0.5396. Main0.8079/Extras0.0015 unchanged.

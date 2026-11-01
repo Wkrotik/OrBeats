@@ -269,7 +269,10 @@ def build_bundle(template: Path, song, level_id, compressed_fsb=None):
     from hevag_encoder import build_pcm16_fsb5
     from UnityPy.files import BundleFile
     from UnityPy.streams import EndianBinaryReader
-    env = UnityPy.load(str(template))
+    # UnityPy retains readers for path inputs beyond this function. In particular,
+    # Windows cannot delete first setup's temporary source.bundle while one is open.
+    # Read inside a bounded-lifetime Python file context; UnityPy owns only bytes.
+    env = UnityPy.load(Path(template).read_bytes())
     if len(env.files) != 1:
         raise ValueError('requires one UnityFS bundle')
     bundle = next(iter(env.files.values()))

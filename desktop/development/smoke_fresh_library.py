@@ -48,7 +48,46 @@ try:api.test_connection({"ip":"192.0.2.9:2121"})
 except HTTPException as exc:assert exc.status_code == 400
 else:raise AssertionError("IP:port accepted")
 assert len(instances)==2 and all(f.closed and f.logins==["anonymous"] for f in instances)
-print(json.dumps({"fresh_catalog_empty":True,"no_development_fixture":True,"submitted_address_tested":True,"invalid_address_rejected":True,"ftp_connections":2,"console_writes":False,"mocked_ftp_only":True}))
+# No game input: prove the actual bundled loader never leaves a path reader open
+# when parsing fails. This runs natively in the Windows CI helper too.
+import tempfile
+import UnityPy
+prepare=core.helper('prepare_additive_bundle.py')
+with tempfile.TemporaryDirectory(prefix='synthetic-template-reader-') as tmp:
+    source=Path(tmp)/'source.bundle'
+    source.write_bytes(b'synthetic parser sentinel')
+    original=UnityPy.load
+    def parse(value):
+        assert isinstance(value,bytes) and value==b'synthetic parser sentinel'
+        source.unlink()  # Would fail on Windows if the input stream stayed open.
+        raise ValueError('synthetic parse refusal')
+    UnityPy.load=parse
+    try:
+        try:prepare.build_bundle(source,{},'synthetic')
+        except ValueError as exc:assert str(exc)=='synthetic parse refusal'
+        else:raise AssertionError('synthetic parser unexpectedly succeeded')
+        assert not source.exists()
+    finally:UnityPy.load=original
+# Exercise the real recovery/archive path in native frozen CI without a console.
+class RecoveryFTP(FTP):
+    def __init__(self):
+        super().__init__();self.locked=True;self.removed=[]
+    def nlst(self,path):
+        if path=='/mnt/sandbox':return []
+        if path==core.BASE:return [core.BASE+'/library.bin']+([core.BASE+'/.install-lock'] if self.locked else [])
+        if path==core.BASE+'/.install-lock' and self.locked:return []
+        raise AssertionError('unexpected recovery listing')
+    def retrbinary(self,command,callback):
+        assert command=='RETR '+core.BASE+'/library.bin'
+        callback(core.encode([]))
+    def rmd(self,path):
+        assert path==core.BASE+'/.install-lock' and self.locked
+        self.removed.append(path);self.locked=False
+recovery=RecoveryFTP()
+manager.FTP=lambda:recovery
+assert manager.recover_install_lock({'ps4':{'ip':'192.0.2.9'}})['removed']
+assert recovery.removed==[core.BASE+'/.install-lock'] and recovery.closed
+print(json.dumps({"fresh_catalog_empty":True,"no_development_fixture":True,"submitted_address_tested":True,"invalid_address_rejected":True,"ftp_connections":2,"console_writes":False,"mocked_ftp_only":True,"template_reader_closed":True,"recovery_empty_lock_only":True}))
 """
 
 
@@ -98,5 +137,7 @@ def check(helper, env, root, runtime=None):
         "ftp_connections": 2,
         "console_writes": False,
         "mocked_ftp_only": True,
+        "template_reader_closed": True,
+        "recovery_empty_lock_only": True,
     }
     return proof

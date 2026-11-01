@@ -1,3 +1,10 @@
+## 0.7.34
+
+- Add a warned, confirmed recovery button below Updates for an empty installation lock. Keep local busy/origin guards, scoped stable-state checks and durable evidence; preserve every song/plugin/backup and never restart work automatically.
+
+- Put Setup at the right of the Console settings heading instead of a permanent tab; retain automatic incomplete setup.
+- Expose live setup stages/received KiB/elapsed time, private bounded setup logs and a delayed diagnostic stack trace. Reject duplicate checks and conflicting mutations without stranding the UI.
+
 ## 0.7.33 — guided first setup and saved job diagnostics
 
 - Open a local-state-only first-setup page until a derived template is validated
@@ -373,19 +380,16 @@ subprocess argv call to the pipeline (plan:
 - **The test-song button** no longer claims console state ("already on your console" — wrong for new users), its click is unmistakable (disable + relabel), and `index.html` ships `Cache-Control: no-store` — an open tab can never again mix a new shell with old JS (the diagnosed cause of "the button does nothing").
 - **Deploy-page preview of local songs** and the confirm dialog show what's actually deploying (a staged folder vs a BeatSaver map).
 
-
 ## 0.6.19 (2026-10-20)
 ### Fixed — Exp 281f: the hybrid-dump proof run (the certainty audit)
 - **"Use the extracted cache" now repoints EVERY dump consumer.** The user's certainty question ("we're absolutely certain the run used only the extracted files?") exposed a hybrid: the Setup Wizard had pinned `pack_modes.dump_dir` at their real `/workspace/ps4_dump`, so the successful run built the song template from the cache while the pack-patch step silently read the lizzo pack bundle + catalog from the real dump. The button now sets `pack_modes.dump_dir` to the cache alongside `game_dump_dir` (the response reports both).
 - **The Setup Wizard's dump_root is now optional** — omitted defaults both dump paths to the local `game_data/` cache (the no-dump flow is the default posture). Users who HAVE a dump (developers/repair) can still pass its root explicitly.
 - **The definitive proof:** with the real `/workspace/ps4_dump` physically hidden (renamed), the full deploy from the simulation completed cache-only — validation PASSED — proving the no-dump flow end-to-end (see the experiment log).
 
-
 ## 0.6.18 (2026-10-20)
 ### Changed — the Dump Guide becomes a big obvious numbered walkthrough (user UX request) + the two cache-following pipeline fixes
 - **"The dump procedure could be a little clearer… a big obvious set of steps"** — Option A is now five clearly numbered, styled step cards: **STEP 1 · Request the data** (pack checkboxes + Select all/none + size estimate), **STEP 2 · Launch Beat Saber** ("watch for the BSD: game data ready notification — this page updates automatically"), **STEP 3 · Pull** (with a **live progress bar**: local-files / console-extracted-files, updating every second during the mirror), **STEP 4 · Save the cache** ("Use the extracted cache"), **STEP 5 · Deploy songs 🎉** (links to Find a Song). The active step is highlighted; completed steps dim with a done style. The old button row + status area remain for live feedback.
 - **Two pipeline fixes (0.5365 folds) found by the user's cache-only deploy:** (1) **pack_modes.dump_dir now follows game_dump_dir** unless explicitly pinned — the "Use the cache" switch previously repointed only game_dump_dir, leaving the pack-modes builder hunting the old dump path ("Dump dir missing" — the pack patch silently skipped); (2) **absent redirects.json + a freshly-built local set = the new state for a clean console** (deploy it, don't refuse) — the Exp-246 refusal now fires only on genuine read failures, which raise a distinct RuntimeError. The anti-wipe gate is preserved and STRENGTHER. 5 new tests.
-
 
 ## 0.6.17 (2026-10-19)
 ### Fixed — the invisible extractor flag (user report) + fresh-install defaults (Exp 281)
@@ -398,7 +402,6 @@ subprocess argv call to the pipeline (plan:
 - **The Dump Guide gains Select all / Select none** + a live size estimate (N packs · M slots · ~GB to extract) — "dump everything needed to run the pipeline for any target song at will" is now one click (the full 36-pack catalog ≈ 5GB across boots).
 - **The web app now LISTENS while an extraction is pending:** the status line shows "⏳ Extraction pending — boot Beat Saber once" and auto-polls every 5s until the console's extraction completes (no clicking). Plus the PS4 side (plugin v0.8055): a notification — "BSD: game data ready — N file(s) extracted — pull them from the web app" — fires when an extraction run actually produced files.
 
-
 ## 0.6.16 (2026-10-19)
 ### Fixed — Exp 280d (from the user's Phase 0/1 run)
 - **A clean console is now reported as a CLEAN SLATE, not a wall of errors.** After Clear PS4, every state read showed "⚠ Couldn't read … (get: Access failed: 550 … File unavailable)" — but a decisive 550 (file does not exist) is the CORRECT empty state. `fetch_remote_json` now classifies 550/no-such-file signatures as `ok=True, data=None` (absent — never retried, never an error); only genuine failures (connectivity, parse) stay errors. The **PS4 State tab shows a "✅ Clean slate" banner** with per-row "not present — clean slate (fresh install / after Clear PS4)" when all three state files are absent; the Full Loadout tab's post-clear warnings vanish (it renders the zero state cleanly). An absent AFR dir listing is the same clean state (`list_afr_dir`: ok=True, count=0, absent=True).
@@ -406,7 +409,6 @@ subprocess argv call to the pipeline (plan:
 - **The backup script's Clean PS4 now removes the M10 preview-variant pack bundles** (`*_pack_modes_previews_assets_all_*.bundle`) — the modes-only pattern let all 5 survive the user's clean (found live: 5 stale bundles dated Oct 17 remained on the console) — plus M12's extractor files (`game_data_requests.txt`, `game_data_status.txt`, `game_data/*`). The Backup tab wraps this script; a re-clean after this fix produces a true clean slate.
 
 - **The bundled plugin reports a REAL version number** (user request: "I still would want to see a version number for that bundled plugin"). In a release extraction there's no `src/` — `_plugin_version()` now extracts the version from the bundled PRX's boot banner string (`=== BS Deluxe v0.8054 started ===`), so the version badge and the ping report `v0.8054` instead of the opaque "bundled". 3 tests pin the extraction + graceful fallback + the ping carrying it.
-
 
 ## 0.6.15 (2026-10-19)
 ### Added — the plugin-only deploy surface (Exp 280b: the fresh-user bootstrap gap)
@@ -416,14 +418,12 @@ subprocess argv call to the pipeline (plan:
 ### Fixed — Exp 280c (found via the user's live smoke test: Deploy Plugin → "❌ Not Found")
 - **The ping now reports the versions of the RUNNING code (captured at import), never a fresh file read at request time.** A stale server process reading VERSION/main.cpp at request time reports the NEW version while serving OLD code — defeating the launcher's staleness check ("current" → reuse the stale server) and sending clicks to 404s. With import-time capture (`_capture_code_versions()`), a stale process honestly reports its own version, the launcher flags it STALE, and the stop-and-restart default takes over. 3 regression tests pin the class.
 
-
 ## 0.6.14 (2026-10-19)
 ### Added — M12: the "no dump required" flow (Dump Guide rework)
 - **Dump Guide tab gains "Option A — Let the game extract it (recommended)":** a 5-step guided flow (arm flag → pick packs from live checkboxes → request → boot the game once → pull → use the cache) with live state polling (requested/extracted/pending/errors + local cache summary + whether the cache is active as game_dump_dir). "Option B" keeps the classic manual recipe for developers/repair.
 - **New endpoints (thin layer — both operations are pipeline subprocesses):** `POST /api/jobs/game-data-request` (--request-game-data argv builder), `POST /api/jobs/game-data-pull` (--pull-game-data), `GET /api/game-data/state` (requests + status + cache + pending computation), `POST /api/game-data/use-cache` (points paths.game_dump_dir at the cache; refuses an empty cache with a fix message).
 - **6th feature flag surfaced everywhere:** `enable_game_data_extractor` (KNOWN_FLAGS + a full FLAG_DESCRIPTIONS entry + the toast-simulation list — toast now reads N/6; TOAST_VERSION v0.8054).
 - Job watching for the request/pull buttons (a compact direct poller into the status area with the job's tail lines + exit verdict).
-
 
 ## 0.6.13 (2026-10-17)
 ### Added — resilient + intelligent launcher (user directives, Exp 278h)
@@ -433,7 +433,6 @@ subprocess argv call to the pipeline (plan:
   3. STOP the running web app instance(s) (found by scanning `/proc` for this server.py) and start fresh on the preferred port.
   Smart defaults: a CURRENT instance → reuse it; a STALE one of ours → stop + restart on the same port (the exact pain that produced Errno 98: a long-running server process serving old code); an unknown occupant → never kill it, take the next port. Non-interactive contexts (stdin not a TTY) take the default automatically with a printed notice.
 - **Every error message now carries a suggested course of action** ("To fix: …") — the all-ports-busy error tells you to stop instances (`ps aux | grep '[s]erver.py'` + kill) or pick a port with `--port`; a failed stop-and-rebind warns and falls back to the next free port automatically instead of crashing.
-
 
 ## 0.6.12 (2026-10-17)
 ### Fixed

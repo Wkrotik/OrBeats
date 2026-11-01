@@ -750,6 +750,7 @@ def test_packaged_fresh_library_and_current_address_without_network(packaged, tm
     env = {**os.environ}
     proof = module.check(helper, env, tmp_path, runtime=packaged)
     assert proof["fresh_catalog_empty"] and proof["submitted_address_tested"]
+    assert proof["template_reader_closed"] and proof["recovery_empty_lock_only"]
     assert proof["mocked_ftp_only"] and not proof["console_writes"]
 
 @pytest.mark.parametrize('frozen', [False, True])

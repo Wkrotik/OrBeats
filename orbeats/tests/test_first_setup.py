@@ -298,3 +298,231 @@ def test_collected_stock_is_size_bounded_before_validation(environment, monkeypa
     with pytest.raises(ValueError, match="exceeds the setup size bound"):
         setup.collect(cfg)
     assert not cfg["additive_template"]
+
+
+def test_check_progress_remains_readable_and_duplicate_actions_are_refused(environment, monkeypatch):
+    import threading
+
+    import server
+    from fastapi.testclient import TestClient
+
+    f, cfg, _ = environment
+    f.files[wire.BASE + "/template.bundle"] = b"synthetic retained template"
+    entered, release = threading.Event(), threading.Event()
+
+    def validate(blob):
+        setup.phase("Independently validating synthetic template")
+        entered.set()
+        assert release.wait(5)
+        return b"validated synthetic result"
+
+    monkeypatch.setattr(setup, "_validate_seed", validate)
+    client = TestClient(server.app)
+    replies = []
+    worker = threading.Thread(target=lambda: replies.append(client.post("/api/orbis/setup/collect")))
+    worker.start()
+    try:
+        assert entered.wait(3)
+        status = client.get("/api/orbis/setup").json()
+        assert status["activity"]["busy"] and "Independently validating" in status["activity"]["phase"]
+        assert not status["complete"]
+        assert Path(status["activity"]["log_file"]).is_file()
+        for path in (
+            "/api/orbis/setup/collect",
+            "/api/orbis/settings",
+            "/api/install-queue/start",
+            "/api/orbis/recovery/install-lock",
+            "/api/orbis/updates/main",
+            "/api/orbis/extras",
+        ):
+            assert client.post(path, json={}).status_code == 409
+        with pytest.raises(ValueError, match="already working"):
+            setup.collect(cfg)
+    finally:
+        release.set()
+        worker.join(5)
+    assert not worker.is_alive() and replies[0].status_code == 200
+    status = setup.local_status(cfg)
+    assert status["complete"] and not status["activity"]["busy"] and not f.writes
+    assert "completed" in Path(status["activity"]["log_file"]).read_text()
+
+
+def test_failed_template_check_keeps_saved_error_and_no_false_completion(environment, monkeypatch):
+    f, cfg, _ = environment
+    f.files[wire.BASE + "/template.bundle"] = b"invalid"
+
+    def invalid(blob):
+        raise ValueError("synthetic schema mismatch")
+
+    monkeypatch.setattr(setup, "_validate_seed", invalid)
+    with pytest.raises(ValueError, match="schema mismatch"):
+        setup.collect(cfg)
+    status = setup.local_status(cfg)
+    assert not status["complete"] and not status["activity"]["busy"]
+    assert "schema mismatch" in status["activity"]["error"]
+    assert "schema mismatch" in Path(status["activity"]["log_file"]).read_text()
+    assert not f.writes
+
+
+@pytest.mark.parametrize("exists,denied_list", [(True, False), (False, False), (False, True)])
+def test_cli_lock_refusal_is_classified_without_clearing_any_lock(environment, monkeypatch, exists, denied_list):
+    f, cfg, _ = environment
+    lock = wire.BASE + "/.install-lock"
+    if exists:
+        f.dirs.add(lock)
+
+    def denied(path):
+        raise error_perm("550 Permission denied")
+
+    monkeypatch.setattr(f, "mkd", denied)
+    if denied_list:
+        monkeypatch.setattr(f, "nlst", denied)
+    expected = "installation holds" if exists else "Cannot inspect" if denied_list else "Cannot create"
+    with pytest.raises(ValueError, match=expected):
+        setup.core.acquire_install_lock(f)
+    assert (lock in f.dirs) == exists and not f.writes
+
+
+def test_template_loader_releases_source_file_before_unity_parsing(tmp_path, monkeypatch):
+    """No owned input: catch path readers that lock temp cleanup on Windows."""
+    import UnityPy
+
+    source = tmp_path / "source.bundle"
+    blob = b"synthetic parser sentinel, not a game asset"
+    source.write_bytes(blob)
+
+    def parse(value):
+        assert isinstance(value, bytes), "UnityPy must not retain a path reader"
+        assert value == blob
+        # On Windows an open file cannot be renamed/deleted; parsing must already
+        # own only bytes even if a later schema-validation error aborts conversion.
+        source.unlink()
+        raise ValueError("synthetic stop before bundle parsing")
+
+    monkeypatch.setattr(UnityPy, "load", parse)
+    prepare = setup.core.helper("prepare_additive_bundle.py")
+    with pytest.raises(ValueError, match="synthetic stop before bundle parsing"):
+        prepare.build_bundle(source, {}, "synthetic")
+    assert not source.exists()
+
+
+def _locked_console(environment):
+    f, cfg, _ = environment
+    f.dirs.add(wire.BASE + "/.install-lock")
+    return f, cfg
+
+
+def test_explicit_lock_recovery_removes_only_empty_lock_and_archives(environment):
+    from test_fresh_library import synthetic
+
+    f, cfg = _locked_console(environment)
+    song, files = synthetic()
+    f.files.update(files)
+    f.dirs.add(wire.BASE + "/" + song["id"] + "-media")
+    f.files[wire.BASE + "/library.bin"] = wire.encode([song])
+    f.files[wire.BASE + "/library.bin.backup-historical"] = b"keep all evidence"
+    before = dict(f.files)
+    result = setup.library.recover_install_lock(cfg)
+    assert result["removed"] and f.writes == [("rmdir", wire.BASE + "/.install-lock")]
+    assert f.files == before and f.closed
+    assert list((console_transaction.LOCAL_BACKUPS).glob("lock-recovery-*/inspection.json"))
+    assert list((console_transaction.LOCAL_BACKUPS).glob("lock-recovery-*/lock-removed.json"))
+
+
+def test_lock_recovery_absence_does_not_mutate_or_create_lock(environment):
+    f, cfg, _ = environment
+    assert setup.library.recover_install_lock(cfg)["removed"] is False
+    assert not f.writes
+
+
+@pytest.mark.parametrize(
+    "problem",
+    [
+        "open-title",
+        "contents",
+        "stage-root",
+        "rollback-media",
+        "denied-root",
+        "denied-lock",
+        "bad-manifest",
+        "missing-files",
+    ],
+)
+def test_lock_recovery_refuses_unsafe_or_unreadable_state(environment, problem):
+    from test_fresh_library import synthetic
+
+    f, cfg = _locked_console(environment)
+    if problem == "open-title":
+        f.dirs.add("/mnt/sandbox/CUSA12878_000")
+    if problem == "contents":
+        f.files[wire.BASE + "/.install-lock/owner"] = b"do not remove"
+    if problem == "stage-root":
+        f.files[wire.BASE + "/new.bundle.stage-interrupted"] = b"pending"
+    if problem == "rollback-media":
+        directory = wire.BASE + "/bsd_additive_" + "a" * 24 + "-media"
+        f.dirs.add(directory)
+        f.files[directory + "/cover.png.rollback-interrupted"] = b"pending orphan"
+    if problem == "denied-root":
+        f.list_denied.add(wire.BASE)
+    if problem == "denied-lock":
+        f.list_denied.add(wire.BASE + "/.install-lock")
+    if problem == "bad-manifest":
+        f.files[wire.BASE + "/library.bin"] = b"not a library"
+    if problem == "missing-files":
+        f.files[wire.BASE + "/library.bin"] = wire.encode([synthetic()[0]])
+    with pytest.raises((ValueError, error_perm)):
+        setup.library.recover_install_lock(cfg)
+    assert not f.writes and wire.BASE + "/.install-lock" in f.dirs
+
+
+@pytest.mark.parametrize("problem", ["changed-listing", "changed-lock", "archive-failed"])
+def test_recovery_rechecks_before_removal_and_requires_durable_evidence(environment, monkeypatch, problem):
+    f, cfg = _locked_console(environment)
+    original = f.nlst
+    counts = {}
+
+    def nlst(path):
+        counts[path] = counts.get(path, 0) + 1
+        if problem == "changed-listing" and path == wire.BASE and counts[path] == 3:
+            f.files[wire.BASE + "/unexpected-change"] = b"keep"
+        if problem == "changed-lock" and path == wire.BASE + "/.install-lock" and counts[path] == 3:
+            f.files[path + "/owner"] = b"keep"
+        return original(path)
+
+    monkeypatch.setattr(f, "nlst", nlst)
+    if problem == "archive-failed":
+
+        def fail(*args):
+            raise OSError("disk full")
+
+        monkeypatch.setattr(console_transaction, "archive", fail)
+    with pytest.raises((ValueError, OSError)):
+        setup.library.recover_install_lock(cfg)
+    assert not f.writes
+
+
+def test_lock_recovery_endpoint_requires_confirmation_and_keeps_busy_origin_guards(environment, monkeypatch):
+    import server
+    from fastapi.testclient import TestClient
+
+    f, cfg = _locked_console(environment)
+    monkeypatch.setattr(server.RUNNER, "is_busy", lambda: False)
+    monkeypatch.setattr(server.INSTALL_QUEUE, "has_work", lambda: False)
+    client = TestClient(server.app)
+    url = "/api/orbis/recovery/install-lock"
+    assert client.post(url, json={}).status_code == 400
+    assert client.post(url, json={"confirm_all_writers_stopped": "true"}).status_code == 400
+    body = {"confirm_all_writers_stopped": True}
+    assert client.post(url, json=body, headers={"Origin": "https://untrusted.invalid"}).status_code == 403
+    monkeypatch.setattr(server.RUNNER, "is_busy", lambda: True)
+    assert client.post(url, json=body).status_code == 409
+    monkeypatch.setattr(server.RUNNER, "is_busy", lambda: False)
+    monkeypatch.setattr(server.INSTALL_QUEUE, "has_work", lambda: True)
+    assert client.post(url, json=body).status_code == 409
+    monkeypatch.setattr(server.INSTALL_QUEUE, "has_work", lambda: False)
+    with setup.operation("Synthetic busy operation"):
+        assert client.post(url, json=body).status_code == 409
+    assert not f.writes
+    response = client.post(url, json=body)
+    assert response.status_code == 200 and response.json()["removed"]
+    assert f.writes == [("rmdir", wire.BASE + "/.install-lock")]

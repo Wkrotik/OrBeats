@@ -1,3 +1,9 @@
+## 0.5397
+
+- Load the conversion template from bytes, closing the input stream before Unity parsing. Avoid Windows WinError32 during temporary template cleanup without suppressing cleanup or validation errors.
+
+- Use the same fail-closed lock acquisition checks for CLI song installation and companion management. A refused MKD alone is not evidence of an existing lock; retain all locks/recovery data for inspection.
+
 ## 0.5396 — worker startup diagnostics
 
 - Flush startup milestones around heavy imports when job diagnostics are enabled;
@@ -361,7 +367,6 @@
 - No production pipeline/plugin changes or version bump (pipeline remains 0.5366;
   plugin v0.8055); additive registration and the stock duplicate remain unimplemented.
 
-
 ## v0.5366 (2026-10-23)
 ### Fixed (Exp 283d — the user's field report: a fresh deploy's song kept its STOCK menu preview)
 - **Deploy-order bug: the pack/preview pass ran before the deploy's own song
@@ -371,7 +376,6 @@
   preview, never its own. The target's metadata now registers LOCALLY
   (deploy=False, idempotent) before the pack pass; Step 11 still owns the
   upload. Regression-pinned by test_exp283d_preview_metadata_order.py.
-
 
 ## v0.5365 (2026-10-19)
 ### Fixed — Exp 281d (the user's cache-only deploy: pack-modes never followed the cache + the redirects refusal blocked clean consoles)

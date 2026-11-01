@@ -72,6 +72,26 @@ def read(ftp, path, limit=200000001, missing=False):
     return bytes(out)
 
 
+def acquire_install_lock(f):
+    """Never mistake a denied mkdir or another writer's lock for an unlocked console."""
+    try:
+        f.mkd(BASE + "/.install-lock")
+    except error_perm as exc:
+        if not str(exc).startswith("550"):
+            raise
+        try:
+            exists = any(p.rstrip("/").rsplit("/", 1)[-1] == ".install-lock" for p in f.nlst(BASE))
+        except error_perm:
+            raise ValueError("Cannot inspect the installation lock. Check FTP access; no update started.") from exc
+        if exists:
+            raise ValueError(
+                "An active or interrupted installation holds .install-lock. "
+                "Stop all writers and inspect recovery state before explicitly clearing the lock. "
+                "No plugin or library files were changed by this operation."
+            ) from exc
+        raise ValueError("Cannot create .install-lock. Check FTP write access; no update started.") from exc
+
+
 def closed(ftp):
     # Successful sandbox listing is required; errors/permission failures are NOT closed.
     if any("CUSA12878" in p for p in ftp.nlst("/mnt/sandbox")):
@@ -247,10 +267,7 @@ def install(config, map_id="", song_dir="", report_dir=None):
         ):
             raise ValueError("legacy replacement features must remain OFF")
         closed(ftp)
-        try:
-            ftp.mkd(BASE + "/.install-lock")
-        except error_perm as e:
-            raise ValueError("another import or interrupted import holds .install-lock; inspect before recovery") from e
+        acquire_install_lock(ftp)
         locked = True
         songs, old = load_library(ftp)
         print(f"[additive] Retaining {len(songs)} library entries; unrelated map files are not audited.", flush=True)

@@ -90,6 +90,16 @@ def setup_action(action: str):
     return guarded(functions[action], settings())
 
 
+@router.post("/recovery/install-lock")
+def recover_install_lock(body: dict):
+    if body.get("confirm_all_writers_stopped") is not True:
+        raise HTTPException(400, "Confirm Beat Saber and all OrBeats/import scripts are closed on every computer")
+    def recover():
+        with first_setup.operation("Checking explicit installation-lock recovery"):
+            return library.recover_install_lock(settings())
+    return guarded(recover)
+
+
 @router.get("/search")
 def search(q: str = "", sort: str = "Latest", period: str = "all", page: int = 0):
     if (

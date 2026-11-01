@@ -157,3 +157,34 @@ For a bug report, send only the relevant job log after reviewing it for personal
 paths, addresses or song names. Do **not** send the whole app-data folder: it can
 contain settings, private templates, recovery records and downloads. Logs are
 never uploaded automatically.
+
+### Testing-candidate follow-up (0.1.18; not a public release)
+
+Setup is no longer a permanent navigation tab. An incomplete first setup opens
+automatically; reopen it with **Setup** at the right of the Console & settings
+heading. The template check reports live transfer/conversion stages and elapsed
+time. It is read-only on the PS4; validation can take a minute. Do not start
+another check while it is working. Its private `setup-*.log` files sit beside
+`installation-*.log` in the app-data `logs` folder (at most 20 setup logs; phase
+output is capped at about 1 MB plus a delayed diagnostic stack). Never share the
+whole app-data folder. No logs are uploaded automatically.
+
+An `.install-lock` refusal must be inspected, not automatically cleared. Close
+other companion/CLI instances, keep Beat Saber closed, and retain any interrupted
+transaction data. A lock's age, empty directory or absent owner file does not
+prove it is safe to delete. A permission failure to create the directory is now
+reported separately from a confirmed existing lock.
+
+### Interrupted installation lock (0.1.18 testing candidate)
+
+If an import reports `.install-lock`, **do not clear it while any import, plugin
+update, setup or CLI task is running on any computer**. Close Beat Saber and stop
+all writers first. The current app cannot reliably detect another computer's work.
+
+In the0.1.18 candidate, Console & settings has **Installation recovery** below
+Updates. Its confirmation permits only removal of an empty lock after readable,
+stable manifest/file-name checks and a local inspection archive. Nonempty locks,
+pending staging/rollback files and inaccessible or inconsistent state are refused;
+keep that evidence for manual inspection. Historical backups and songs are never
+deleted. This is not automatic stale-lock detection, and recovery does not restart
+an import. This button is not present in the public0.1.16 or earlier0.1.17 candidate.
