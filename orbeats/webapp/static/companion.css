@@ -158,17 +158,6 @@ nav [aria-current="page"] {
 	background: var(--accent-soft);
 	color: var(--accent);
 }
-.sidebar-foot {
-	margin-top: auto;
-	color: var(--muted);
-	font-size: 12px;
-	line-height: 2;
-}
-.sidebar-foot small {
-	font-size: 10px;
-	display: block;
-	overflow-wrap: anywhere;
-}
 .quiet {
 	border: 0;
 	background: transparent;
@@ -677,9 +666,6 @@ th {
 	}
 	nav span {
 		font-size: 11px;
-	}
-	.sidebar-foot {
-		display: none;
 	}
 	main {
 		padding: 24px 18px;

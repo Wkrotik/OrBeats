@@ -191,6 +191,7 @@ try {
   // explicit confirmation; failure and fetched-but-not-restored are not done.
   assert.equal(await evaluate("!document.getElementById('setup').hidden"),true);
   assert.deepEqual(await evaluate("window.testSetupCalls||[]"),[]);
+  assert.equal(await evaluate("document.querySelector('aside #versions, aside .sidebar-foot')===null"),true);
   assert.equal(await evaluate("document.querySelector('aside nav [data-tab=setup]')===null"),true);
   await evaluate("document.getElementById('setup-settings').click()");
   assert.equal(await evaluate("!document.getElementById('settings').hidden"),true);
@@ -529,6 +530,7 @@ try {
   assert.deepEqual(await evaluate('window.testPluginWrites'),['bundled-extras']);
   await evaluate("document.getElementById('check-updates').click()");
   await until("document.getElementById('updates').textContent.includes('latest 0.1.14 (update available)')");
+  assert.equal(await evaluate("document.getElementById('updates').textContent.includes('app: bundled 0.1.13, latest 0.1.14')"),true);
   await evaluate("window.testUpdateOffline=true;document.getElementById('check-updates').click()");
   await until("document.getElementById('updates').textContent.includes('does not mean up to date')");
   await evaluate("document.getElementById('release-extras').click()");

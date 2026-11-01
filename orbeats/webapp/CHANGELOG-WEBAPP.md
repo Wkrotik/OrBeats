@@ -1,3 +1,11 @@
+## 0.7.37 — next release, not in desktop 0.1.20
+
+- Remove the redundant sidebar version footer and its unused ping request/styles.
+  It called the web interface version “App,” which could be mistaken for the
+  desktop version. Settings → Check updates retains desktop/plugin versions.
+- Browser regression checks no footer and the unchanged Settings desktop-version
+  output. No Windows CI rebuild requested for this follow-up.
+
 ## 0.7.36
 
 - Show setup work in a prominent activity panel above the steps, with an indeterminate loading bar, current phase and elapsed time. Stop activity on completion/refusal and ignore late polls; support reduced motion and keep pending-restoration guidance explicit.

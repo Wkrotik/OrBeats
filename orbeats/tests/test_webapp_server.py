@@ -236,9 +236,8 @@ class TestUiServed:
         assert b"split=3" in r.content
 
 
-class TestVersionBadge:
-    """The lower-corner version badge (user: 'so I can tell when your changes
-    have taken effect'). Ping carries all three component versions."""
+class TestVersionPresentation:
+    """No misleading sidebar App badge; diagnostic component versions remain."""
 
     def test_ping_carries_all_versions(self):
         j = client.get("/api/ping").json()
@@ -246,9 +245,12 @@ class TestVersionBadge:
         assert j["pipeline_version"] != "unknown"
         assert j["plugin_version"].startswith("v0.")
 
-    def test_index_has_version_badge(self):
+    def test_versions_live_in_settings_not_the_sidebar(self):
         html = client.get("/").text
-        assert 'id="versions"' in html
+        assert 'id="versions"' not in html
+        assert 'class="sidebar-foot"' not in html
+        assert 'id="check-updates"' in html
+        assert 'id="updates"' in html
         assert 'src="/static/companion.js?v=' in html
 
 

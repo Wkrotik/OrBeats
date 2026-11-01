@@ -852,9 +852,6 @@ async function initialize() {
 		URL.revokeObjectURL(url);
 	};
 	await loadSettings();
-	const ping = await api("/api/ping");
-	$("versions").textContent =
-		`App ${ping.webapp_version} · Pipeline ${ping.pipeline_version}`;
 	let setup = {complete: false};
 	try {
 		setup = await api("/api/orbis/setup"); // Local state only; never auto-connect.

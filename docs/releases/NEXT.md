@@ -1,11 +1,16 @@
-# Next release
+# Next release — unreleased changes
 
 0.1.20 is published from exact tested commit
 `a83d7424ed8626c2c46f73c06e308a12c890dd03`.
 
-The installation guide is updated separately without rebuilding the tested
-release. A separate follow-up will remove the misleading sidebar version label:
-it says App but displays the web interface version rather than the desktop
-version. Settings → Check updates remains the desktop/plugin version location.
-The owner requested this small cleanup for the NEXT release, with no additional
-Windows CI build now.
+## Sidebar cleanup (web interface 0.7.37)
+
+Remove the redundant sidebar version label, its one-use ping request and styles.
+The old “App” label displayed the web interface version (0.7.36), not desktop
+0.1.20. Desktop/plugin version checks remain in Settings → Check updates; the
+backend ping endpoint remains available for diagnostics.
+
+This is a separate NEXT-release commit, not part of the published 0.1.20 binaries.
+The owner explicitly requested no additional Windows CI build for this cleanup.
+Local browser regressions check the absent footer and preserved Settings version
+output; no tag, release, console write or automatic update is created here.
