@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """
 make_rights_clean_test_song.py — CLI wrapper: synthesize the original,
-rights-clean "BSD Deluxe Theme" test song on demand (M13 validation asset).
+rights-clean "OrBeats Theme" test song on demand (M13 validation asset).
 
 Everything is generated math (sine oscillators + envelopes — see
 webapp/adapters/testsong.py, the production home of the synth core): the

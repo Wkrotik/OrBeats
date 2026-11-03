@@ -437,11 +437,11 @@ async function useTestSong() {
     const r = await fetch("/api/songs/test-song?seconds=48");
     if (!r.ok) throw new Error(`${r.status} ${r.statusText}`);
     const blob = await r.blob();
-    const file = new File([blob], "bsd_deluxe_theme_48s.wav", { type: "audio/wav" });
+    const file = new File([blob], "orbeats_theme_48s.wav", { type: "audio/wav" });
     const dt = new DataTransfer();
     dt.items.add(file);
     $("bsage-audio").files = dt.files;   // attach programmatically
-    if (!$("bsage-title").value) $("bsage-title").value = "BSD Deluxe Theme (An Original)";
+    if (!$("bsage-title").value) $("bsage-title").value = "OrBeats Theme (An Original)";
     if (!$("bsage-artist").value) $("bsage-artist").value = "OrBeats Synth";
     btn.textContent = "✓ Test song attached — now press Generate";
     setResult("bsage-result", "✅ Test song attached to the form (48s, rights-clean — " +
@@ -1252,8 +1252,8 @@ async function backupChooseFolder(path) {
 async function backupNow() {
   const clean = $("backup-clean-ps4").checked;
   if (clean && !confirm(
-    "Backup AND clean the PS4?\n\nThe backup will be made first, then every BS " +
-    "Deluxe file is wiped from the console (fresh-slate redeploy posture). " +
+    "Backup AND clean the PS4?\n\nThe backup will be made first, then every " +
+    "OrBeats file is wiped from the console (fresh-slate redeploy posture). " +
     "The backup zip is your only safety net — make sure it completes."))
     return;
   if (!clean && !confirm("Backup the PS4's OrBeats state now?")) return;

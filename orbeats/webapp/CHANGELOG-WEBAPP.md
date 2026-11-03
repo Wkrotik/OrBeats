@@ -1,3 +1,15 @@
+## 0.7.38 — OrBeats branding cleanup, unreleased
+
+- Rebrand BeatSaver/Beat Sage HTTP client identifiers, the local multipart
+  boundary and backup warning. Preserve third-party service routes/field names.
+- Replace old upstream release/checkout names in the legacy static setup page
+  with real OrBeats release assets and source-checkout guidance.
+- New synthetic test-song attachments use OrBeats title/filename branding;
+  generated audio is unchanged and existing installed songs are not renamed.
+- Preserve recognition of old plugin version banners and legacy plugin paths.
+  Upstream credits and historical demo/log titles stay intact.
+- Main plugin unchanged at0.8079; no console deployment or log clearing.
+
 ## 0.7.37 — next release, not in desktop 0.1.20
 
 - Remove the redundant sidebar version footer and its unused ping request/styles.

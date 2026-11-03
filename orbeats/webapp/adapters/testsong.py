@@ -1,5 +1,6 @@
 """
-testsong.py — the original, rights-clean "BSD Deluxe Theme" test song (M13).
+testsong.py — the original, rights-clean "OrBeats Theme" test song (M13).
+The historical deployment was titled "BSD Deluxe Theme"; audio is unchanged.
 
 100% mathematical synthesis: sine oscillators + envelopes only — no samples,
 no recordings, no MIDI of existing music. The output is unconditionally

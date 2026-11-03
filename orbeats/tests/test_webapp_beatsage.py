@@ -148,6 +148,11 @@ def test_create_job_builds_their_multipart(tmp_path):
                          ("system_tag", "v2")):
         assert f'name="{field}"' in body, field
     assert "WAVDATA" in body
+    boundary = captured["ct"].split("boundary=", 1)[1]
+    assert boundary.startswith("OrBeatsBoundary")
+    assert captured["data"].startswith(("--" + boundary + "\r\n").encode())
+    assert captured["data"].endswith(("--" + boundary + "--\r\n").encode())
+    assert "BeatSaberDeluxe" not in body
 
 
 def test_create_job_http_error_raises_beatsageerror(tmp_path):
@@ -357,7 +362,7 @@ class TestLiveContract:
 
     def test_live_generation_contract(self, tmp_path):
         tone = self._tone(tmp_path)
-        jid = beatsage.create_job(str(tone), "BSD Contract Test", "Beat Saber Deluxe",
+        jid = beatsage.create_job(str(tone), "OrBeats Contract Test", "OrBeats",
                                   {"difficulties": ["Normal"], "modes": ["Standard"],
                                    "events": [], "environment": "DefaultEnvironment",
                                    "system_tag": "v2"})
@@ -384,4 +389,4 @@ class TestLiveContract:
         _songs.STAGING_DIR = st
         _songs.MANIFEST_PATH = st / "manifest.json"
         entry = _songs.stage_zip_bytes(data, source="beatsage")
-        assert entry["name"] == "BSD Contract Test"
+        assert entry["name"] == "OrBeats Contract Test"

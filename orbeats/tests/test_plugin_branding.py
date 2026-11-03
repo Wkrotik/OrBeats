@@ -1,15 +1,102 @@
 """Owned branding and host-executed native file publication; no console access."""
 import hashlib
 import io
+import json
 import re
 import shutil
 import subprocess
+import zipfile
 from pathlib import Path
 
 import pytest
 from PIL import Image
 
 ROOT = Path(__file__).resolve().parents[1]
+
+
+def test_current_log_banner_is_orbeats_and_previous_sessions_are_preserved():
+    main = (ROOT / 'src/main.cpp').read_text()
+    assert 'log_write("=== OrBeats " PLUGIN_VERSION PLUGIN_VARIANT " started ===");' in main
+    assert 'sceKernelOpen(LOG_PATH, O_WRONLY|O_CREAT|O_APPEND, 0644)' in main
+    assert '"OrBeats %s\\nBy Wkrotik"' in main
+    assert '"OrBeats %s — disabled\\nBy Wkrotik\\n(official songs only)"' in main
+
+
+def test_active_http_clients_identify_as_orbeats(tmp_path, monkeypatch):
+    """Exercise actual Request headers; no HTTP or PS4 connections are made."""
+    monkeypatch.syspath_prepend(str(ROOT / 'webapp'))
+    import full_custom_song_pipeline as pipeline
+    from adapters import beatsage, beatsaver
+
+    archive = io.BytesIO()
+    with zipfile.ZipFile(archive, 'w') as output:
+        output.writestr('Info.dat', '{}')
+    captured = []
+
+    class Response(io.BytesIO):
+        headers = {}
+
+        def getcode(self):
+            return 200
+
+    def fake_open(request, **kwargs):
+        captured.append(request.get_header('User-agent'))
+        if request.full_url.endswith('.zip'):
+            return Response(archive.getvalue())
+        metadata = {'name': 'Synthetic', 'versions': [{
+            'downloadURL': 'https://fixture.invalid/map.zip',
+            'diffs': [{'characteristic': 'Standard'}],
+        }]}
+        return Response(json.dumps(metadata).encode())
+
+    monkeypatch.setattr(beatsaver.urllib.request, 'urlopen', fake_open)
+    beatsaver._get_json('https://fixture.invalid/map')
+    beatsage._request('fixture')
+    extracted = pipeline.download_beat_saver_song(
+        'synthetic', str(tmp_path), api_base='https://fixture.invalid')
+    assert (Path(extracted) / 'Info.dat').read_text() == '{}'
+    assert captured == [
+        'OrBeats-WebApp',
+        'OrBeats-WebApp (one job at a time; thanks Beat Sage!)',
+        'OrBeats-Pipeline', 'OrBeats-Pipeline',
+    ]
+
+
+@pytest.mark.parametrize('name', ['OrBeats', 'BS Deluxe', 'Beat Saber Deluxe'])
+def test_old_binary_banners_remain_recognizable(name, monkeypatch):
+    monkeypatch.syspath_prepend(str(ROOT / 'webapp'))
+    import library_manager
+
+    blob = b'\x7fELF' + f'=== {name} v0.8079 started ===\x00'.encode()
+    assert library_manager.binary_version(blob) == '0.8079'
+
+
+def test_current_help_and_warning_branding_keeps_legacy_plugin_identifiers():
+    example = json.loads((ROOT / 'ps4_config.example.json').read_text())
+    assert example['comment'] == 'OrBeats — PS4 Configuration'
+    backup = (ROOT.parent / 'backup-orbeats-files.py').read_text()
+    assert 'Beat Saber Deluxe' not in backup and 'BS Deluxe' not in backup
+    # These are compatibility inputs, not user-facing product branding.
+    assert '"beat_saber_deluxe.prx"' in backup
+    assert 'beat_saber_deluxe.prx' in (ROOT / 'tools/goldhen_config.py').read_text()
+    script = (ROOT / 'webapp/static/app.js').read_text()
+    warning = script.split('async function backupNow()', 1)[1].split('const btn', 1)[0]
+    assert 'OrBeats' in warning and 'Deluxe' not in warning
+    page = (ROOT / 'webapp/static/index.html').read_text()
+    assert 'beat-saber-deluxe-' not in page and 'bs-deluxe' not in page
+    assert 'https://github.com/Wkrotik/OrBeats/releases/latest' in page
+    assert 'Source code (zip)' in page and 'AppImage' in page
+
+
+def test_new_theme_downloads_use_orbeats_metadata_without_rewriting_history():
+    script = (ROOT / 'webapp/static/app.js').read_text()
+    form = script.split('async function useTestSong()', 1)[1].split('const btn', 1)[1]
+    form = form.split('async function ', 1)[0]
+    assert '"orbeats_theme_48s.wav"' in form
+    assert 'if (!$("bsage-title").value) $("bsage-title").value = "OrBeats Theme (An Original)"' in form
+    assert 'if (!$("bsage-artist").value)' in form
+    assert 'BSD Deluxe Theme' not in form
+    assert "already-deployed 'BSD Deluxe Theme (An Original)'" in script
 
 
 def test_embedded_brand_is_the_desktop_logo_not_a_song_asset():

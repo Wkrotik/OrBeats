@@ -1,5 +1,5 @@
 {
-  "comment": "Beat Saber Deluxe \u2014 PS4 Configuration",
+  "comment": "OrBeats \u2014 PS4 Configuration",
   "_description": "Copy this file to ps4_config.json and fill in your PS4 details. This file is not committed to git (see .gitignore).",
   "ps4": {
     "ip": "127.0.0.1",

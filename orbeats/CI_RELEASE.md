@@ -1,6 +1,11 @@
 <!-- START_PROTECTED -->
 
-# CI/CD Release Instructions
+# Historical upstream CI/CD Release Instructions
+
+> This is the inherited Beat Saber Deluxe release reference, not the current
+> OrBeats publication recipe. Old artifact names below describe that upstream
+> workflow. Current OrBeats builds use `.github/workflows/private-build.yml`;
+> see [the desktop packaging guide](../desktop/README.md) for current artifacts.
 
 This document describes the CI/CD pipeline for Beat Saber Deluxe and serves as the release body reference. The release workflow is defined in `.github/workflows/plugin-build.yml`.
 

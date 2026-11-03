@@ -47,7 +47,7 @@ from pathlib import Path
 # UI falls back to the guided flow (Tier 2) — the ladder makes this safe.
 SERVER_HOST = "https://beatsage-v2-prod-http-f5hqh6gvya-uc.a.run.app"
 SITE_URL = "https://beatsage.com/"
-TOAST_UA = "BeatSaberDeluxe-WebApp (one job at a time; thanks Beat Sage!)"
+TOAST_UA = "OrBeats-WebApp (one job at a time; thanks Beat Sage!)"
 
 DIFFICULTIES = ["Normal", "Hard", "Expert", "ExpertPlus"]  # v2 offers no Easy
 MODES = ["Standard", "NoArrows", "OneSaber", "90Degree", "360Degree"]
@@ -182,7 +182,7 @@ def create_job(audio_path: str, title: str, artist: str,
         "environment": options.get("environment") or RECOMMENDED_ENVIRONMENT,
         "system_tag": options.get("system_tag") or RECOMMENDED_SYSTEM_TAG,
     }
-    boundary = "BeatSaberDeluxeBoundary7d1a2c9f"
+    boundary = "OrBeatsBoundary7d1a2c9f"
     parts: list[bytes] = []
     for key, value in fields.items():
         parts.append(

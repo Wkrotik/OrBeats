@@ -1,5 +1,5 @@
 """
-Shared fixtures and helpers for Beat Saber Deluxe unit tests.
+Shared fixtures and helpers for OrBeats unit tests.
 """
 import json
 import os

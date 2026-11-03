@@ -169,7 +169,10 @@ def normalize(source, output, local_file):
         ),
         "Info",
     )
-    shape(info.get("customData", {}), ("editors", "contributors"), "Info custom metadata")
+    # Beatmapper also writes the legacy spelling inside InfoV4 customData.
+    # Both editor blocks are authoring provenance only, never gameplay data.
+    # Keep the explicit allowlist: this must not admit requirements/mod fields.
+    shape(info.get("customData", {}), ("editors", "_editors", "contributors"), "Info custom metadata")
     song = shape(info["song"], ("title", "subTitle", "author"), "song metadata")
     audio = shape(
         info["audio"],

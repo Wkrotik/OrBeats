@@ -5,7 +5,7 @@ Replace song names and artist names displayed in the game's UI with custom text.
 ## Requirements
 
 1. **Feature flag enabled** — `enable_song_metadata_modification` must be `true` in `/data/GoldHEN/AFR/CUSA12878/features.json`
-2. **Plugin deployed** — `beat_saber_deluxe.prx` must be deployed to `/data/GoldHEN/plugins/`
+2. **Plugin deployed** — `orbeats.prx` must be deployed to `/data/GoldHEN/plugins/`
 3. **Song metadata file** — `song_metadata.json` must be deployed to `/data/GoldHEN/AFR/CUSA12878/`
 
 ## How It Works

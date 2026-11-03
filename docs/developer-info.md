@@ -1,6 +1,6 @@
 # Developer Information
 
-This document contains technical details for developers working on the Beat Saber Deluxe pipeline and plugin.
+This document contains technical details for developers working on the OrBeats pipeline and plugin.
 
 ## Release Process
 

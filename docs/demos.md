@@ -1,4 +1,9 @@
-# Beat Saber Deluxe Demo Videos and Screenshots🎵⚡
+# Historical upstream demos and screenshots
+
+These Beat Saber Deluxe videos, screenshots and example logs predate OrBeats.
+Their original names, credits and version banners are preserved as historical
+evidence, not current OrBeats branding. For current installation and usage, see
+[Getting started](getting-started.md).
 
 ## Demo Videos
 

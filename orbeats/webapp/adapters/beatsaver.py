@@ -23,7 +23,7 @@ import urllib.parse
 import urllib.request
 
 DEFAULT_API_BASE = "https://api.beatsaver.com"
-_UA = "BeatSaberDeluxe-WebApp/0.1"
+_UA = "OrBeats-WebApp"
 
 
 class BeatSaverError(RuntimeError):

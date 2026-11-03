@@ -2,12 +2,12 @@
 """
 backup-orbeats-files
 
-A utility script to backup, clean, and restore Beat Saber Deluxe files on PS4
+A utility script to backup, clean, and restore OrBeats files on PS4
 via FTP (GoldHEN filesystem). Uses anonymous FTP connection per ps4_topology.md.
 
 Features:
-  1) Backup all beat saber deluxe related files from the PS4 into a datetime-stamped folder (and zip it up)
-  2) --clean-ps4 parameter: clear all beat saber deluxe related files from the PS4
+  1) Backup all OrBeats-related files from the PS4 into a datetime-stamped folder (and zip it up)
+  2) --clean-ps4 parameter: clear all OrBeats-related files from the PS4
   3) --restore-from parameter: restore files from a previously created backup zip or folder
   4) --clean-ps4 + --restore-from: clean first, then restore
   5) --local flag: run in local mode (no PS4 required - for testing)
@@ -404,8 +404,8 @@ def ps4_upload_dir(src_dir, dst_path_str):
 # =============================================================================
 
 def backup_ps4_files(target_dir):
-    """Backup Beat Saber Deluxe files from PS4 to local directory."""
-    print(f"📦 Backing up BS Deluxe files from PS4 ({PS4_IP})...")
+    """Backup OrBeats files from PS4 to local directory."""
+    print(f"📦 Backing up OrBeats files from PS4 ({PS4_IP})...")
     print(f"   Target: {target_dir}")
 
     backed_up = []
@@ -718,14 +718,14 @@ def _ftp_recursive_delete(ftp, remote_dir, protected=None):
 
 
 def clean_ps4():
-    """Remove all Beat Saber Deluxe related files from PS4."""
-    print(f"🧹 Cleaning Beat Saber Deluxe files from PS4 ({PS4_IP})...")
+    """Remove all OrBeats related files from PS4."""
+    print(f"🧹 Cleaning OrBeats files from PS4 ({PS4_IP})...")
 
     cleaned = []
     failed = []
 
     # 1. Remove plugin PRX files from /data/GoldHEN/plugins/
-    # Remove beat_saber_deluxe.prx (our plugin) + afr.prx and game_patch.prx if they exist
+    # Remove beat_saber_deluxe.prx (legacy upstream plugin) + afr.prx and game_patch.prx if they exist
     for plugin_file in ["beat_saber_deluxe.prx", "afr.prx", "game_patch.prx"]:
         code, stderr = ps4_remove_file(f"/data/GoldHEN/plugins/{plugin_file}")
         if code == 0:
@@ -903,7 +903,7 @@ def clean_ps4():
     #    These are preserved directories per GoldHEN topology
     print(f"   ⊘ Skipping /AFR/test/ and /AFR/bs_log/ (preserved per GoldHEN topology)")
 
-    # 6. Remove Beat Saber Deluxe plugin reference from plugins.ini
+    # 6. Remove legacy upstream plugin reference from plugins.ini
     # This prevents "data corrupted" errors on game launch
     print(f"   Removing BSD plugin entry from plugins.ini...")
     if ps4_path_exists(PS4_PLUGINS_INI):
@@ -963,7 +963,7 @@ def clean_ps4():
 # =============================================================================
 
 def restore_from_backup(backup_path, clean_first=False):
-    """Restore Beat Saber Deluxe files from a backup zip or folder."""
+    """Restore OrBeats files from a backup zip or folder."""
     backup_path = Path(backup_path)
 
     if not backup_path.exists():
@@ -1175,8 +1175,8 @@ def restore_from_backup(backup_path, clean_first=False):
 # =============================================================================
 
 def verify_ps4_clean():
-    """Verify that PS4 has been cleaned of BS Deluxe files."""
-    print("✅ Verifying PS4 is clean of Beat Saber Deluxe files...")
+    """Verify that PS4 has been cleaned of OrBeats files."""
+    print("✅ Verifying PS4 is clean of OrBeats files...")
 
     all_clean = True
 
@@ -1332,7 +1332,7 @@ def list_backup_contents(backup_path):
 def main():
     global LOCAL_BACKUP_DIR
     parser = argparse.ArgumentParser(
-        description="Backup, clean, and restore Beat Saber Deluxe files on PS4 via FTP",
+        description="Backup, clean, and restore OrBeats files on PS4 via FTP",
         formatter_class=argparse.RawDescriptionHelpFormatter,
         epilog="""
 Examples:
@@ -1359,7 +1359,7 @@ Examples:
     subparsers = parser.add_subparsers(dest="command", help="Available commands")
 
     # Backup command
-    backup_parser = subparsers.add_parser("backup", help="Backup BS Deluxe files from PS4")
+    backup_parser = subparsers.add_parser("backup", help="Backup OrBeats files from PS4")
     backup_parser.add_argument(
         "--clean-ps4",
         action="store_true",
@@ -1379,7 +1379,7 @@ Examples:
     )
 
     # Restore command
-    restore_parser = subparsers.add_parser("restore", help="Restore BS Deluxe files to PS4")
+    restore_parser = subparsers.add_parser("restore", help="Restore OrBeats files to PS4")
     restore_parser.add_argument(
         "backup_path",
         help="Path to backup zip file or directory"
@@ -1426,7 +1426,7 @@ Examples:
         backup_dir.mkdir(parents=True, exist_ok=True)
 
         print("=" * 60)
-        print(f"Beat Saber Deluxe Backup Tool")
+        print(f"OrBeats Backup Tool")
         print(f"={ '=' * 58 }")
         print(f"Timestamp: {timestamp}")
         print(f"PS4 IP: {PS4_IP}:{PS4_PORT}")
@@ -1492,7 +1492,7 @@ Examples:
 
     elif args.command == "restore":
         print("=" * 60)
-        print("Beat Saber Deluxe Restore Tool")
+        print("OrBeats Restore Tool")
         print("=" * 58)
         print()
 

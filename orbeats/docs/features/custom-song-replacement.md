@@ -5,7 +5,7 @@ Replace Beat Saber DLC song audio and beatmaps with community-made custom songs.
 ## Requirements
 
 1. **Feature flag enabled** — `enable_custom_song_replacements` must be `true` in `/data/GoldHEN/AFR/CUSA12878/features.json`
-2. **Plugin deployed** — `beat_saber_deluxe.prx` must be deployed to `/data/GoldHEN/plugins/`
+2. **Plugin deployed** — `orbeats.prx` must be deployed to `/data/GoldHEN/plugins/`
 3. **Custom song bundles** — Built bundles must be deployed to `/data/GoldHEN/AFR/CUSA12878/`
 4. **Redirect config** — `redirects.json` must be deployed to `/data/GoldHEN/AFR/CUSA12878/`
 5. **Decrypted game dump** — Required for building bundles (see [Prerequisites](../../README.md#prerequisites))

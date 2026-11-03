@@ -1,3 +1,21 @@
+## 0.5400 — OrBeats branding cleanup
+
+- Identify pipeline BeatSaver API/download requests as `OrBeats-Pipeline`.
+- Rebrand backup-tool help/messages and example configuration without changing
+  legacy plugin filenames, migration/conflict checks or backup/cleanup behavior.
+- Retain upstream credits and historical logs; native startup banners already
+  say OrBeats. Log append semantics and existing console files are unchanged.
+
+## 0.5399 — InfoV4 editor metadata (issue #4)
+
+- Accept Beatmapper's `_editors` authoring-provenance key alongside `editors`
+  in InfoV4 `customData`. This metadata does not affect the converted song.
+- Keep the explicit allowlist: unknown/mod-dependent Info fields, custom chart
+  behavior and malformed metadata containers still refuse conversion.
+- Reproducer: BeatSaver4cb6c (Duran Duran – INVISIBLE). Regression fixtures
+  are synthetic; no downloaded song/game inputs are committed. Offline import
+  and bundle readback do not establish PS4 playback or firmware compatibility.
+
 ## 0.5398
 
 - Add allowlisted local-only template validation worker, main-thread native imports and synthetic conversion/independent readback. Preserve bounded files and byte-backed UnityPy loading; no console/config/network operations in the worker.

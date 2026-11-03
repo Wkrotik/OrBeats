@@ -169,6 +169,61 @@ def test_source_metadata_and_actual_audio_media_conversion(tmp_path):
     assert media["preview_start_seconds"] == 0.5 and media["preview_duration_seconds"] == 1
 
 
+@pytest.mark.parametrize(
+    "metadata",
+    [
+        {"editors": {"lastEditedBy": "SyntheticEditor"}},
+        {"_editors": {"_lastEditedBy": "SyntheticEditor", "SyntheticEditor": {"version": "0.4.4"}}},
+        {"editors": {}, "_editors": {}, "contributors": []},
+    ],
+)
+def test_info_editor_metadata_does_not_change_normalized_song(tmp_path, metadata):
+    root, info = source(tmp_path)
+    baseline = v4.normalize(root, tmp_path / "baseline", prepare.local_file)
+    info["customData"] = metadata
+    original = json.dumps(info).encode()
+    (root / "Info.dat").write_bytes(original)
+    normalized = v4.normalize(root, tmp_path / "with-editor", prepare.local_file)
+    assert normalized == baseline
+    for file in (tmp_path / "baseline").iterdir():
+        assert (tmp_path / "with-editor" / file.name).read_bytes() == file.read_bytes()
+    assert (root / "Info.dat").read_bytes() == original
+    importer = app.helper("import_v3_additive.py")
+    report = importer.import_song(tmp_path / "with-editor", tmp_path / "prepared-editor")
+    assert report["note_counts"] == {"ExpertPlus": 2}
+
+
+@pytest.mark.parametrize("key", ["requirements", "_requirements", "suggestions", "_suggestions", "unknown"])
+def test_editor_metadata_never_allows_other_info_custom_fields(tmp_path, key):
+    root, info = source(tmp_path)
+    info["customData"] = {"_editors": {}, key: ["SyntheticUnsupportedMod"]}
+    (root / "Info.dat").write_text(json.dumps(info))
+    with pytest.raises(ValueError, match="unsupported V4 Info custom metadata fields"):
+        v4.normalize(root, tmp_path / "refused", prepare.local_file)
+    assert not (tmp_path / "refused").exists()
+
+
+@pytest.mark.parametrize("metadata", [None, [], "editor", True])
+def test_info_custom_metadata_must_remain_an_object(tmp_path, metadata):
+    root, info = source(tmp_path)
+    info["customData"] = metadata
+    (root / "Info.dat").write_text(json.dumps(info))
+    with pytest.raises(ValueError, match="unsupported V4 Info custom metadata fields"):
+        v4.normalize(root, tmp_path / "refused", prepare.local_file)
+    assert not (tmp_path / "refused").exists()
+
+
+def test_editor_metadata_never_allows_mod_dependent_chart(tmp_path):
+    root, info = source(tmp_path)
+    info["customData"] = {"_editors": {}}
+    (root / "Info.dat").write_text(json.dumps(info))
+    data = chart()
+    data["customData"] = {"customEvents": [{"type": "SyntheticUnsupportedEvent"}]}
+    (root / "ExpertPlus.dat").write_text(json.dumps(data))
+    with pytest.raises(ValueError, match="unsupported V4 features: customData"):
+        v4.normalize(root, tmp_path / "refused", prepare.local_file)
+
+
 def test_download_validates_v4_audio_chart_and_lightshow_hash(tmp_path, monkeypatch):
     root, info = source(tmp_path)
     refs = ["AudioData.dat", "ExpertPlus.dat", "Lightshow.dat"]

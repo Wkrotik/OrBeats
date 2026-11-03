@@ -39,7 +39,7 @@ has the hotkey armed from the first boot.
    the trigger together** — both at the same time.
 3. Keep holding for **2 full seconds**. You'll hear the PS4 notification *sound* (in VR
    the notification itself may not be visible — the sound is your confirmation).
-4. The notification reads: `BS Deluxe: Plugin ENABLED` or `BS Deluxe: Plugin DISABLED`,
+4. The notification reads: `OrBeats: Plugin ENABLED` or `OrBeats: Plugin DISABLED`,
    both followed by `Restart game to apply`.
 5. **Restart Beat Saber.** The next boot runs in the new state and the launch toast
    confirms it (`(5/5 features ON)` or `(OFF)` / `official songs only`).

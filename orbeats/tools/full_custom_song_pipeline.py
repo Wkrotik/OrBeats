@@ -4930,7 +4930,7 @@ def download_beat_saver_song(map_id: str, output_dir: str | None = None,
     song_name = map_id
     cdn_url = None
     try:
-        req = urllib.request.Request(info_url, headers={"User-Agent": "BeatSaberDeluxe/0.54"})
+        req = urllib.request.Request(info_url, headers={"User-Agent": "OrBeats-Pipeline"})
         with urllib.request.urlopen(req, timeout=30) as resp:
             info_data = json.loads(resp.read().decode('utf-8'))
             if info_data.get('name'):
@@ -4969,7 +4969,7 @@ def download_beat_saver_song(map_id: str, output_dir: str | None = None,
     zip_path = os.path.join(tmp_dir, f"{map_id}.zip")
 
     try:
-        req = urllib.request.Request(cdn_url, headers={"User-Agent": "BeatSaberDeluxe/0.54"})
+        req = urllib.request.Request(cdn_url, headers={"User-Agent": "OrBeats-Pipeline"})
         with urllib.request.urlopen(req, timeout=120) as resp:
             total_size = int(resp.headers.get('Content-Length', 0))
             log.info(f"  Downloading ({total_size / 1024 / 1024:.1f} MB)...")

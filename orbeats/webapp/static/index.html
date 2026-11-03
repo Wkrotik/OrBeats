@@ -242,7 +242,7 @@
     </div>
 
     <div class="card">
-      <h3>Plugin only — deploy or update the BSD plugin (v0.8054+)</h3>
+      <h3>Plugin only — deploy or update the OrBeats plugin (v0.8054+)</h3>
       <p class="muted">Deploys <code>orbeats.prx</code> (builds it from
       source when available; falls back to the bundled <code>plugins/</code>
       binary in a release extraction) and ensures the <code>plugins.ini</code>
@@ -627,38 +627,40 @@
 
       <div class="card start-step">
         <h3>2 · Download the release</h3>
-        <p>One zip contains everything: the pipeline, the plugin (pre-built,
-        release + debug), this web app, all docs.</p>
+        <p>Download the OrBeats desktop app for Windows or Linux. For a source
+        checkout instead, follow the optional source steps below.</p>
         <div class="row">
           <a class="primary big" style="text-decoration:none"
-             href="https://github.com/free5ty1e/BeatSaberPcCustomSongToPs4InstallConverter/releases/latest"
+             href="https://github.com/Wkrotik/OrBeats/releases/latest"
              target="_blank" rel="noopener">Download the latest release ↗</a>
         </div>
-        <p class="muted">On the release page, expand <b>Assets</b> and download the
-        <code>beat-saber-deluxe-*.zip</code> file. (This link always points at the
-        newest stable release.)</p>
+        <p class="muted">Under <b>Assets</b>, choose the Windows installer or Linux
+        AppImage. The desktop app needs no separate Python installation. Source
+        users can choose GitHub’s <b>Source code (zip)</b> archive; see the
+        <a href="https://github.com/Wkrotik/OrBeats/blob/main/docs/getting-started.md"
+           target="_blank" rel="noopener">current setup guide</a>.</p>
       </div>
 
       <div class="card start-step">
-        <h3>3 · Extract it</h3>
+        <h3>3 · Source users: extract the archive (optional)</h3>
         <ul>
           <li><b>Windows:</b> right-click the zip → <i>Extract All…</i> (built-in) — or 7-Zip</li>
           <li><b>macOS:</b> double-click the zip — done</li>
-          <li><b>Linux:</b> <code>unzip beat-saber-deluxe-*.zip</code></li>
+          <li><b>Linux:</b> <code>unzip OrBeats-*.zip</code></li>
         </ul>
-        <p class="muted">Put it anywhere you like, e.g. <code>~/bs-deluxe/</code> or
-        <code>C:\bs-deluxe\</code>.</p>
+        <p class="muted">Put it anywhere you like, e.g. <code>~/OrBeats/</code> or
+        <code>C:\OrBeats\</code>; the Python project is in its <code>orbeats/</code> subfolder.</p>
       </div>
 
       <div class="card start-step">
-        <h3>4 · Install the two dependencies & run the app</h3>
+        <h3>4 · Source users: install dependencies & run the app</h3>
         <p class="os-tabs">
           <button class="os-tab active" data-os="win">Windows</button>
           <button class="os-tab" data-os="mac">macOS</button>
           <button class="os-tab" data-os="linux">Linux</button>
         </p>
         <div class="os-pane" data-os="win">
-          <pre class="code-doc">cd C:\bs-deluxe
+          <pre class="code-doc">cd C:\OrBeats\orbeats
 python -m pip install -r requirements.txt
 python webapp\server.py</pre>
           <p class="muted">Use <code>python</code> (not python3) on Windows. If
@@ -666,14 +668,14 @@ python webapp\server.py</pre>
           python.org first.</p>
         </div>
         <div class="os-pane hidden" data-os="mac">
-          <pre class="code-doc">cd ~/bs-deluxe
+          <pre class="code-doc">cd ~/OrBeats/orbeats
 python3 -m pip install -r requirements.txt
 python3 webapp/server.py</pre>
           <p class="muted">If Python 3 isn't installed:
           <code>brew install python3</code> or get it from python.org.</p>
         </div>
         <div class="os-pane hidden" data-os="linux">
-          <pre class="code-doc">cd ~/bs-deluxe
+          <pre class="code-doc">cd ~/OrBeats/orbeats
 python3 -m pip install -r requirements.txt
 python3 webapp/server.py</pre>
           <p class="muted">On Debian/Ubuntu:
@@ -688,7 +690,7 @@ python3 webapp/server.py</pre>
       <div class="card start-step">
         <h3>5 · Set up (once) — plugin, connection, song data</h3>
         <ol>
-          <li><b>Deploy the BSD plugin</b> to your PS4 — one click:
+          <li><b>Deploy the OrBeats plugin</b> to your PS4 — one click:
             <div class="row" style="margin-top:6px">
               <button id="btn-deploy-plugin-start" class="primary">Deploy plugin to PS4</button>
               <span class="muted" id="deploy-plugin-start-status">(restart Beat Saber

@@ -1,4 +1,4 @@
-# Test dependencies for Beat Saber Deluxe
+# Test dependencies for OrBeats
 pytest>=9.0
 pytest-cov>=5.0
 coverage>=7.0

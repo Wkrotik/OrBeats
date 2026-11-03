@@ -56,8 +56,9 @@ measured chart statistics** so you know before you play.
 
 The **Use our original test song** button synthesizes a 48-second rights-clean
 theme on the spot — 100% math (no samples, deterministic, byte-identical to
-the deployed "BSD Deluxe Theme"). One click attaches it to the form and
-pre-fills the title/artist; a plain download is the fallback.
+the historically deployed "BSD Deluxe Theme"). One click attaches it to the form
+and pre-fills "OrBeats Theme (An Original)" / "OrBeats Synth"; only the branding
+changed, not the generated audio. A plain download is the fallback.
 
 ### The respect rules (why this is safe to ship)
 
