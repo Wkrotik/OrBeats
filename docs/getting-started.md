@@ -21,10 +21,10 @@ does not complete an empty setup.** OrBeats does not include game assets.
 Download from the official [GitHub Releases page](https://github.com/Wkrotik/OrBeats/releases/latest).
 Normal users need only their platform's application:
 
-- **Windows:** run `OrBeats_0.1.20_x64-setup.exe`. It includes the backend, media
+- **Windows:** run `OrBeats_0.1.23_x64-setup.exe`. It includes the backend, media
   tools and both plugins. The installer is unsigned; verify the source and
   `SHA256SUMS` before deciding whether to proceed through a security warning.
-- **Linux:** download `OrBeats_0.1.20_amd64.AppImage`, make it executable and open
+- **Linux:** download `OrBeats_0.1.23_amd64.AppImage`, make it executable and open
   it. The baseline is Ubuntu 22.04 / GLIBC 2.35 or newer. See the
   [Linux packaging notes](../desktop/packaging/LINUX-BASELINE.md).
 - The separate `orbeats.prx` and `orbeats_extras.prx` downloads are available for

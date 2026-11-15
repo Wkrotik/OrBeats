@@ -1,10 +1,12 @@
-## 0.1.23 — local setup/error testing candidate, unreleased
+## 0.1.23 — import fidelity, library management and clearer setup
 
 - Align the incompatibility checkbox with its label and keep a 44px click target.
 - Established profiles with completed imports open Discover without falsely
   marking setup validated; pending extraction restoration still forces Setup.
 - Bundle pipeline0.5403/web0.7.40: validated legacy chart editor aliases and
   actionable unsupported-value/mod/retained-score messages. Native pair unchanged.
+- Publish the combined 0.1.21–0.1.23 candidate changes for Windows and Linux;
+  see [release notes](../docs/releases/0.1.23.md) for validation and limits.
 
 ## 0.1.22 — local batch/import testing candidate, unreleased
 
