@@ -19,6 +19,7 @@ def test_discovery_metadata_helpers():
 const vm=require('vm'),assert=require('assert');
 const ctx=vm.createContext({});vm.runInContext(JSON.parse(process.argv[1]),ctx);
 vm.runInContext(`
+const state={wallChecks:new Map()};
 const chart={characteristic:'Standard',difficulty:'Expert',ne:false,me:false,chroma:false,cinema:false};
 const map=(diffs)=>({versions:[{diffs}]});
 if(compatibility(map([chart])).status!=='likely')throw Error('Expected vanilla metadata hint');
@@ -33,6 +34,11 @@ for(const data of [{},map([]),map([{}]),map([null]),map([{...chart,ne:undefined}
  if(compatibility(data).status!=='unknown')throw Error('Missing metadata must not be a green guarantee');
 }
 if(!compatibility(map([chart])).reason.includes('not a compatibility guarantee'))throw Error('Overclaim');
+const checked={versions:[{hash:'revision1',diffs:[chart]}]};
+state.wallChecks.set('revision1',{blockers:['Unsupported wall layer3']});
+if(compatibility(checked).status!=='unsupported')throw Error('Archive blocker ignored');
+checked.versions[0].hash='revision2';
+if(compatibility(checked).status!=='likely')throw Error('Stale revision blocker reused');
 const malicious=compatibilityBadge(map([{...chart,characteristic:'<img src=x>'}]));
 if(malicious.includes('title="<img'))throw Error('Unescaped reason');
 if(!rating({score:.96,upvotes:999,downvotes:1}).includes('1,000 votes'))throw Error('Vote count');

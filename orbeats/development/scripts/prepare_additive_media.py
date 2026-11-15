@@ -108,8 +108,14 @@ def prepare(source,level_manifest,output,pack_cover=None,ffmpeg='ffmpeg'):
     separate_preview = info.get('_orbeatsPreviewFilename')
     start=0 if separate_preview else number(info.get('_previewStartTime',0),'preview start')
     duration=number(info.get('_previewDuration',min(10,full_duration)),'preview duration')
-    if start<0 or not 1<=duration<=30 or start+duration>full_duration:
-        raise ValueError('preview outside song or1..30second range')
+    if start<0 or duration<=0 or full_duration<1:
+        raise ValueError('preview needs nonnegative start, positive duration and at least1second of audio')
+    declared = [start, duration]
+    # Preview metadata is not gameplay timing; cap only the menu clip, never song audio.
+    duration = min(30, max(1, duration), full_duration)
+    if start + 1 > full_duration:
+        start = max(0, full_duration - duration)
+    duration = min(duration, full_duration - start)
     cover=source_file(source,info.get('_coverImageFilename'))
     audio=source_file(source,separate_preview or info.get('_songFilename'))
     image_info(cover)
@@ -134,6 +140,8 @@ def prepare(source,level_manifest,output,pack_cover=None,ffmpeg='ffmpeg'):
               'source_audio_sha256':hashlib.sha256(audio.read_bytes()).hexdigest(),
               'source_cover_sha256':hashlib.sha256(cover.read_bytes()).hexdigest(),
               'preview_start_seconds':start,'preview_duration_seconds':duration,
+              'preview_adjusted':declared != [start, duration],
+              'declared_preview_seconds':declared,
               'song_cover':file_record(output/'song-cover.png'),
               'preview':file_record(output/'preview.wav'),
               'pack_cover':file_record(output/'pack-cover.png') if pack_cover else None}

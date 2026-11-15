@@ -14,7 +14,7 @@ from additive_lighting import BASIC_LIGHT_EVENT_TYPES, EASE_TYPES, is_basic_ligh
 
 def number(v, name, lo=0, hi=1000000, integer=False):
     if type(v) not in ((int,) if integer else (int, float)) or not math.isfinite(v) or not lo <= v <= hi:
-        raise ValueError("invalid native V4 " + name)
+        raise ValueError("invalid native V4 " + name + f"; unsupported value, supported range is {lo}..{hi}" + (" (integer)" if integer else ""))
     return v
 
 
@@ -62,7 +62,7 @@ def audio(data):
         sb, eb = number(r.get("sb", 0), "start beat"), number(r.get("eb", 0), "end beat")
         if si != last_sample or not si < ei or abs(sb - last_beat) > 1e-7 or eb <= sb:
             raise ValueError("native BPM regions must cover contiguous samples and beats from zero")
-        number((eb - sb) * rate * 60 / (ei - si), "region BPM", 1, 1000)
+        number((eb - sb) * rate * 60 / (ei - si), "region BPM", 1, 1000000)
         last_sample, last_beat = ei, eb
     if last_sample != count:
         raise ValueError("native BPM regions must cover entire audio")
@@ -76,9 +76,11 @@ def audio(data):
 
 
 def audio_duration_matches(data, rate, count):
-    """Existing one-44.1kHz-sample tolerance, without float cancellation at its boundary."""
-    difference = abs(count * data["songFrequency"] - data["songSampleCount"] * rate)
-    return difference * 44100 <= rate * data["songFrequency"]
+    """One sample at equal rates; two clock roundings only when resampling."""
+    source_rate = data["songFrequency"]
+    difference = abs(count * source_rate - data["songSampleCount"] * rate)
+    tolerance = rate if rate == source_rate else rate + source_rate
+    return difference <= tolerance
 
 
 def resample_audio(data, rate, count, checksum):
@@ -114,7 +116,8 @@ def chart(data, maxbeat, base_njs=10):
             "w": (1, 4, True),
             "h": (1, 5, True),
         },
-        "arcsData": {"m": (0, 100, False), "tm": (0, 100, False), "a": (0, 2, True)},
+        # ArcItemConverter RVA0x9E57C0 copies signed tangent multipliers without clamping.
+        "arcsData": {"m": (-100, 100, False), "tm": (-100, 100, False), "a": (0, 2, True)},
         "chainsData": {"tx": (0, 3, True), "ty": (0, 2, True), "c": (2, 128, True), "s": (0.001, 100, False)},
         "njsEventData": {"d": (-100, 100, False), "p": (0, 1, True), "e": (-1, 102, True)},
     }
@@ -127,6 +130,12 @@ def chart(data, maxbeat, base_njs=10):
     total = 0
     for key, fields in metadata.items():
         for row in rows(data.get(key, []), key):
+            if key == "obstaclesData" and isinstance(row, dict) and type(row.get("y", 0)) is int and row.get("y", 0) > 2:
+                # CUSA12878/2.04 ObstacleItemConverter RVA0x9E5290 maps higher layers to Base.
+                raise ValueError(
+                    f"unsupported PS4 wall layer {row['y']}; supported layers are 0..2. "
+                    "The native loader would move this wall to the floor; no geometry was changed"
+                )
             scalar_record(row, fields, key)
             if key == "obstaclesData" and row.get("x", 0) + row.get("w", 0) > 8:
                 raise ValueError("native wall exceeds vanilla extent")

@@ -10,6 +10,7 @@ const escapeHTML = (v) =>
 const state = {
 	page: 0,
 	maps: [],
+	wallChecks: new Map(),
 	songs: [],
 	selectedSongs: new Set(),
 	editingSelection: false,
@@ -219,6 +220,8 @@ function mapData(map) {
 // Keep this aligned with the fail-closed whole-pack import policy.
 function compatibility(map) {
 	const diffs = map.versions?.[0]?.diffs;
+	const wallBlockers = state.wallChecks.get(map.versions?.[0]?.hash)?.blockers || [];
+	if (wallBlockers.length) return {status: "unsupported", label: "Not compatible", reason: wallBlockers.join("; ")};
 	if (!Array.isArray(diffs) || !diffs.length) return {status: "unknown", label: "Needs validation", reason: "Chart metadata is missing. The archive will be validated before installation."};
 	const reasons = new Set();
 	let incomplete = false;
@@ -274,9 +277,20 @@ async function search(reset = true) {
 		maps = r.docs || [];
 	}
 	state.maps = maps;
-	$("results").innerHTML = maps.length
-		? maps.map(card).join("")
-		: '<div class="empty">No maps found. Try a different artist, mapper or filter.</div>';
+	renderDiscovery();
+}
+function renderDiscovery() {
+	const maps = state.maps;
+	let hidden = 0;
+	const cards = maps.map((map, index) => {
+		if ($("hide-incompatible").checked && compatibility(map).status === "unsupported") {
+			hidden++;
+			return "";
+		}
+		return card(map, index);
+	}).join("");
+	$("results").innerHTML = cards || `<div class="empty">${maps.length ? "No maps shown. Try another page or turn off the incompatibility filter." : "No maps found. Try another search."}</div>`;
+	$("compatibility-summary").textContent = `${hidden} known incompatible maps hidden on this page. Unknown maps stay visible; wall layers require an archive check in Details.`;
 	$("page-number").textContent = "Page " + (state.page + 1);
 	$("previous").disabled = state.page === 0;
 	$("next").disabled = maps.length < 20;
@@ -290,8 +304,28 @@ function showDetails(index, installedId = null) {
 	const bool = (v) => (v ? "Yes" : "No");
 	const c = compatibility(map);
 	$("detail-content").innerHTML =
-		`<div class="detail-top">${installedId ? installedArtwork(title, installedId) : artwork(title, imageURL(v.coverURL), mediaURL(v.previewURL))}<div><span class="eyebrow">BEATSAVER ${escapeHTML(map.id)}</span><h2>${escapeHTML(title)}</h2><p>${escapeHTML(artist)}<br>Mapped by ${escapeHTML(mapper)}</p><div class="diffs">${diffBadges(diffs)}</div>${installedId ? `<button class="danger" data-remove="${escapeHTML(installedId)}">Remove from PS4</button>` : `<button class="primary" data-install="${escapeHTML(map.id)}" data-unsupported="${c.status === "unsupported"}" title="${escapeHTML(c.reason)}">Add to queue ＋</button>`}</div></div><div class="stats"><div><strong>${duration(meta.duration)}</strong><small>DURATION</small></div><div><strong>${number(meta.bpm)}</strong><small>BPM</small></div><div>${rating(stats)}<small>BEATSAVER SCORE</small></div><div><strong>${number(stats.upvotes)} / ${number(stats.downvotes)}</strong><small>UP / DOWN VOTES</small></div></div><p>${compatibilityBadge(map)}</p><p class="hint">${escapeHTML(c.reason)}</p><p title="${escapeHTML(map.uploaded || v.createdAt || "")}">Uploaded ${escapeHTML(relativeDate(map.uploaded || v.createdAt))}<br>Curated: ${bool(map.curatedAt)} · Ranked: ${bool(map.ranked || map.blRanked)} · Tags: ${escapeHTML((map.tags || []).join(", "))}</p><p class="description">${escapeHTML(map.description || "No mapper description supplied.")}</p><div class="table-wrap"><table><thead><tr><th>Chart</th><th>Notes / bombs / walls</th><th>NPS</th><th>NJS</th><th>Stars</th><th>Requirements</th></tr></thead><tbody>${diffs.map((d) => `<tr><td>${escapeHTML(d.characteristic)} ${escapeHTML(d.difficulty)}</td><td>${number(d.notes)} / ${number(d.bombs)} / ${number(d.obstacles)}</td><td>${number(d.nps)}</td><td>${number(d.njs)}</td><td>${number(d.stars || d.blStars)}</td><td>${escapeHTML([d.ne && "Noodle Extensions", d.me && "Mapping Extensions", d.chroma && "Chroma", d.cinema && "Cinema"].filter(Boolean).join(", ") || "Vanilla")}</td></tr>`).join("")}</tbody></table></div><p class="hint">Support: validated vanilla V2/V3/V4, arcs, chains, native V4 NJS/lighting, available stock environments, Standard, One Saber, No Arrows and 90°/360° characteristics. Expanded features require OrBeats 0.8075; hardware validation is pending. Mod-dependent effects remain unsupported. Unsupported formats and requirements are explicitly refused, not silently removed. Original maps are downloaded and converted in temporary storage, not kept as a local song library.</p><details><summary>Complete BeatSaver API data</summary><pre>${escapeHTML(JSON.stringify(map, null, 2))}</pre></details><p><a href="https://beatsaver.com/maps/${escapeHTML(map.id)}" target="_blank" rel="noopener noreferrer">Open on BeatSaver ↗</a></p>`;
+		`<div class="detail-top">${installedId ? installedArtwork(title, installedId) : artwork(title, imageURL(v.coverURL), mediaURL(v.previewURL))}<div><span class="eyebrow">BEATSAVER ${escapeHTML(map.id)}</span><h2>${escapeHTML(title)}</h2><p>${escapeHTML(artist)}<br>Mapped by ${escapeHTML(mapper)}</p><div class="diffs">${diffBadges(diffs)}</div>${installedId ? `<button class="danger" data-remove="${escapeHTML(installedId)}">Remove from PS4</button>` : `<button class="primary" data-install="${escapeHTML(map.id)}" data-unsupported="${c.status === "unsupported"}" title="${escapeHTML(c.reason)}">Add to queue ＋</button>`}</div></div><div class="stats"><div><strong>${duration(meta.duration)}</strong><small>DURATION</small></div><div><strong>${number(meta.bpm)}</strong><small>BPM</small></div><div>${rating(stats)}<small>BEATSAVER SCORE</small></div><div><strong>${number(stats.upvotes)} / ${number(stats.downvotes)}</strong><small>UP / DOWN VOTES</small></div></div><p>${compatibilityBadge(map)}</p><p class="hint">${escapeHTML(c.reason)}</p><button type="button" id="check-walls">Check wall layers (downloads archive)</button><p id="wall-check-result" class="hint" aria-live="polite">${escapeHTML(state.wallChecks.get(v.hash)?.message || "BeatSaver metadata does not contain wall layers. This check does not install anything.")}</p><p title="${escapeHTML(map.uploaded || v.createdAt || "")}">Uploaded ${escapeHTML(relativeDate(map.uploaded || v.createdAt))}<br>Curated: ${bool(map.curatedAt)} · Ranked: ${bool(map.ranked || map.blRanked)} · Tags: ${escapeHTML((map.tags || []).join(", "))}</p><p class="description">${escapeHTML(map.description || "No mapper description supplied.")}</p><div class="table-wrap"><table><thead><tr><th>Chart</th><th>Notes / bombs / walls</th><th>NPS</th><th>NJS</th><th>Stars</th><th>Requirements</th></tr></thead><tbody>${diffs.map((d) => `<tr><td>${escapeHTML(d.characteristic)} ${escapeHTML(d.difficulty)}</td><td>${number(d.notes)} / ${number(d.bombs)} / ${number(d.obstacles)}</td><td>${number(d.nps)}</td><td>${number(d.njs)}</td><td>${number(d.stars || d.blStars)}</td><td>${escapeHTML([d.ne && "Noodle Extensions", d.me && "Mapping Extensions", d.chroma && "Chroma", d.cinema && "Cinema"].filter(Boolean).join(", ") || "Vanilla")}</td></tr>`).join("")}</tbody></table></div><p class="hint">Support: validated vanilla V2/V3/V4, arcs, chains, native V4 NJS/lighting, available stock environments, Standard, One Saber, No Arrows and 90°/360° characteristics. Expanded features require OrBeats 0.8075; hardware validation is pending. Mod-dependent effects remain unsupported. Unsupported formats and requirements are explicitly refused, not silently removed. Original maps are downloaded and converted in temporary storage, not kept as a local song library.</p><details><summary>Complete BeatSaver API data</summary><pre>${escapeHTML(JSON.stringify(map, null, 2))}</pre></details><p><a href="https://beatsaver.com/maps/${escapeHTML(map.id)}" target="_blank" rel="noopener noreferrer">Open on BeatSaver ↗</a></p>`;
 	updateQueueButtons();
+	$("check-walls").onclick = safely(async () => {
+		const button = $("check-walls");
+		button.disabled = true;
+		$("wall-check-result").textContent = "Downloading and checking the exact archive…";
+		try {
+			const result = await api(`/api/orbis/map/${encodeURIComponent(map.id)}/walls`, {method: "POST"});
+			if (result.hash !== v.hash) throw Error("The map was updated. Search again before checking this version.");
+			state.wallChecks.set(result.hash, result);
+			renderDiscovery();
+			if (state.selected !== map || !button.isConnected) return;
+			$("wall-check-result").textContent = result.blockers.length ? result.blockers.join("; ") : result.message;
+			for (const install of $("detail-content").querySelectorAll("[data-install]")) {
+				install.dataset.unsupported = String(compatibility(map).status === "unsupported");
+				install.title = compatibility(map).reason;
+			}
+			updateQueueButtons();
+		} catch (e) {
+			if (button.isConnected) $("wall-check-result").textContent = `Not checked: ${e.message}`;
+		} finally { button.disabled = false; }
+	});
 	$("details").showModal();
 }
 function cleanLogLine(line) {
@@ -540,7 +574,7 @@ async function removeMaps(ids) {
 	if (!songs.length || songs.some(s => !s)) return;
 	const plural = songs.length !== 1;
 	if (!await confirmAction(plural ? `Remove ${songs.length} maps?` : "Remove map?",
-		`${songs.map(s => s.title).join("; ")}\n\nOnly these custom maps will be removed. Keep Beat Saber fully closed and FTP enabled. Maps are removed one at a time; removal stops on the first error.`,
+		`${songs.map(s => s.title).join("; ")}\n\nOnly these custom maps will be removed. Keep Beat Saber fully closed and FTP enabled. The selection is removed in one locked library update, then its owned files are cleaned up.`,
 		plural ? `Remove ${songs.length} maps` : "Remove")) return;
 	if (state.removing) return;
 	if ($("details").open) $("details").close();
@@ -550,20 +584,16 @@ async function removeMaps(ids) {
 	renderQueue(state.queue);
 	let completed = 0, cleanup = 0, resultMessage = "";
 	try {
-		for (const song of songs) {
-			// A queue started in another browser tab must still block the next DELETE.
-			// The server independently enforces this plus the per-map title/FTP lock.
-			const reason = removalBlockReason();
-			if (reason) throw Error(reason);
-			$("library-feedback").textContent = `Removing ${completed + 1} of ${songs.length}: ${song.title}…`;
-			const result = await api("/api/orbis/library/" + encodeURIComponent(song.id), { method: "DELETE" });
-			completed++;
-			cleanup += result.cleanup_pending?.length || 0;
-			state.selectedSongs.delete(song.id);
-		}
+		const reason = removalBlockReason();
+		if (reason) throw Error(reason);
+		$("library-feedback").textContent = `Removing ${songs.length} selected maps in one library update…`;
+		const result = await api("/api/orbis/library/remove", { method: "POST", body: JSON.stringify({ids: songs.map(s => s.id)}) });
+		completed = result.removed.length;
+		cleanup = result.cleanup_pending?.length || 0;
+		for (const id of result.removed) state.selectedSongs.delete(id);
 		resultMessage = `${completed === 1 ? "Map removed" : `${completed} maps removed`}.${cleanup ? " Some unreferenced files need cleanup." : ""} Changes appear on the next game launch.`;
 	} catch (e) {
-		resultMessage = `Removal stopped: ${completed} of ${songs.length} removed. ${e.message} Refresh the library before retrying if the connection was lost.`;
+		resultMessage = `Could not confirm removal. ${e.message} Refresh the library before retrying: a lost response does not prove the update failed.`;
 	} finally {
 		try { await loadLibrary(); }
 		catch (e) { resultMessage += ` Could not refresh the library: ${e.message}`; }
@@ -579,6 +609,12 @@ async function loadSettings() {
 	$("ip").value = s.ip;
 	$("template").value = s.template;
 	$("updates").textContent = s.updates.message;
+}
+function initialTab(setup, queue, hash) {
+	// Import history avoids re-onboarding older profiles; it is not template-validation proof.
+	const installedBefore = queue.history.some(entry => entry.status === "complete");
+	if (setup.unavailable || setup.cleanup_required || (!setup.complete && !installedBefore)) return "setup";
+	return ["library", "settings"].includes(hash) ? hash : "discover";
 }
 async function initialize() {
 	try {
@@ -684,6 +720,7 @@ async function initialize() {
 		await search();
 	});
 	for (const id of ["sort", "period"]) $(id).onchange = safely(() => search());
+	$("hide-incompatible").onchange = renderDiscovery;
 	$("previous").onclick = safely(async () => {
 		if (state.page) state.page--;
 		await search(false);
@@ -858,12 +895,11 @@ async function initialize() {
 		setupControls(setup);
 		setupActivity(setup.complete ? "Setup complete. Keep Beat Saber closed for song installation." : setup.cleanup_required ? "Extraction settings await restoration. Follow the fetch and close/finalize steps." : "No validated local template yet. Check an existing library first, or prepare the one-time extraction.", {complete: setup.complete});
 	} catch (e) {
+		setup.unavailable = true;
 		setupActivity("Could not verify local setup: " + e.message, {failed: true});
 	}
-	setTab(!setup.complete ? "setup" :
-		["library", "settings", "setup"].includes(location.hash.slice(1))
-			? location.hash.slice(1) : "discover");
-	pollActivity();
+	await pollActivity(); // Reads this computer's job history, never the PS4.
+	setTab(initialTab(setup, state.queue, location.hash.slice(1)));
 	await search();
 }
 function setupActivity(message, {busy = false, started = 0, failed = false, complete = false} = {}) {

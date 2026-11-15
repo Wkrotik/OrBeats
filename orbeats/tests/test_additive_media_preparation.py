@@ -62,8 +62,7 @@ def test_optional_pack_cover_normalized_without_changing_original(source):
     with Image.open(source[2]/m['pack_cover']['file']) as im:assert im.size==(512,512)
 
 
-@pytest.mark.parametrize('key,value',[('_previewStartTime',-1),('_previewStartTime',3),
-                                     ('_previewDuration',0),('_previewDuration',31),
+@pytest.mark.parametrize('key,value',[('_previewStartTime',-1),('_previewDuration',0),
                                      ('_previewStartTime',True),('_previewDuration',float('nan'))])
 def test_bad_preview_bounds_before_output_created(source,key,value):
     p=source[0]/'Info.dat';info=json.loads(p.read_text());info[key]=value;p.write_text(json.dumps(info))

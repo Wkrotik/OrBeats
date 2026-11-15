@@ -39,6 +39,8 @@ def convert(data, audio_data, njs):
     ):
         raise ValueError("native conversion requires unrotated vanilla V3 source")
     custom = data.get("customData", {})
+    if isinstance(custom, dict) and custom.get("customEvents"):
+        raise ValueError("Mod-dependent customEvents (such as AnimateTrack) are unsupported; no effects were stripped")
     obj(custom, ("lighter", "time", "bookmarks", "bookmarksUseOfficialBpmEvents"), "editor metadata")
     out, light = {"version": "4.1.0"}, {"version": "4.0.0"}
     if data.get("basicEventTypesWithKeywords", {}) not in ({}, {"d": []}):

@@ -37,7 +37,7 @@ class Tempo:
             if not isinstance(e, dict) or set(e) - {'b', 'm'} or 'm' not in e:
                 raise ValueError('invalid BPM event shape')
             b = prepare.finite(e.get('b', 0), 'BPM event beat', 0, 1000000)
-            m = prepare.finite(e['m'], 'BPM event value', 1, 1000)
+            m = prepare.finite(e['m'], 'BPM event value', 1, 1000000)
             if b <= last:
                 raise ValueError('BPM events must be strictly increasing')
             last = b
@@ -63,7 +63,12 @@ def convert_map(data, bpm):
                  'lightColorEventBoxGroups', 'lightRotationEventBoxGroups'}
     empty_only = {'rotationEvents', 'burstSliders', 'waypoints',
                   'lightTranslationEventBoxGroups', 'vfxEventBoxGroups'}
+    # Misplaced editor defaults are inert; never discard a real scheme/environment selection.
+    for key in ('_beatmapColorSchemeIdx', '_environmentNameIdx'):
+        if key in data and (type(data[key]) is not int or data[key] != 0):
+            raise ValueError('unsupported chart-level presentation index: ' + key)
     known = supported | empty_only | {'customData', '_customData', '_fxEventsCollection',
+                                      '_beatmapColorSchemeIdx', '_environmentNameIdx',
                                       'basicEventTypesWithKeywords', 'useNormalEventsAsCompatibleEvents'}
     unknown = sorted(set(data) - known)
     if unknown:
@@ -152,6 +157,8 @@ def cosmetic_only(custom, allowed):
             if type(value) not in (int, float) or not math.isfinite(value) or not 0 <= value <= 100000:
                 raise ValueError('invalid descriptive timing annotation: ' + key)
             continue
+        if key == 'editors' and key in allowed and not isinstance(value, dict):
+            raise ValueError('invalid editor provenance metadata')
         if key in allowed:
             continue
         if key in empty_lists and value == []:
@@ -160,7 +167,10 @@ def cosmetic_only(custom, allowed):
             continue
         if key in offsets and type(value) in (int, float) and math.isfinite(value):
             continue
-        raise ValueError('unsupported requirements/custom metadata: ' + key)
+        detail = ''
+        if key in ('_requirements', '_suggestions') and isinstance(value, list) and value:
+            detail = '; mod-dependent maps are not supported (' + ', '.join(str(v)[:80] for v in value[:4]) + '); no effects were stripped'
+        raise ValueError('unsupported requirements/custom metadata: ' + key + detail)
 
 
 def import_song(source, output, ffmpeg='ffmpeg'):
@@ -173,7 +183,7 @@ def import_song(source, output, ffmpeg='ffmpeg'):
     if not str(original.get('_version', '')).startswith('2.'):
         raise ValueError('InfoV2 required')
     # Descriptive annotations are not playback offsets; retain authored note/audio timing.
-    cosmetic_only(original.get('_customData', {}), {'_editors', '_contributors', '_firstNoteBeat', '_introPadSeconds'})
+    cosmetic_only(original.get('_customData', {}), {'_editors', 'editors', '_contributors', '_firstNoteBeat', '_introPadSeconds'})
     audio = prepare.local_file(source, original['_songFilename'])
     info = {k: original[k] for k in ('_songName', '_songSubName', '_songAuthorName', '_levelAuthorName', '_beatsPerMinute') if k in original}
     for key in ('_orbeatsLufs', '_colorSchemes'):
@@ -216,6 +226,19 @@ def import_song(source, output, ffmpeg='ffmpeg'):
                 seen.add(name)
                 raw = json.loads(prepare.local_file(source, d['_beatmapFilename']).read_text(encoding='utf-8-sig'))
                 try:
+                    if str(raw.get('version', '')).startswith('3.') and isinstance(raw.get('customData'), dict):
+                        custom = raw['customData']
+                        legacy = {k: custom[k] for k in ('_time', '_bookmarks') if k in custom}
+                        v2.validate_editor_metadata(legacy)
+                        for old, new in (('_time', 'time'), ('_bookmarks', 'bookmarks')):
+                            if old not in legacy: continue
+                            if new in custom: raise ValueError('ambiguous editor metadata: ' + old + '/' + new)
+                            value = legacy[old]
+                            if old == '_bookmarks':
+                                fields = {'_time': 'b', '_name': 'n', '_color': 'c'}
+                                value = [{fields[k]: v for k, v in marker.items()} for marker in value]
+                            custom[new] = value
+                            del custom[old]
                     if str(raw.get('_version', '')).startswith('2.'):
                         normalization = {}
                         raw = v2.convert_map(raw, allow_rotations=mode in ('90Degree','360Degree'), normalization=normalization, base_bpm=original['_beatsPerMinute'])

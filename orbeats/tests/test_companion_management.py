@@ -111,7 +111,7 @@ def test_live_title_and_corrupt_cover_refuse(monkeypatch):
     assert not f.writes and not f.deletes
     f.active=False;f.files[paths(songs[0])[1]]=b'bad'
     with pytest.raises(ValueError,match='checksum'):manager.media(CONFIG,songs[0]['id'],'cover')
-    with pytest.raises(ValueError,match='Unknown'):manager.remove(CONFIG,'../../other')
+    with pytest.raises(ValueError,match='distinct installed map IDs'):manager.remove(CONFIG,'../../other')
     assert not f.deletes
 
 

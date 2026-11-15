@@ -305,7 +305,7 @@ def normalize(source, output, local_file):
             normalized["_environmentName"] = environments[0]
     schemes = info.get("colorSchemes", [])
     if schemes:
-        from additive_presentation import COLORS, color
+        from additive_presentation import COLORS, v4_color
 
         if not isinstance(schemes, list) or len(schemes) > 64:
             raise ValueError("invalid InfoV4 color scheme array")
@@ -321,12 +321,12 @@ def normalize(source, output, local_file):
             for key in COLORS:
                 if key not in scheme:
                     continue
-                color(scheme[key])
+                rgba = v4_color(scheme[key])
                 if scheme.get(
                     "overrideNotes" if key in ("saberAColor", "saberBColor", "obstaclesColor") else "overrideLights",
                     False,
                 ):
-                    chosen[key] = scheme[key]
+                    chosen[key] = rgba
             normalized["_colorSchemes"].append(dict(useOverride=bool(chosen), colorScheme=chosen))
         for old in diffs:
             group = next(g for g in groups if g["_beatmapCharacteristicName"] == old["characteristic"])

@@ -1,3 +1,21 @@
+## 0.7.40 — Existing-profile startup and aligned checkbox
+
+- Completed local import history avoids unnecessary first-setup navigation for
+  older working profiles; it never substitutes for validated template proof.
+- Pending extraction cleanup always forces Setup. New profiles still start there;
+  the explicit Settings setup button remains available and startup never uses FTP.
+- Align checkbox/text horizontally with an 18px control, 44px label target,
+  keyboard focus and wrapping filters on narrow screens.
+
+## 0.7.39 — Known-incompatibility filter and batch removal
+
+- Hide known unsupported search results by default; unknown results stay visible.
+  Filtering is per search page and does not imply all visible maps are compatible.
+- Details offers an explicit archive download to check wall layers/dimensions;
+  session results are bound to the exact revision hash, never merely a map title.
+- Selected removals use one transaction instead of repeated per-map requests.
+  Keep confirmation, busy/origin guards, final refresh and uncertain-result warnings.
+
 ## 0.7.38 — OrBeats branding cleanup, unreleased
 
 - Rebrand BeatSaver/Beat Sage HTTP client identifiers, the local multipart

@@ -255,6 +255,7 @@ p {
 }
 .filters {
 	display: flex;
+	flex-wrap: wrap;
 	gap: 10px;
 }
 .filters label {
@@ -265,6 +266,23 @@ p {
 .filters select {
 	padding: 9px;
 	font-size: 12px;
+}
+.filters .filter-toggle {
+	display: flex;
+	align-items: center;
+	align-self: flex-end;
+	gap: 8px;
+	min-height: 44px;
+	font-size: 12px;
+	cursor: pointer;
+}
+.filter-toggle input {
+	width: 18px;
+	height: 18px;
+	padding: 0;
+	margin: 0;
+	flex: none;
+	accent-color: var(--accent);
 }
 .grid {
 	display: grid;

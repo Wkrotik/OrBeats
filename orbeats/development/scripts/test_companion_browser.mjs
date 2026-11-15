@@ -148,7 +148,7 @@ async function checkInstallationLog() {
 const fixture = {
   id: '4cb11', metadata: { songName: 'Browser fixture <img src=x onerror=alert(1)>', songAuthorName: 'Artist', levelAuthorName: 'Mapper', duration: 209, bpm: 132 },
   uploaded: new Date().toISOString(), stats: { score: .95, upvotes: 50, downvotes: 2, downloads: 1000, plays: 2000 }, tags: ['dance'],
-  description: '<script>window.pwned=true</script>', versions: [{ diffs: [{ characteristic: 'Standard', difficulty: 'Expert', ne: false, me: false, chroma: false, cinema: false, notes: 1024, bombs: 16, obstacles: 94, nps: 4.9, njs: 14 }], coverURL: 'https://cdn.beatsaver.com/fixture.png', previewURL: 'https://cdn.beatsaver.com/fixture.mp3' }]
+  description: '<script>window.pwned=true</script>', versions: [{ hash: 'aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa', diffs: [{ characteristic: 'Standard', difficulty: 'Expert', ne: false, me: false, chroma: false, cinema: false, notes: 1024, bombs: 16, obstacles: 94, nps: 4.9, njs: 14 }], coverURL: 'https://cdn.beatsaver.com/fixture.png', previewURL: 'https://cdn.beatsaver.com/fixture.mp3' }]
 };
 const song = { id: 'bsd_additive_000000000000000000000001', title: 'Installed fixture', author: 'Artist', duration: 209, bpm: 132, bytes: 1000, mask: 8, stats: [[0, 0, 0, 0, 0], [0, 0, 0, 0, 0], [0, 0, 0, 0, 0], [1024, 16, 94, 14, 0], [0, 0, 0, 0, 0]] };
 const hooks = `(()=>{const original=window.fetch.bind(window),map=${JSON.stringify(fixture)},song=${JSON.stringify(song)};window.testOriginalSongs=[{...song,info:map},{...song,id:song.id.replace(/1$/,'2'),title:'Compression [Vorbis test]'}];window.testSongs=structuredClone(window.testOriginalSongs);window.testPluginWrites=[];window.testUpdateOffline=false;window.testDeletes=[];window.testDeleteError='';window.testDeleteDelay=false;window.testQueue={pending:[],active:null,history:[],paused:true,message:''};window.testProgress={job:null,running:false,index:0,lines:[]};window.confirm=()=>{throw Error('Native browser confirmation used')};window.fetch=async(url,options={})=>{const path=String(url);let value;
@@ -171,7 +171,8 @@ else if(path==='/api/install-queue/start'){window.testQueue.paused=false;value=w
 else if(path.startsWith('/api/install-queue/')&&options.method==='DELETE'){window.testQueue.pending=window.testQueue.pending.filter(e=>e.id!==path.split('/').at(-1));value=window.testQueue}
 else if(path==='/api/jobs/status')value={running:false};
 else if(path==='/api/orbis/library'){window.testLibraryReads=(window.testLibraryReads||0)+1;value={songs:window.testSongs}}
-else if(path.startsWith('/api/orbis/library/')&&options.method==='DELETE'){const id=decodeURIComponent(path.split('/').at(-1));window.testDeletes.push(id);if(window.testDeleteDelay)await new Promise(resolve=>{window.testResolveDelete=resolve});if(window.testDeleteError===id)return new Response(JSON.stringify({detail:'fixture removal failed'}),{status:503,headers:{'Content-Type':'application/json'}});window.testSongs=window.testSongs.filter(s=>s.id!==id);value={cleanup_pending:[],count:window.testSongs.length}}
+else if(path==='/api/orbis/library/remove'&&options.method==='POST'){const ids=JSON.parse(options.body).ids;(window.testBatchRequests??=[]).push(ids);window.testDeletes.push(...ids);if(window.testDeleteDelay)await new Promise(resolve=>{window.testResolveDelete=resolve});if(ids.includes(window.testDeleteError))return new Response(JSON.stringify({detail:'fixture removal failed'}),{status:503,headers:{'Content-Type':'application/json'}});window.testSongs=window.testSongs.filter(s=>!ids.includes(s.id));value={ok:true,removed:ids,cleanup_pending:[],count:window.testSongs.length}}
+else if(path.startsWith('/api/orbis/map/')&&path.endsWith('/walls')&&options.method==='POST')value={hash:window.testWallHash||map.versions[0].hash,blockers:window.testWallBlockers||[],message:'Wall archive checked; other compatibility checks still run.'};
 else if(path.startsWith('/api/'))throw Error('Unexpected API during offline test: '+path);
 else return original(url,options);return new Response(JSON.stringify(value),{headers:{'Content-Type':'application/json'}});};})();`;
 function luminance(rgb) {
@@ -329,7 +330,19 @@ try {
   await evaluate("state.maps.push({...state.maps[0],id:'badd',versions:[{diffs:[{characteristic:'Standard',difficulty:'Expert',ne:true}]}]});document.getElementById('results').innerHTML=state.maps.map(card).join('');updateQueueButtons()");
   assert.equal(await evaluate("document.querySelector('[data-install=badd]').disabled"), true);
   assert.equal(await evaluate("document.querySelectorAll('#results .compatibility')[1].textContent.includes('Not compatible')"), true);
-  await evaluate("state.maps.pop();document.getElementById('results').innerHTML=state.maps.map(card).join('');updateQueueButtons()");
+  await evaluate("renderDiscovery()");
+  assert.equal(await evaluate("document.getElementById('hide-incompatible').checked&&!document.querySelector('[data-install=badd]')"), true);
+  await evaluate("document.getElementById('hide-incompatible').click()");
+  assert.equal(await evaluate("Boolean(document.querySelector('[data-install=badd]'))"), true);
+  await evaluate("state.maps.pop();state.maps.push({id:'unknown',metadata:{songName:'Unknown'},versions:[{hash:'bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb'}]});document.getElementById('hide-incompatible').click()");
+  assert.equal(await evaluate("document.querySelectorAll('#results .card').length===2"), true);
+  await evaluate("state.maps.pop();renderDiscovery();showDetails(0);window.testWallBlockers=['PS4 wall layer 3 unsupported'];document.getElementById('check-walls').click()");
+  await until("document.getElementById('wall-check-result').textContent.includes('layer 3')");
+  assert.equal(await evaluate("document.querySelectorAll('#results .card').length===0&&document.querySelector('#detail-content [data-install]').disabled"), true);
+  await evaluate("document.getElementById('close-details').click();state.wallChecks.clear();renderDiscovery();showDetails(0);window.testWallHash='cccccccccccccccccccccccccccccccccccccccc';document.getElementById('check-walls').click()");
+  await until("document.getElementById('wall-check-result').textContent.includes('updated')");
+  assert.equal(await evaluate("state.wallChecks.size"), 0);
+  await evaluate("document.getElementById('close-details').click();delete window.testWallHash;delete window.testWallBlockers;renderDiscovery()");
 
   assert.equal(await evaluate("mediaURL('https://beatsaver.com.evil.test/track.mp3')"), null);
   await evaluate("document.querySelector('#results [data-preview]').click()");
@@ -440,8 +453,8 @@ try {
   await evaluate("document.getElementById('confirm-accept').click()");
   await until("window.testDeletes.length===1&&!state.removing&&state.songs.length===1");
   assert.deepEqual(await evaluate('window.testDeletes'), [song.id.replace(/1$/, '2')]);
-  // Bulk work is serial, selected-only, and retains all unselected maps.
-  await evaluate("window.testSongs=[...structuredClone(window.testOriginalSongs),{...window.testOriginalSongs[0],id:'bsd_additive_000000000000000000000003',title:'Unselected song'}];window.testDeletes=[];loadLibrary()");
+  // Bulk work is one request/transaction, selected-only, retaining unselected maps.
+  await evaluate("window.testSongs=[...structuredClone(window.testOriginalSongs),{...window.testOriginalSongs[0],id:'bsd_additive_000000000000000000000003',title:'Unselected song'}];window.testDeletes=[];window.testBatchRequests=[];loadLibrary()");
   await until("document.querySelectorAll('#installed .card').length===3&&!state.libraryLoading");
   await evaluate("if(!state.editingSelection)document.getElementById('edit-selection').click();document.querySelectorAll('[data-song-tile]')[0].click();document.querySelectorAll('[data-song-tile]')[1].click();document.getElementById('remove-selected').click()");
   await until("document.getElementById('confirm-action').open");
@@ -449,26 +462,26 @@ try {
   assert.equal(await evaluate("document.getElementById('confirm-message').textContent.includes('Unselected song')"), false);
   assert.equal(await evaluate("document.querySelectorAll('#confirm-message img').length"), 0);
   await evaluate("window.testDeleteDelay=true;document.getElementById('confirm-accept').click()");
-  await until("window.testDeletes.length===1&&state.removing");
+  await until("window.testDeletes.length===2&&state.removing");
   assert.equal(await evaluate("document.getElementById('refresh-library').disabled&&document.getElementById('remove-selected').disabled"), true);
   await evaluate("window.testDeleteDelay=false;window.testResolveDelete()");
   await until("!state.removing&&state.songs.length===1");
   assert.deepEqual(await evaluate('window.testDeletes'), [song.id, song.id.replace(/1$/, '2')]);
+  assert.equal(await evaluate('window.testBatchRequests.length'), 1);
   assert.equal(await evaluate('state.songs[0].title'), 'Unselected song');
   assert.equal(await evaluate('state.selectedSongs.size'), 0);
-  // Stop on the first error; retained selections identify the remaining work.
+  // A rejected batch changes no selected maps; retain selections after refresh.
   await evaluate("window.testSongs=[...structuredClone(window.testOriginalSongs),{...window.testOriginalSongs[0],id:'bsd_additive_000000000000000000000003',title:'Last song'}];window.testDeletes=[];window.testDeleteError=window.testOriginalSongs[1].id;loadLibrary()");
   await until("document.querySelectorAll('#installed .card').length===3&&!state.libraryLoading");
   await evaluate("document.getElementById('select-all-songs').click();document.getElementById('remove-selected').click()");
   await until("document.getElementById('confirm-action').open");
   await evaluate("document.getElementById('confirm-accept').click()");
-  await until("!state.removing&&window.testDeletes.length===2");
-  assert.equal(await evaluate('state.songs.length'), 2);
-  assert.equal(await evaluate('state.selectedSongs.size'), 2);
-  assert.equal(await evaluate("document.getElementById('notice-message').textContent.includes('1 of 3 removed')"), true);
+  await until("!state.removing&&window.testDeletes.length===3");
+  assert.equal(await evaluate('state.songs.length'), 3);
+  assert.equal(await evaluate('state.selectedSongs.size'), 3);
   assert.equal(await evaluate("document.getElementById('notice-message').textContent.includes('fixture removal failed')"), true);
   // Selection is pruned against fresh manifests, never silently retargeted.
-  await evaluate("window.testDeleteError='';window.testSongs=window.testSongs.slice(1);loadLibrary()");
+  await evaluate("window.testDeleteError='';window.testSongs=window.testSongs.slice(2);loadLibrary()");
   await until("!state.libraryLoading&&state.songs.length===1");
   assert.equal(await evaluate('state.selectedSongs.size'), 1);
   await evaluate("document.querySelector('[data-tab=settings]').click()");
@@ -617,7 +630,27 @@ try {
   assert.equal(await evaluate("document.getElementById('discover').hidden"),false);
   assert.equal(await evaluate("document.getElementById('results').nextElementSibling===document.getElementById('pagination')"),true);
   assert.equal(await evaluate("(()=>{const p=document.getElementById('pagination').getBoundingClientRect(),r=document.getElementById('results').getBoundingClientRect(),a=document.getElementById('previous').getBoundingClientRect(),b=document.getElementById('next').getBoundingClientRect();return r.width>0&&p.top>=r.bottom&&Math.abs(a.top-b.top)<1&&a.right<b.left})()"),true);
-  console.log(JSON.stringify({ ok: true, viewport: '1440x1100 + 390x844', checks: ['minimal header/brand', 'escaped metadata', 'cover click preview start/stop', 'library cover retry without search cache', 'new and legacy map information without library playback controls', 'visible paused-queue removal guard', 'compression-test removal and selected-only serial bulk removal', 'bulk failure stops and selection refresh', 'opt-in whole-card/keyboard library selection', 'metadata compatibility hints, vote counts and relative dates', 'quiet sidebar queue, failed-map Retry and popup', 'active/last log before80history entries, bounded desktop/mobile scroll, follow/pause/jump with no focus or page-scroll theft', 'solid dismissible bottom toast without reflow/focus theft', 'Downloads/details outside-click dismissal, padding/drag/cancel guards desktop/mobile', 'in-page confirmation/accept/cancel/Escape', 'primary button hover contrast', 'read-only binary plugin version and registration check', 'Extras/version and explicit confirmed bundled/release installation (mock writes only)', 'official updates/offline state', 'sidebar stable under repeated wheel scrolling', 'compact connection + Updates columns on desktop and mobile', 'settings', 'no horizontal overflow', 'no JS exceptions'], contrast, consoleWrites: false, api: 'offline fixtures', screenshots: output }, null, 2));
+  for(const width of [1440,390]) {
+    await send('Emulation.setDeviceMetricsOverride',{width,height:width===390?844:1100,deviceScaleFactor:1,mobile:width<720});
+    await evaluate("document.getElementById('dismiss-notice').click();document.querySelector('.filters').scrollIntoView({block:'center'})");
+    assert.equal(await evaluate("(()=>{const input=document.getElementById('hide-incompatible'),label=input.closest('label'),a=input.getBoundingClientRect(),b=label.getBoundingClientRect();return getComputedStyle(label).display==='flex'&&a.width===18&&a.height===18&&b.height>=44&&Math.abs(a.top+a.height/2-b.top-b.height/2)<1&&document.documentElement.scrollWidth<=innerWidth+1})()"),true);
+    const shot=await send('Page.captureScreenshot',{format:'png',captureBeyondViewport:false});
+    await writeFile(output+'/compatibility-filter-'+width+'.png',Buffer.from(shot.data,'base64'));
+  }
+  await send('Page.addScriptToEvaluateOnNewDocument',{source:"window.testQueue.history=[{id:'old-success',status:'complete',title:'Previously installed'}]"});
+  await send('Page.navigate',{url:app+'#setup'});
+  await send('Page.reload',{ignoreCache:true});
+  await until("!window.testSetupReady&&window.testQueue?.history[0]?.id==='old-success'&&document.querySelectorAll('#results .card').length===1&&!document.getElementById('discover').hidden");
+  assert.equal(await evaluate("window.testSetupReady||false"),false);
+  assert.deepEqual(await evaluate("window.testSetupCalls||[]"),[]);
+  await send('Page.addScriptToEvaluateOnNewDocument',{source:"window.testSetupRequested=true"});
+  await send('Page.navigate',{url:app+'#discover'});
+  await send('Page.reload',{ignoreCache:true});
+  await until("window.testSetupRequested&&document.querySelectorAll('#results .card').length===1&&!document.getElementById('setup').hidden");
+  assert.equal(await evaluate("window.testQueue.history[0].status==='complete'&&!window.testSetupReady"),true);
+  assert.deepEqual(await evaluate("window.testSetupCalls||[]"),[]);
+  assert.deepEqual(errors,[]);
+  console.log(JSON.stringify({ ok: true, viewport: '1440x1100 + 390x844', checks: ['minimal header/brand', 'escaped metadata', 'cover click preview start/stop', 'library cover retry without search cache', 'new and legacy map information without library playback controls', 'visible paused-queue removal guard', 'compression-test removal and single-request selected-only batch removal', 'batch failure retains maps and refreshes selection', 'aligned 18px checkbox and 44px label on desktop/mobile', 'older completed profiles skip setup but pending restoration always forces setup', 'known-incompatible filter and exact-revision archive wall check', 'opt-in whole-card/keyboard library selection', 'metadata compatibility hints, vote counts and relative dates', 'quiet sidebar queue, failed-map Retry and popup', 'active/last log before80history entries, bounded desktop/mobile scroll, follow/pause/jump with no focus or page-scroll theft', 'solid dismissible bottom toast without reflow/focus theft', 'Downloads/details outside-click dismissal, padding/drag/cancel guards desktop/mobile', 'in-page confirmation/accept/cancel/Escape', 'primary button hover contrast', 'read-only binary plugin version and registration check', 'Extras/version and explicit confirmed bundled/release installation (mock writes only)', 'official updates/offline state', 'sidebar stable under repeated wheel scrolling', 'compact connection + Updates columns on desktop and mobile', 'settings', 'no horizontal overflow', 'no JS exceptions'], contrast, consoleWrites: false, api: 'offline fixtures', screenshots: output }, null, 2));
 } finally {
   clearInterval(keepAlive);
   socket.close(); await fetch(cdp + '/json/close/' + page.id);

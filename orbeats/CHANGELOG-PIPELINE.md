@@ -1,3 +1,42 @@
+## 0.5403 — Legacy editor metadata and actionable refusals
+
+- Normalize only validated V3 legacy editor cursor/bookmark aliases; reject
+  ambiguous modern/legacy values, malformed bookmarks and gameplay/mod fields.
+- Explain unsupported wall dimensions/durations, lighting types/timing, chain
+  bounds and mod declarations without deleting or clamping authored objects.
+- Retained score-identity conflicts explicitly refuse automatic replacement;
+  preserve existing score records and immutable collision checks.
+
+## 0.5402 — Batch removals and faithful import edge cases
+
+- Preserve bounded positive source BPM bursts and signed native arc tangents;
+  keep ordinary base-BPM, wall/note geometry, mod and ownership guards.
+- Handle independent source/resampled audio endpoint rounding (one sample at
+  each clock); keep strict contiguous BPM coverage and beat boundaries.
+- Admit explicit Info editor provenance and empty V2 reserved editor fields;
+  refuse nonempty V2 gameplay fields and real mod-dependent customEvents.
+- Bound only the menu preview to available audio and 1..30 seconds; gameplay
+  audio/timing stay unchanged and adjusted previews are reported.
+- Reuse the setup-validated local template instead of downloading a full console
+  bundle for each new map. Generated bundles still undergo strict validation.
+- Remove selected maps with one closed-title connection, lock and manifest CAS;
+  preserve a template before deleting the last map and report unfinished cleanup.
+- Public archive wall inspection reports exact-revision blockers without console
+  contact. No parallel console writers or silent geometry/effect removal.
+
+## 0.5401 — InfoV4 hex colors and early installed-version checks
+
+- Decode documented eight-digit InfoV4 hexadecimal RGBA colors without changing
+  authored channels; retain legacy object colors and unsupported-feature checks.
+- Check downloaded BeatSaver identity/version against an existing manifest's
+  provenance before template loading, normalization, audio conversion or previews.
+  Verify that map's installed bundle/cover/preview and unchanged library before
+  reporting success; do not audit unrelated maps, upload, repair or replace files.
+- Changed revisions, local folders and missing/unproven provenance retain normal
+  conversion and the final immutable-content collision guard.
+- Explain why PS4 2.04 refuses wall layers above2: its native V4 converter would
+  move them to the floor. Do not clamp/drop/rewrite authored walls.
+
 ## 0.5400 — OrBeats branding cleanup
 
 - Identify pipeline BeatSaver API/download requests as `OrBeats-Pipeline`.

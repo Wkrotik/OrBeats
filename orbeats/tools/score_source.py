@@ -53,7 +53,7 @@ def publish(ftp, api, song, source_sha1, run):
     existing = api.read(ftp, path, SIZE + 1, missing=True)
     if existing is not None:
         if existing != content:
-            raise ValueError("conflicting original score identity; refusing overwrite")
+            raise ValueError("conflicting original score identity; refusing overwrite. Automatic replacement of a retained score record is not supported; existing score data was preserved")
         return
     staged = api.stage(ftp, path, content, run)
     api.closed(ftp)

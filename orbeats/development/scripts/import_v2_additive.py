@@ -98,8 +98,13 @@ def convert_map(data, allow_rotations=False, *, normalization=None, base_bpm=Non
     validate_editor_metadata(data.get('_customData', {}))
     if '_waypoints' in data and data['_waypoints'] != []:
         raise ValueError('nonempty V2 waypoints are unsupported')
-    if set(data)-{'_version','_notes','_obstacles','_events','_BPMChanges','_bookmarks','_customData','_waypoints'}:
-        raise ValueError('unsupported V2 fields: ' + ', '.join(sorted(set(data)-{'_version','_notes','_obstacles','_events','_BPMChanges','_bookmarks','_customData','_waypoints'})))
+    # Newer editors emit empty reserved fields; nonempty gameplay data still refuses.
+    for key, empty in (('_sliders', []), ('_specialEventsKeywordFilters', {})):
+        if key in data and data[key] != empty:
+            raise ValueError('unsupported nonempty V2 ' + key)
+    allowed = {'_version','_notes','_obstacles','_events','_BPMChanges','_bookmarks','_customData','_waypoints', '_sliders', '_specialEventsKeywordFilters'}
+    if set(data) - allowed:
+        raise ValueError('unsupported V2 fields: ' + ', '.join(sorted(set(data) - allowed)))
     out={'version':'3.3.0','colorNotes':[],'bombNotes':[],'obstacles':[],'basicBeatmapEvents':[]}
     for n in data.get('_notes',[]):
         if set(n)-{'_time','_lineIndex','_lineLayer','_type','_cutDirection'} or n.get('_type') not in (0,1,3):

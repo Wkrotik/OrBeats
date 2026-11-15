@@ -56,7 +56,7 @@ def local_file(root: Path, name: str) -> Path:
 
 def finite(value, name, low, high):
     if isinstance(value, bool) or not isinstance(value, (int, float)) or not math.isfinite(value) or not low <= value <= high:
-        raise ValueError('invalid ' + name)
+        raise ValueError('invalid ' + name + f'; unsupported value, supported range is {low}..{high}')
     return float(value)
 
 
@@ -77,7 +77,7 @@ def validate_arcs(entries, maxbeat):
             if type(arc[key]) is not int or not 0 <= arc[key] <= maximum:
                 raise ValueError(prefix + ': invalid ' + key)
         for key in ('mu', 'tmu'):
-            finite(arc[key], prefix + ' ' + key, 0, 100)
+            finite(arc[key], prefix + ' ' + key, -100, 100)
 
 
 def resolve_note_jump_speed(difficulty, value=0):
@@ -233,12 +233,12 @@ def load_song(folder):
                     elif key=='obstacles':
                         finite(e['d'],'wall duration',0,maxbeat-e['b'])
                         for k,lo,hi in [('x',-4,7),('y',0,2),('w',1,4),('h',1,5)]:
-                            if type(e[k]) is not int or not lo<=e[k]<=hi:raise ValueError('invalid wall geometry')
+                            if type(e[k]) is not int or not lo<=e[k]<=hi:raise ValueError(f'invalid wall geometry: unsupported {k}={e[k]}; supported range is {lo}..{hi}; no geometry was changed')
                         # Vanilla integer decorative walls may sit beside the four note lanes.
                         # Keep a bounded extent; do NOT widen note coordinates or accept mod geometry.
                         if e['x']+e['w']>8:raise ValueError('wall exceeds bounded vanilla extent')
                     else:
-                        if not is_basic_light_event_type(e['et']) or type(e['i']) is not int:raise ValueError('invalid basic event')
+                        if not is_basic_light_event_type(e['et']) or type(e['i']) is not int:raise ValueError(f'invalid basic event: unsupported lighting event type/value {e["et"]}/{e["i"]}; no lighting was discarded')
                         finite(e['f'],'basic event float',-100000,100000)
             # Complete the minimal V3 schema; never fill it with stock notes.
             for key in ('bombNotes', 'obstacles', 'sliders', 'burstSliders', 'bpmEvents',

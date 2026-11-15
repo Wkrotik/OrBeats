@@ -103,7 +103,7 @@ def test_audio_regions_resample_exact_boundaries_and_lufs():
     assert result["bpmData"] == [dict(si=0, ei=48000, sb=0, eb=1), dict(si=48000, ei=96000, sb=1, eb=3)]
     assert result["lufsData"] == [dict(si=0, ei=96000, l=-12)]
     with pytest.raises(ValueError, match="duration"):
-        native.resample_audio(data, 48000, 96002, "x")
+        native.resample_audio(data, 48000, 96003, "x")
 
 
 def test_native_import_and_complete_bundle_preserve_payloads(tmp_path):

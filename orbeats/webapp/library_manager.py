@@ -15,8 +15,8 @@ if str(TOOLS) not in sys.path:
     sys.path.insert(0, str(TOOLS))
 import additive_companion as core
 from additive_library import BASE, MAX_BYTES, encode, paths
-from goldhen_config import merge_ini
 from console_transaction import Transaction
+from goldhen_config import merge_ini
 
 # GoldHEN can time out when a browser requests several covers simultaneously.
 _ftp_lock = Lock()
@@ -169,13 +169,22 @@ def media(config, id, kind):
 
 
 def remove(config, id):
-    # Commit removal first. Only our exact immutable paths may be deleted afterwards.
+    return remove_many(config, [id])
+
+
+def remove_many(config, ids):
+    if (not isinstance(ids, list) or not 1 <= len(ids) <= 256
+            or any(not isinstance(id, str) or not re.fullmatch(r"bsd_additive_[0-9a-f]{24}", id) for id in ids)
+            or len(set(ids)) != len(ids)):
+        raise ValueError("Choose 1..256 distinct installed map IDs")
+    # One locked manifest commit for the entire selection, before deleting any files.
     with connection(config, True) as f:
         songs, old = core.load_library(f)
-        song = next((s for s in songs if s["id"] == id), None)
-        if not song:
-            raise ValueError("Unknown installed map")
-        candidate = [s for s in songs if s["id"] != id]
+        selected = [s for s in songs if s["id"] in ids]
+        if len(selected) != len(ids):
+            raise ValueError("Unknown installed map; selection was not removed")
+        candidate = [s for s in songs if s["id"] not in ids]
+        song = selected[0]
         run = uuid.uuid4().hex
         # Retain a legal type-tree seed on the PS4, not a host-side song library.
         # Otherwise deleting the last entry makes the next conversion impossible.
@@ -186,21 +195,28 @@ def remove(config, id):
             f.rename(staged, BASE + "/template.bundle")
         core.commit_library(f, candidate, old, run, None)
         leftovers = []
-        for path in (*paths(song), BASE + "/" + id + "-media/map-info.json"):
-            try:
-                core.closed(f)
-                f.delete(path)
-            except error_perm as e:
-                if not str(e).startswith("550"):
-                    leftovers.append(path)
-            except Exception:
-                leftovers.append(path)
-        try:
-            core.closed(f)
-            f.rmd(paths(song)[1].rsplit("/", 1)[0])
-        except error_perm:
-            pass
-        return {"ok": True, "count": len(candidate), "cleanup_pending": leftovers, "restart_required": True}
+        for song in selected:
+            folder = paths(song)[1].rsplit("/", 1)[0]
+            owned_files = (*paths(song), BASE + "/" + song["id"] + "-media/map-info.json")
+            for action, group in ((f.delete, owned_files), (f.rmd, (folder,))):
+                for path in group:
+                    try:
+                        core.closed(f)
+                        action(path)
+                    except error_perm as exc:
+                        # 550 alone is not absence: only a readable parent can prove cleanup.
+                        try:
+                            entries = core.optional_directory(f, path.rsplit("/", 1)[0])
+                            names = {p.rstrip("/").rsplit("/", 1)[-1] for p in entries or []}
+                            if str(exc).startswith("550") and path.rsplit("/", 1)[-1] not in names:
+                                continue
+                        except Exception:
+                            pass
+                        leftovers.append(path)
+                    except Exception:
+                        leftovers.append(path)
+        return {"ok": True, "count": len(candidate), "removed": ids,
+                "cleanup_pending": leftovers, "restart_required": True}
 
 
 def elf_from_fself(b):

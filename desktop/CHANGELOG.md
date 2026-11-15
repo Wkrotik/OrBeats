@@ -1,3 +1,28 @@
+## 0.1.23 — local setup/error testing candidate, unreleased
+
+- Align the incompatibility checkbox with its label and keep a 44px click target.
+- Established profiles with completed imports open Discover without falsely
+  marking setup validated; pending extraction restoration still forces Setup.
+- Bundle pipeline0.5403/web0.7.40: validated legacy chart editor aliases and
+  actionable unsupported-value/mod/retained-score messages. Native pair unchanged.
+
+## 0.1.22 — local batch/import testing candidate, unreleased
+
+- Bundle pipeline0.5402 and web0.7.39: import edge-case fixes, cached-template
+  reuse, transactional multi-map removal and known-incompatibility filtering.
+- Optional exact-revision archive wall check; unknown maps remain visible.
+- Local Linux testing candidate only; native Main0.8079/Extras0.0015 unchanged.
+  Console writes stay serialized; no release or native wall-support claim.
+
+## 0.1.21 — local conversion/preflight testing candidate, unreleased
+
+- Bundle pipeline0.5401: documented InfoV4 hexadecimal RGBA colors, verified early
+  installed-version detection, and explicit refusal of unsupported PS4 wall layers.
+- Include previously validated InfoV4 editor-provenance and branding fixes plus
+  the sidebar cleanup. Web0.7.38; Main0.8079 and Extras0.0015 unchanged.
+- Local Linux AppImage candidate only; no release, console changes or native
+  wall-support claim.
+
 ## 0.1.20 — Bottles startup and visible setup activity
 
 - Disable the unused native file-drop handler on both desktop windows through Tauri's supported API. Avoid Wine's reproduced OLE drag/drop crash without disabling WebView sandboxing or HTML drag/drop.

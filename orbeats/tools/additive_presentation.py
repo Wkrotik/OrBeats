@@ -1,6 +1,7 @@
 """Unmodded per-map palette and level timing/loudness metadata."""
 
 import math
+import re
 
 COLORS = (
     "saberAColor",
@@ -39,6 +40,16 @@ def color(value):
     return [scalar(value[k], 0, 1) for k in ("r", "g", "b")] + [scalar(value.get("a", 1), 0, 1)]
 
 
+def v4_color(value):
+    """InfoV4 stores scheme colors as eight hexadecimal RGBA digits."""
+    if isinstance(value, str):
+        if not re.fullmatch(r"[0-9a-fA-F]{8}", value):
+            raise ValueError("invalid InfoV4 hexadecimal RGBA color; expected eight hex digits")
+        value = dict(zip("rgba", (channel / 255 for channel in bytes.fromhex(value))))
+    color(value)
+    return value
+
+
 def v4_difficulty_custom(value):
     """Translate only known InfoV4 cosmetic keys into existing palette handling.
 
@@ -55,8 +66,7 @@ def v4_difficulty_custom(value):
                 raise ValueError("invalid InfoV4 difficulty label")
             result["_difficultyLabel"] = item
         else:
-            color(item)
-            result[names[name]] = dict(item)
+            result[names[name]] = dict(v4_color(item))
     return result
 
 

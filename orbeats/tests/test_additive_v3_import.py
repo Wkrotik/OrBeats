@@ -115,7 +115,7 @@ def test_arc_geometry_and_piecewise_head_tail_seconds_preserved():
 
 @pytest.mark.parametrize('field,bad',[('b',True),('b',-1),('tb',.5),('tb',0),('tb',float('inf')),
     ('x',4),('tx',-1),('y',3),('ty',True),('c',2),('d',9),('tc',1.5),('m',3),
-    ('mu',float('nan')),('mu',-1),('tmu',101),('customData',{'animation':1})])
+    ('mu',float('nan')),('mu',-101),('tmu',101),('customData',{'animation':1})])
 def test_bad_arc_refused_by_both_importer_and_bundle_validator(tmp_path,field,bad):
     a=arc();a[field]=bad;d=chart();d['sliders']=[a]
     with pytest.raises(ValueError,match='arc'):imp.convert_map(d,120)

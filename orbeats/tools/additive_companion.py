@@ -118,6 +118,37 @@ def checked(ftp, song):
     return data
 
 
+def installed_version(ftp, songs, metadata, title):
+    """Skip only a verified BeatSaver revision with intact installed files."""
+    if not isinstance(metadata, dict) or not isinstance(metadata.get("id"), str) or not re.fullmatch(r"[0-9a-f]{1,12}", metadata["id"]):
+        return None
+    versions = metadata.get("versions", [])
+    if not isinstance(versions, list) or not versions or not isinstance(versions[0], dict):
+        return None
+    source_hash = versions[0].get("hash")
+    if not isinstance(source_hash, str) or not re.fullmatch(r"[0-9a-f]{40}", source_hash):
+        return None
+    for song in songs:
+        # A title is only a lookup filter, never evidence of an installed revision.
+        if song["title"] != title:
+            continue
+        raw = read(ftp, BASE + "/" + song["id"] + "-media/map-info.json", 2000001, missing=True)
+        if raw is None:
+            continue
+        try:
+            previous = json.loads(raw)
+        except (ValueError, UnicodeDecodeError):
+            continue
+        if not isinstance(previous, dict) or previous.get("id") != metadata.get("id"):
+            continue
+        revisions = previous.get("versions", [])
+        if (isinstance(revisions, list) and revisions and isinstance(revisions[0], dict)
+                and revisions[0].get("hash") == source_hash):
+            checked(ftp, song)
+            return song
+    return None
+
+
 def stage(ftp, path, content, run):
     closed(ftp)
     temporary = path + ".stage-" + run
@@ -231,6 +262,38 @@ def download(map_id, destination):
     return folder
 
 
+def check_wall_layers(map_id):
+    """Public archive inspection only, not a conversion or a console operation."""
+    with tempfile.TemporaryDirectory(prefix="orbeats-walls-") as tmp:
+        source = download(map_id, Path(tmp) / "source")
+        importer = helper("import_v4_additive.py")
+        prepare = helper("prepare_additive_bundle.py")
+        info = json.loads(next(p for p in source.iterdir() if p.name.lower() == "info.dat").read_text(encoding="utf-8-sig"))
+        metadata = json.loads((source / "beatsaver-metadata.json").read_bytes())
+        blockers = set()
+        for name in dict.fromkeys(importer.references(info)):
+            data = json.loads(prepare.local_file(source, name).read_text(encoding="utf-8-sig"))
+            for table in ("obstaclesData", "obstacles"):
+                walls = data.get(table, [])
+                if not isinstance(walls, list) or len(walls) > 200000:
+                    raise ValueError("Invalid bounded wall data")
+                for wall in walls:
+                    if not isinstance(wall, dict):
+                        raise ValueError("Invalid wall record")
+                    layer = wall.get("y", 0)
+                    if type(layer) is not int or layer < 0:
+                        raise ValueError("Invalid wall layer; archive still needs validation")
+                    if layer > 2:
+                        blockers.add(f"PS4 wall layer {layer} is unsupported (layers 0..2 only)")
+                    x, width, height = wall.get("x", 0), wall.get("w", 1), wall.get("h", 5)
+                    if any(type(v) is not int for v in (x, width, height)):
+                        raise ValueError("Invalid wall dimensions")
+                    if not (-4 <= x <= 7 and 1 <= width <= 4 and x + width <= 8 and 1 <= height <= 5):
+                        blockers.add("Wall dimensions exceed the reviewed PS4 geometry bounds")
+        return {"hash": metadata["versions"][0]["hash"], "blockers": sorted(blockers),
+                "message": "Wall layers and dimensions checked from the verified archive. Other compatibility checks still run during installation."}
+
+
 def install(config, map_id="", song_dir="", report_dir=None):
     if config.get("title", {}).get("id") != "CUSA12878":
         raise ValueError("only CUSA12878 2.04 supported")
@@ -271,29 +334,49 @@ def install(config, map_id="", song_dir="", report_dir=None):
         locked = True
         songs, old = load_library(ftp)
         print(f"[additive] Retaining {len(songs)} library entries; unrelated map files are not audited.", flush=True)
-        template_seed = None
-        if old is None:
-            # Compiled legacy defaults are not proof of installation: verify once before migration.
-            print("[additive] Verifying legacy files for one-time manifest migration...", flush=True)
-            for i, s in enumerate(songs):
-                content = checked(ftp, s)
-                if i == 0:
-                    template_seed = content[0]
-                del content
-        elif songs:
-            print("[additive] Reading one verified conversion template...", flush=True)
-            template_seed = checked_bundle(ftp, songs[0])
         with tempfile.TemporaryDirectory(prefix="bsd-additive-") as tmp:
             tmp = Path(tmp)
             source = Path(song_dir).resolve() if song_dir else download(map_id, tmp / "download")
-            importer = helper("import_v3_additive.py")
-            prepare = helper("prepare_additive_bundle.py")
-            media = helper("prepare_additive_media.py")
             source_metadata = source / "beatsaver-metadata.json"
             infos = [p for p in source.iterdir() if p.name.lower() == "info.dat"]
             if len(infos) != 1:
                 raise ValueError("one Info.dat required")
             info = json.loads(infos[0].read_text(encoding="utf-8-sig"))
+            if not song_dir and old is not None and source_metadata.is_file():
+                print("[additive] Checking whether this BeatSaver version is already installed...", flush=True)
+                title = info.get("_songName")
+                if title is None and isinstance(info.get("song"), dict):
+                    title = info["song"].get("title")
+                same = installed_version(ftp, songs, json.loads(source_metadata.read_bytes()), title)
+                if same is not None:
+                    closed(ftp)
+                    if read(ftp, BASE + "/library.bin", MAX_BYTES + 1) != old:
+                        raise ValueError("Library changed while checking the installed map; retry after stopping other writers")
+                    print("[additive] Already installed: exact BeatSaver version verified; skipping conversion and upload.", flush=True)
+                    return {"ok": True, "already_present": True, "title": same["title"],
+                            "count": len(songs), "restart_required": False}
+            template_seed = None
+            if old is None:
+                # Compiled defaults are not proof of installation: verify before migration.
+                print("[additive] Verifying legacy files for one-time manifest migration...", flush=True)
+                for i, s in enumerate(songs):
+                    content = checked(ftp, s)
+                    if i == 0:
+                        template_seed = content[0]
+                    del content
+            elif config.get("additive_template") and Path(config["additive_template"]).is_file():
+                # Setup already validated this owned template; prepare validates every generated bundle.
+                local = Path(config["additive_template"])
+                if local.stat().st_size > 200000000:
+                    raise ValueError("Conversion template exceeds size bound")
+                print("[additive] Using local conversion template; skipping its FTP download...", flush=True)
+                template_seed = local.read_bytes()
+            elif songs:
+                print("[additive] Reading one verified conversion template...", flush=True)
+                template_seed = checked_bundle(ftp, songs[0])
+            importer = helper("import_v3_additive.py")
+            prepare = helper("prepare_additive_bundle.py")
+            media = helper("prepare_additive_media.py")
             if not str(info.get("_version", "")).startswith("2."):
                 print("[additive] Converting supported InfoV4/V4 charts to the PS4 format...", flush=True)
                 v4_source = tmp / "v4-source"
@@ -309,7 +392,7 @@ def install(config, map_id="", song_dir="", report_dir=None):
             for skipped in import_report.get("skipped_difficulties", []):
                 print("[additive] Not installed: " + skipped, flush=True)
             template = tmp / "template.bundle"
-            seed = template_seed if songs else read(ftp, BASE + "/template.bundle", 200000001, missing=True)
+            seed = template_seed if template_seed is not None else read(ftp, BASE + "/template.bundle", 200000001, missing=True)
             if seed is None:
                 local = Path(config.get("additive_template", ""))
                 if not local.is_file():
@@ -354,6 +437,8 @@ def install(config, map_id="", song_dir="", report_dir=None):
                 (out / "manifest.json").write_text(json.dumps(manifest))
             menu = tmp / "media"
             m = media.prepare(source, out / "manifest.json", menu)
+            if m.get("preview_adjusted"):
+                print(f"[additive] Menu preview bounded to {m['preview_duration_seconds']:.3f}s within the audio; gameplay unchanged.", flush=True)
             blobs = [
                 (out / manifest["bundle"]["file"]).read_bytes(),
                 (menu / "song-cover.png").read_bytes(),

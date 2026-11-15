@@ -4,10 +4,12 @@ import datetime
 import ipaddress
 import urllib.parse
 
-import library_manager as library
+import library_manager as library  # Initializes the bundled tools path before sibling imports.
+
+# isort: split
 import extras_manager as extras
-import release_updates
 import first_setup
+import release_updates
 from adapters import beatsaver, config, paths
 from fastapi import APIRouter, HTTPException
 from fastapi.responses import Response
@@ -119,6 +121,16 @@ def search(q: str = "", sort: str = "Latest", period: str = "all", page: int = 0
         )
     except beatsaver.BeatSaverError as e:
         raise HTTPException(502, str(e))
+
+
+@router.post("/map/{key}/walls")
+def check_walls(key: str):
+    return guarded(library.core.check_wall_layers, key)
+
+
+@router.post("/library/remove")
+def remove_maps(body: dict):
+    return guarded(library.remove_many, settings(), body.get("ids"))
 
 
 @router.get("/map/{key}")

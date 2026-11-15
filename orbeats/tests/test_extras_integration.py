@@ -181,7 +181,7 @@ def test_sidecar_publication_is_immutable_closed_title_and_readback():
     assert api.guards == 2 and api.renames == 1
     module.publish(api, api, song, "c" * 40, "run")
     assert api.renames == 1
-    with pytest.raises(ValueError, match="conflicting"):
+    with pytest.raises(ValueError, match="conflicting.*not supported.*preserved"):
         module.publish(api, api, song, "d" * 40, "run")
     api = API()
     api.corrupt = True
